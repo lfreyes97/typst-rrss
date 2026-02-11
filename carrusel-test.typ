@@ -21,5 +21,5 @@
   t,
   slides: slides,
   title: "La evidencia de Dios",
-  bg-image: image("assets/contours.svg", width: 100%),
+  bg-image: image("assets/generated_contours.svg"),
 )
