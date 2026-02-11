@@ -56,3 +56,15 @@ theme  = "sunset"
 recolor = true
 recolor_intensity = 0.85
 accent = "auto"
+
+[[post]]
+name = "carrusel-test"
+title = "La evidencia de Dios"
+layout = "carousel"
+image = "assets/bg-ciencia.jpg"
+contour = true
+slides = [
+  "El argumento cosmológico Kalam demuestra que el universo tuvo un inicio.",
+  "Si tuvo un inicio, debe tener una causa trascendente, inmaterial y poderosa.",
+  "Esta causa coincide con la descripción del Dios bíblico."
+]

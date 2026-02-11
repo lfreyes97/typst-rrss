@@ -281,3 +281,83 @@
     ]
   ]
 }
+
+/// Layout de carrusel — múltiples slides con fondo de contorno.
+///
+/// - t (dictionary): Paleta de tema
+/// - slides (array): Lista de contenidos (strings o content) para cada slide
+/// - title (str): Título opcional (para primera slide o metadata)
+/// - bg-contour (content): Imagen de contorno (pasar `image("ruta")` directamente)
+/// -> content
+#let carousel-layout(
+  t,
+  slides: (),
+  title: "",
+  bg-contour: none,
+) = {
+  let total = slides.len()
+
+  // Iterar sobre slides
+  for (i, slide) in slides.enumerate() {
+    // Forzar salto de página excepto en la primera si es el inicio
+    if i > 0 { pagebreak(weak: true) }
+
+    // Configurar página actual (fondo, márgenes)
+    set page(fill: t.bg, margin: 0pt)
+
+    // ─── Fondo de contorno ────────────────────────────────────────
+    if bg-contour != none {
+      place(center + horizon)[
+        block(width: 100%, height: 100%)[
+        #set image(fit: "cover")
+        #set align(center + horizon)
+        // Opacidad reducida para que sea sutil
+        #bg-contour
+        ]
+      ]
+      // Capa oscura semi-transparente para mejorar legibilidad
+      place(center + horizon)[
+        block(width: 100%, height: 100%, fill: t.bg.transparentize(15%))
+      ]
+    }
+
+    // ─── Contenido del Slide ──────────────────────────────────────
+    place(center + horizon)[
+      block(
+      width: 100%,
+      height: 100%,
+      inset: spacing.xxl,
+      )[
+      #set align(center + horizon)
+      #set text(fill: t.text, font: fonts.heading.first(), size: sizes.subtitle)
+      #set par(leading: 0.8em)
+
+      // Si hay título y es la primera slide, mostrarlo pequeño arriba
+      #if i == 0 and title != "" {
+        v(-spacing.xl)
+        block(width: 100%, inset: (bottom: spacing.lg))[
+          #text(size: sizes.caption, weight: "bold", tracking: 2pt, fill: t.primary)[#upper(title)]
+          #v(spacing.xs)
+          #line(length: 40pt, stroke: 2pt + t.primary)
+        ]
+        v(spacing.lg)
+      }
+
+      // Texto del slide
+      #text(weight: "medium")[#slide]
+      ]
+    ]
+
+    // ─── Footer: Numeración ───────────────────────────────────────
+    place(bottom + right, dx: -spacing.md, dy: -spacing.md)[
+      block(
+      fill: t.surface,
+      inset: (x: 12pt, y: 6pt),
+      radius: 4pt,
+      )[
+      #set text(size: sizes.small, weight: "bold", fill: t.muted)
+      #(i + 1) / #total
+      ]
+    ]
+  }
+}

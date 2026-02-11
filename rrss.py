@@ -10,7 +10,7 @@ from pathlib import Path
 
 import click
 import colorgram
-from PIL import Image, ImageEnhance, ImageOps
+from PIL import Image, ImageEnhance, ImageOps, ImageFilter
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -216,7 +216,74 @@ def recolor_image(
     return output_path
 
 
+def generate_contours(image_path: str) -> str:
+    """Genera una versión de contornos (blueprint) de la imagen.
+
+    Usa filtro FIND_EDGES, invierte colores y hace transparente el fondo negro.
+    Aplica Blur y Threshold para limpiar el ruido y dejar trazos más definidos.
+    Retorna la ruta de la imagen procesada.
+    """
+    img = Image.open(image_path).convert("L")  # Grayscale
+    
+    # 1. Reducir ruido (detalles finos)
+    img = img.filter(ImageFilter.GaussianBlur(radius=1.5))
+    
+    # 2. Detectar bordes
+    edges = img.filter(ImageFilter.FIND_EDGES) 
+    
+    # 3. Limpiar bordes débiles (Threshold)
+    # Todo lo menor a 30 se vuelve negro (0), lo mayor se vuelve blanco (255)
+    # Ajustar el umbral según se necesite. Valor alto = menos líneas.
+    edges = edges.point(lambda x: 255 if x > 30 else 0)
+    
+    # Invertir: bordes negros -> blancos, fondo blanco -> negro (para la máscara visual)
+    # Pero para la máscara alpha queremos: bordes=blanco(opaco), fondo=negro(transparente)
+    
+    # Truco:
+    # La imagen 'edges' actual tiene bordes BLANCOS y fondo NEGRO.
+    # Queremos pintar de blanco donde haya bordes.
+    
+    white = Image.new("L", edges.size, 255)
+    mask = edges  # Bordes blancos (opacos), fondo negro (transparente)
+
+    # Componer: Color blanco + Máscara
+    result = Image.merge("LA", (white, mask))
+
+    p = Path(image_path)
+    output_path = str(p.parent / f"{p.stem}_contour.png")
+    result.save(output_path, "PNG")
+    return output_path
+
+
 # ─── Templates Typst ─────────────────────────────────────────────────────────
+
+MAIN_TEMPLATE_CAROUSEL = textwrap.dedent("""\
+    // Auto-generado por rrss.py
+    #import "lib.typ": *
+
+    #let platform = "{platform}"
+    #let t = theme("{theme}")
+    #let dims = platforms.at(platform)
+
+    #set page(
+      width: dims.width,
+      height: dims.height,
+      margin: 0pt,
+      fill: t.bg,
+    )
+
+    #set text(font: fonts.body.first(), fill: t.text)
+    
+    // Slides
+    #let slides = {slides_content}
+
+    #carousel-layout(
+      t,
+      slides: slides,
+      title: "{title}",
+      bg-contour: {bg_contour_line},
+    )
+""")
 
 MAIN_TEMPLATE_ARTICLE = textwrap.dedent("""\
     // Auto-generado por rrss.py
@@ -432,8 +499,10 @@ def suggest_accent_fn(image_path: str) -> str:
 @click.option("--theme", "theme_name", type=click.Choice(["dark", "light", "ocean", "sunset", "forest"]), default="dark", help="Tema de color")
 @click.option("--author", default="", help="Autor (para layout quote)")
 @click.option("--tag", default=None, help="Tag/etiqueta (para layout hero)")
+@click.option("--slides", default=None, help="Lista de slides (separados por |) para layout carousel")
+@click.option("--contour", is_flag=True, help="Generar contorno para carousel")
 @click.option("--output", "-o", "output_file", default="main.typ", help="Archivo de salida")
-def generate(brand, title, quote, image_path, accent, auto_accent, url, platform, layout, theme_name, author, tag, output_file):
+def generate(brand, title, quote, image_path, accent, auto_accent, url, platform, layout, theme_name, author, tag, slides, contour, output_file):
     """Genera main.typ con los datos proporcionados.
 
     Ejemplo: rrss.py generate --title "Mi título" --quote "Mi cita"
@@ -444,6 +513,15 @@ def generate(brand, title, quote, image_path, accent, auto_accent, url, platform
         console.print(f"[cyan]⟩[/cyan] Acento auto-extraído: [on {accent}]  {accent}  [/]")
 
     accent = accent.lstrip("#")
+    
+    # Procesar contour si es solicitado
+    bg_contour_line = "none"
+    if contour and image_path and layout == "carousel":
+        abs_contour_path = generate_contours(str(ROOT / image_path))
+        # Convertir a relativa para Typst
+        rel_contour_path = Path(abs_contour_path).relative_to(ROOT)
+        bg_contour_line = f'image("{rel_contour_path}", width: 100%)'
+        console.print(f"[cyan]⟩[/cyan] Contorno generado: {rel_contour_path}")
 
     if layout == "article":
         bg_line = f'bg-image: image("{image_path}", width: 100%),' if image_path else "// sin imagen de fondo"
@@ -476,6 +554,22 @@ def generate(brand, title, quote, image_path, accent, auto_accent, url, platform
             quote=quote,
             tag_line=tag_line,
         )
+    elif layout == "carousel":
+        # slides puede venir como string separado por pipes desde CLI
+        # o se asume ya formateado si viene desde build
+        if slides and isinstance(slides, str) and "|" in slides:
+             slides_list = [s.strip() for s in slides.split("|")]
+             slides_content = "(" + ", ".join([f'"{s}"' for s in slides_list]) + ",)"
+        else:
+             slides_content = slides # Asumimos string Typst válido o vacío
+            
+        content = MAIN_TEMPLATE_CAROUSEL.format(
+            platform=platform,
+            theme=theme_name,
+            title=title,
+            slides_content=slides_content,
+            bg_contour_line=bg_contour_line,
+        )
 
     out_path = ROOT / output_file
     out_path.write_text(content, encoding="utf-8")
@@ -484,35 +578,41 @@ def generate(brand, title, quote, image_path, accent, auto_accent, url, platform
 
 # ─── Subcomando: compile ─────────────────────────────────────────────────────
 
+def _get_size(path: Path | None) -> str:
+    """Helper para obtener el tamaño de un archivo en formato legible."""
+    if not path or not path.exists():
+        return "0K"
+    size = path.stat().st_size
+    if size < 1024:
+        return f"{size}B"
+    elif size < 1024 * 1024:
+        return f"{size / 1024:.0f}K"
+    else:
+        return f"{size / (1024 * 1024):.1f}M"
 
 @cli.command()
 @click.argument("files", nargs=-1)
-@click.option("--ppi", default=144, type=int, help="Pixeles por pulgada")
-@click.option("--output-dir", "-o", default="output", help="Carpeta de salida")
-@click.option("--all", "compile_all", is_flag=True, help="Compilar todos en content/")
-def compile(files, ppi, output_dir, compile_all):
-    """Compila archivos .typ a PNG.
-
-    Ejemplo: rrss.py compile                  (compila main.typ)\n
-             rrss.py compile content/quote.typ (archivo específico)\n
-             rrss.py compile --all             (todos en content/)
-    """
-    out_dir = ROOT / output_dir
-    out_dir.mkdir(exist_ok=True)
-
+@click.option("--ppi", default=144, type=int, help="Pixeles por pulgada (default 144)")
+@click.option("--output-dir", "-d", default="output", help="Directorio de salida")
+@click.option("--all", "-a", "compile_all", is_flag=True, help="Compilar todos los .typ en content/")
+@click.option("--template", default=None, help="Patrón de numeración (ej: {0p}) para multipágina")
+def compile(files, ppi, output_dir, compile_all, template):
+    """Compila archivos .typ a PNG."""
     if compile_all:
-        targets = sorted((ROOT / "content").glob("*.typ"))
+        files = sorted((ROOT / "content").glob("*.typ"))
     elif files:
-        targets = [ROOT / f for f in files]
+        files = [ROOT / f for f in files]
     else:
-        targets = [ROOT / "main.typ"]
-
-    if not targets:
-        console.print("[yellow]⚠[/yellow] No se encontraron archivos .typ")
+        files = [ROOT / "main.typ"]
+    
+    if not files:
+        console.print("[yellow]⚠[/yellow] No se especificaron archivos para compilar.")
         return
 
+    Path(output_dir).mkdir(exist_ok=True)
+    
     console.print(Panel(
-        f"[bold]PPI:[/bold] {ppi}  [bold]Archivos:[/bold] {len(targets)}  [bold]Salida:[/bold] {output_dir}/",
+        f"[bold]PPI:[/bold] {ppi}  [bold]Archivos:[/bold] {len(files)}  [bold]Salida:[/bold] {output_dir}/",
         title="[bold cyan]typst-rrss[/bold cyan]",
         border_style="cyan",
     ))
@@ -520,20 +620,40 @@ def compile(files, ppi, output_dir, compile_all):
     success = 0
     failed = 0
 
-    for target in targets:
+    for target in files:
         name = target.stem
-        output = out_dir / f"{name}.png"
+        
+        if template:
+            # Si hay template, usamos el patrón (ej: {0p}) en el nombre
+            out_filename = f"{name}-{template}.png"
+        else:
+            out_filename = f"{name}.png"
+            
+        output = Path(output_dir) / out_filename
+        
         console.print(f"  [blue]⟩[/blue] {name}...", end=" ")
 
         result = subprocess.run(
-            ["typst", "compile", "--root", str(ROOT), "--ppi", str(ppi), str(target), str(output)],
+            ["typst", "compile", "--root", str(ROOT), f"--ppi={ppi}", str(target), str(output)],
             capture_output=True,
             text=True,
         )
 
         if result.returncode == 0:
-            size = output.stat().st_size
-            size_str = f"{size / 1024:.0f}K" if size < 1024 * 1024 else f"{size / (1024*1024):.1f}M"
+            # En multipágina, typst genera archivo_1.png, archivo_2.png, etc. si el patrón es {n}
+            # Ojo: si usamos template={0p}, typst genera carrusel-test-01.png, carrusel-test-02.png
+            # str(output) ya contiene el patrón.
+            
+            # Para mostrar tamaño, intentamos adivinar el primer archivo generado
+            # Si el patrón tiene {p}, el primer archivo seria ...1.png
+            if template:
+                # Comprobar si se generó algún archivo que coincida
+                generated = list(Path(output_dir).glob(f"{name}-*.png"))
+                size_str = f"{len(generated)} imgs"
+            else:
+                size = output.stat().st_size if output.exists() else 0
+                size_str = _get_size(output)
+            
             console.print(f"[green]✓[/green] ({size_str})")
             success += 1
         else:
@@ -654,6 +774,16 @@ def build(config_file: str, only_name: str | None, dry_run: bool):
         author = merged.get("author", "")
         tag = merged.get("tag", None)
         ppi = merged.get("ppi", 144)
+        
+        # Carousel slides
+        slides = merged.get("slides", [])
+        contour = merged.get("contour", False)
+        
+        # Formatear slides para Typst
+        if slides:
+            slides_content = "(" + ", ".join([f'[_{s}_]' for s in slides]) + ",)"
+        else:
+            slides_content = "()"
 
         # Auto-accent
         auto_accent = accent == "auto"
@@ -693,13 +823,16 @@ def build(config_file: str, only_name: str | None, dry_run: bool):
                 brand=brand, title=title, quote=quote, image_path=actual_image,
                 accent=accent, auto_accent=auto_accent, url=url, platform=platform,
                 layout=layout, theme_name=theme_name, author=author, tag=tag,
+                slides=slides_content, contour=contour,
                 output_file=typ_file,
             )
 
             # Compile
+            template_pattern = "{0p}" if layout == "carousel" else None
             ctx.invoke(
                 compile,
                 files=(typ_file,), ppi=ppi, output_dir="output", compile_all=False,
+                template=template_pattern,
             )
             success += 1
         except Exception as e:
