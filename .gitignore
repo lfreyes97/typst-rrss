@@ -1,0 +1,10 @@
+# Output generado
+output/
+
+# Archivos temporales de Typst
+*.pdf
+
+# Python / uv
+.venv/
+__pycache__/
+*.pyc

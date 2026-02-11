@@ -1,0 +1,58 @@
+# =============================================================================
+# posts.toml — Define tus posts para redes sociales
+# =============================================================================
+# Genera todos:  ./rrss build
+# Genera uno:    ./rrss build --only ciencia
+# =============================================================================
+
+# ─── Valores por defecto (se heredan a cada [[post]]) ────────────────────────
+
+[defaults]
+brand    = "Presuposicionalismo"
+url      = "Presuposicionalismo.com"
+platform = "instagram-post"
+layout   = "article"
+theme    = "dark"
+ppi      = 144
+
+# ─── Posts ───────────────────────────────────────────────────────────────────
+
+[[post]]
+name   = "ciencia"
+title  = "Ciencia: Una celebración y un lamento"
+quote  = "Cuando David vio las estrellas y el sol, alabó a Dios. ¡Qué nuevas y espectaculares bellezas tenemos ahora a la vista, gracias a los descubrimientos del siglo XX!"
+image  = "assets/bg-ciencia.jpg"
+accent = "#2d2d2d"
+
+[[post]]
+name   = "creacion"
+title  = "La Creación bajo ataque"
+quote  = "Cuando los incrédulos dicen que saben que el mundo es eterno o auto-existente, por un lado, están ejerciendo fe en sus presuposiciones naturalistas"
+image  = "assets/bg-ciencia.jpg"
+accent = "auto"  # extrae el acento de la imagen automáticamente
+
+[[post]]
+name   = "cosmovisiones"
+title  = "Definiendo las cosmovisiones"
+quote  = "Una cosmovisión es una red de presuposiciones que no están verificadas por los procedimientos de la ciencia natural, acerca de la realidad, del saber y de la conducta"
+image  = "assets/bg-ciencia.jpg"
+accent = "#8b6914"
+
+[[post]]
+name   = "oceano"
+title  = "La Roca de los siglos"
+quote  = "Dios no necesita que lo defendamos. Él es la precondición de toda defensa."
+image  = "assets/bg-ciencia.jpg"
+theme  = "ocean"
+recolor = true
+accent  = "auto"
+
+[[post]]
+name   = "atardecer"
+title  = "La luz en la oscuridad"
+quote  = "El temor de Jehová es el principio de la sabiduría, y el conocimiento del Santo es la inteligencia."
+image  = "assets/bg-ciencia.jpg"
+theme  = "sunset"
+recolor = true
+recolor_intensity = 0.85
+accent = "auto"

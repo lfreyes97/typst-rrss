@@ -1,0 +1,13 @@
+[project]
+name = "typst-rrss"
+version = "0.1.0"
+description = "Generador de imágenes para redes sociales con Typst"
+requires-python = ">=3.12"
+dependencies = [
+    "click>=8.3.1",
+    "colorgram-py>=1.2.0",
+    "rich>=14.3.2",
+]
+
+[project.scripts]
+rrss = "rrss:cli"
