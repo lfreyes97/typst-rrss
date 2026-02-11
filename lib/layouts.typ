@@ -289,75 +289,122 @@
 /// - title (str): Título opcional (para primera slide o metadata)
 /// - bg-contour (content): Imagen de contorno (pasar `image("ruta")` directamente)
 /// -> content
+/// Layout de carrusel — múltiples slides con fondo continuo.
+///
+/// - t (dictionary): Paleta de tema
+/// - slides (array): Lista de contenidos. Puede ser string o content.
+/// - title (str): Título principal (para la slide de portada).
+/// - bg-image (content): Imagen de fondo (SVG/PNG) que se extenderá por todo el carrusel.
+/// - brand (str): Marca para el header.
+/// -> content
 #let carousel-layout(
   t,
   slides: (),
   title: "",
-  bg-contour: none,
+  bg-image: none,
+  brand: "Presuposicionalismo",
 ) = {
   let total = slides.len()
 
   // Iterar sobre slides
   for (i, slide) in slides.enumerate() {
-    // Forzar salto de página excepto en la primera si es el inicio
+    // Salto de página entre slides
     if i > 0 { pagebreak(weak: true) }
 
-    // Configurar página actual (fondo, márgenes)
+    // Fondo base
     set page(fill: t.bg, margin: 0pt)
 
-    // ─── Fondo de contorno ────────────────────────────────────────
-    if bg-contour != none {
-      place(center + horizon)[
-        block(width: 100%, height: 100%)[
-        #set image(fit: "cover")
-        #set align(center + horizon)
-        // Opacidad reducida para que sea sutil
-        #bg-contour
+    // ─── Fondo Continuo (Sliding Window) ──────────────────────────
+    // La imagen se escala al ancho total del carrusel y se desplaza
+    if bg-image != none {
+      place(top + left)[
+        #block(width: 100%, height: 100%, clip: true)[
+          #place(top + left, dx: -100% * i)[
+            #block(width: 100% * total, height: 100%)[
+              #set image(fit: "cover")
+              #bg-image
+            ]
+          ]
+          // Capa de oscurecimiento para legibilidad
+          #block(width: 100%, height: 100%, fill: t.bg.transparentize(10%))
         ]
-      ]
-      // Capa oscura semi-transparente para mejorar legibilidad
-      place(center + horizon)[
-        block(width: 100%, height: 100%, fill: t.bg.transparentize(15%))
       ]
     }
 
-    // ─── Contenido del Slide ──────────────────────────────────────
-    place(center + horizon)[
-      block(
-      width: 100%,
-      height: 100%,
-      inset: spacing.xxl,
-      )[
-      #set align(center + horizon)
-      #set text(fill: t.text, font: fonts.heading.first(), size: sizes.subtitle)
-      #set par(leading: 0.8em)
+    // ─── Contenido ──────────────────────────────────────────────
 
-      // Si hay título y es la primera slide, mostrarlo pequeño arriba
-      #if i == 0 and title != "" {
-        v(-spacing.xl)
-        block(width: 100%, inset: (bottom: spacing.lg))[
-          #text(size: sizes.caption, weight: "bold", tracking: 2pt, fill: t.primary)[#upper(title)]
-          #v(spacing.xs)
-          #line(length: 40pt, stroke: 2pt + t.primary)
+    // Slide 1: PORTADA (si hay título)
+    if i == 0 and title != "" {
+      place(center + horizon)[
+        #block(width: 100%, height: 100%, inset: spacing.xl)[
+          #set align(center + horizon)
+
+          // Header Marca
+          #place(top + center)[
+            #set text(fill: t.text.transparentize(40%), size: sizes.small, weight: "bold", tracking: 3pt)
+            #upper(brand)
+          ]
+
+          // Título Principal
+          #block(width: 100%)[
+            #set text(fill: t.text, font: fonts.heading.first(), size: sizes.hero * 1.2, weight: "black")
+            #set par(leading: 0.65em)
+            #upper(title)
+          ]
+
+          #v(spacing.lg)
+
+          // Separador
+          #line(length: 60pt, stroke: 4pt + t.primary)
+
+          #v(spacing.lg)
+
+          // Hook / Subtítulo (primer slide content)
+          #block(width: 85%)[
+            #set text(fill: t.text.transparentize(20%), size: sizes.subtitle, weight: "medium")
+            #slide
+          ]
+
+          // Indicador "Swipe"
+          #place(bottom + center)[
+            #text(fill: t.primary, size: sizes.small, weight: "bold", tracking: 2pt)[DESLIZA →]
+          ]
         ]
-        v(spacing.lg)
-      }
-
-      // Texto del slide
-      #text(weight: "medium")[#slide]
       ]
-    ]
+    } else {
+      // Slide 2+: CONTENIDO
+      place(center + horizon)[
+        #block(
+          width: 100%,
+          height: 100%,
+          inset: (x: spacing.xl, y: spacing.xxl), // Más margen vertical
+        )[
+          #set align(left + horizon)
+          #set text(fill: t.text, font: fonts.heading.first(), size: sizes.title * 0.9)
+          #set par(leading: 0.8em)
 
-    // ─── Footer: Numeración ───────────────────────────────────────
-    place(bottom + right, dx: -spacing.md, dy: -spacing.md)[
-      block(
-      fill: t.surface,
-      inset: (x: 12pt, y: 6pt),
-      radius: 4pt,
-      )[
-      #set text(size: sizes.small, weight: "bold", fill: t.muted)
-      #(i + 1) / #total
+          // Header discreto
+          #place(top + left)[
+            #set text(fill: t.text.transparentize(60%), size: sizes.small, weight: "bold", tracking: 2pt)
+            #upper(title)
+          ]
+
+          // Contenido principal
+          #slide
+        ]
       ]
-    ]
+
+      // Footer: Numeración
+      place(bottom + right, dx: -spacing.md, dy: -spacing.md)[
+        block(
+        fill: t.surface,
+        inset: (x: 12pt, y: 6pt),
+        radius: 4pt,
+        )[
+        #set text(size: sizes.small, weight: "bold", fill: t.muted)
+        #(i + 1) / #total
+        ]
+      ]
+    }
   }
 }

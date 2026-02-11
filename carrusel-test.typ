@@ -1,7 +1,7 @@
 // Auto-generado por rrss.py
 #import "lib.typ": *
 
-#let platform = "instagram-post"
+#let platform = "instagram-carousel"
 #let t = theme("dark")
 #let dims = platforms.at(platform)
 
@@ -15,11 +15,11 @@
 #set text(font: fonts.body.first(), fill: t.text)
 
 // Slides
-#let slides = ([_El argumento cosmológico Kalam demuestra que el universo tuvo un inicio._], [_Si tuvo un inicio, debe tener una causa trascendente, inmaterial y poderosa._], [_Esta causa coincide con la descripción del Dios bíblico._],)
+#let slides = ([_¿Sabías que la ciencia apunta hacia un Creador?_], [_El argumento cosmológico Kalam demuestra que el universo tuvo un inicio absoluto._], [_Si el universo tuvo un inicio, debe tener una causa trascendente, inmaterial y sumamente poderosa._], [_Esta causa incausada coincide perfectamente con la descripción del Dios bíblico._],)
 
 #carousel-layout(
   t,
   slides: slides,
   title: "La evidencia de Dios",
-  bg-contour: image("assets/bg-ciencia_contour.png", width: 100%),
+  bg-image: image("assets/contours.svg", width: 100%),
 )

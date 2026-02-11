@@ -16,6 +16,9 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.color import Color as RichColor
 from rich import print as rprint
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.ndimage import gaussian_filter
 
 console = Console()
 ROOT = Path(__file__).parent.resolve()
@@ -24,6 +27,7 @@ ROOT = Path(__file__).parent.resolve()
 
 PLATFORMS = {
     "instagram-post": (1080, 1080),
+    "instagram-carousel": (1080, 1350),
     "instagram-story": (1080, 1920),
     "facebook-post": (1200, 630),
     "twitter-post": (1600, 900),
@@ -281,7 +285,7 @@ MAIN_TEMPLATE_CAROUSEL = textwrap.dedent("""\
       t,
       slides: slides,
       title: "{title}",
-      bg-contour: {bg_contour_line},
+      bg-image: {bg_image_line},
     )
 """)
 
@@ -514,14 +518,26 @@ def generate(brand, title, quote, image_path, accent, auto_accent, url, platform
 
     accent = accent.lstrip("#")
     
-    # Procesar contour si es solicitado
-    bg_contour_line = "none"
-    if contour and image_path and layout == "carousel":
-        abs_contour_path = generate_contours(str(ROOT / image_path))
-        # Convertir a relativa para Typst
-        rel_contour_path = Path(abs_contour_path).relative_to(ROOT)
-        bg_contour_line = f'image("{rel_contour_path}", width: 100%)'
-        console.print(f"[cyan]⟩[/cyan] Contorno generado: {rel_contour_path}")
+    # Procesar bg-image (ya sea contour o imagen directa)
+    bg_image_line = "none"
+    if layout == "carousel":
+        if contour:
+            if image_path:
+                # Contorno basado en imagen (edge detection)
+                abs_contour_path = generate_contours(str(ROOT / image_path))
+                rel_contour_path = Path(abs_contour_path).relative_to(ROOT)
+                bg_image_line = f'image("{rel_contour_path}", width: 100%)'
+                console.print(f"[cyan]⟩[/cyan] Contorno extraído de imagen: {rel_contour_path}")
+            else:
+                # Contorno generativo (ruido)
+                abs_contour_path = generate_noise_contours()
+                rel_contour_path = Path(abs_contour_path).relative_to(ROOT)
+                bg_image_line = f'image("{rel_contour_path}")'
+                console.print(f"[cyan]⟩[/cyan] Contorno generativo creado (Perlin): {rel_contour_path}")
+
+        elif image_path:
+             # Usar imagen directa
+             bg_image_line = f'image("{image_path}", width: 100%)'
 
     if layout == "article":
         bg_line = f'bg-image: image("{image_path}", width: 100%),' if image_path else "// sin imagen de fondo"
@@ -568,7 +584,7 @@ def generate(brand, title, quote, image_path, accent, auto_accent, url, platform
             theme=theme_name,
             title=title,
             slides_content=slides_content,
-            bg_contour_line=bg_contour_line,
+            bg_image_line=bg_image_line,
         )
 
     out_path = ROOT / output_file
@@ -846,6 +862,46 @@ def build(config_file: str, only_name: str | None, dry_run: bool):
         else:
             console.print()
 
+
+
+
+# ─── Generative Contours (Noise) ─────────────────────────────────────────────
+
+def generate_noise_contours(width=3240, height=1350, scale=4, levels=15, seed=None):
+    """Genera contornos suaves usando ruido gaussiano filtrado (simula Perlin).
+    
+    Retorna la ruta del archivo SVG generado.
+    """
+    if seed:
+        np.random.seed(seed)
+        
+    # Crear grid de ruido reducido
+    w_low, h_low = width // 10, height // 10
+    noise = np.random.randn(h_low, w_low)
+    
+    # Suavizar para crear "montañas" (efecto tipo Perlin)
+    sigma = max(w_low, h_low) / scale
+    smooth = gaussian_filter(noise, sigma=sigma)
+    
+    # Configurar plot sin bordes ni ejes
+    fig_w, fig_h = width / 100, height / 100 # Medida arbitraria para mantener ratio
+    fig = plt.figure(figsize=(fig_w, fig_h), frameon=False)
+    ax = plt.Axes(fig, [0., 0., 1., 1.])
+    ax.set_axis_off()
+    fig.add_axes(ax)
+    
+    # Dibujar contornos
+    # levels = número de líneas
+    ax.contour(smooth, levels=levels, colors='white', alpha=0.3, linewidths=1.5)
+    
+    # Guardar SVG
+    output_path = ROOT / "assets" / "generated_contours.svg"
+    output_path.parent.mkdir(exist_ok=True)
+    
+    fig.savefig(str(output_path), format='svg', transparent=True)
+    plt.close(fig)
+    
+    return str(output_path)
 
 if __name__ == "__main__":
     cli()
