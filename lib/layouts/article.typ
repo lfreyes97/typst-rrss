@@ -26,6 +26,7 @@
   overlay: none,
   accent: none,
   url: "Presuposicionalismo.com",
+  ..args,
 ) = {
   // Override accent color if provided
   let t = if accent != none {

@@ -11,7 +11,7 @@
 /// - subtitle (str): Subtítulo
 /// - tag (str): Tag/etiqueta opcional
 /// -> content
-#let hero-layout(t, title: "", subtitle: "", tag: none) = {
+#let hero-layout(t, title: "", subtitle: "", tag: none, ..args) = {
   set align(center + horizon)
   block(
     width: 100%,

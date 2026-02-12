@@ -11,7 +11,7 @@
 /// - author (str): Autor de la cita
 /// - source (str): Fuente opcional (libro, discurso, etc.)
 /// -> content
-#let quote-layout(t, quote-text: "", author: "", source: none) = {
+#let quote-layout(t, quote-text: "", author: "", source: none, ..args) = {
   set align(center + horizon)
   block(
     width: 100%,

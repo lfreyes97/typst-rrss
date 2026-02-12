@@ -1,75 +1,26 @@
-pub const MAIN_TEMPLATE_CAROUSEL: &str = r##"
+pub const GENERIC_TEMPLATE: &str = r##"
 // Auto-generado por rrss-cli-rs
 #import "lib.typ": *
-#import "templates/{platform}.typ": {platform}
+#import "lib/dispatcher.typ": render-post
 
-#let t = {theme}
-#let slides = {slides_content}
-
-#{platform}(theme: t)[
-  #carousel-layout(
-    t,
-    slides: slides,
-    title: "{title}",
-    bg-image: {bg_image_line},
-  )
-]
-"##;
-
-pub const MAIN_TEMPLATE_ARTICLE: &str = r##"
-// Auto-generado por rrss-cli-rs
-#import "lib.typ": *
-#import "templates/{platform}.typ": {platform}
-
-#let t = {theme}
-
-#{platform}(theme: t)[
-  #article-layout(
-    t,
+#let config = (
     brand: "{brand}",
-    {logo_line}
     title: "{title}",
-    quote-text: "{quote}",
-    {bg_image_line}
-    {overlay_line}
-    accent: rgb("{accent}"),
-    url: "{url}",
-  )
-]
-"##;
-
-pub const MAIN_TEMPLATE_QUOTE: &str = r##"
-// Auto-generado por rrss-cli-rs
-#import "lib.typ": *
-#import "templates/{platform}.typ": {platform}
-
-#let t = {theme}
-
-#{platform}(theme: t)[
-  #quote-layout(
-    t,
-    quote-text: "{quote}",
+    quote: "{quote}",
     author: "{author}",
-    source: {source}
-  )
-  #watermark(t, "{brand}")
-]
-"##;
+    source: {source},
+    url: "{url}",
+    platform: "{platform}",
+    layout: "{layout}",
+    theme: {theme},
+    bg-image: {bg_image_line},
+    overlay: {overlay_line},
+    logo: {logo_line},
+    accent: rgb("{accent}"),
+    tag: {tag_line},
+    slides: {slides_content},
+    contour: {contour},
+)
 
-pub const MAIN_TEMPLATE_HERO: &str = r##"
-// Auto-generado por rrss-cli-rs
-#import "lib.typ": *
-#import "templates/{platform}.typ": {platform}
-
-#let t = {theme}
-
-#{platform}(theme: t)[
-  #hero-layout(
-    t,
-    title: "{title}",
-    subtitle: "{quote}",
-    {tag_line}
-  )
-  #watermark(t, "{brand}")
-]
+#render-post(config)
 "##;

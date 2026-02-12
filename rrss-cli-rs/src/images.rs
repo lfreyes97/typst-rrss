@@ -3,6 +3,11 @@ use palette::{Srgb, Mix};
 use std::collections::HashMap;
 use std::str::FromStr;
 use std::path::{Path, PathBuf};
+use anyhow::{Context, Result, anyhow};
+
+// Security limits
+const MAX_IMAGE_SIZE_MB: u64 = 256;
+const MAX_IMAGE_DIMENSION: u32 = 4096;
 
 pub fn recolor_image(
     image_path: &str,
@@ -10,25 +15,44 @@ pub fn recolor_image(
     theme: &HashMap<String, String>,
     output_path: Option<&str>,
     intensity: f32,
-) -> anyhow::Result<String> {
-    let img = image::open(image_path)?;
+) -> Result<String> {
+    // Resource limit check
+    let metadata = std::fs::metadata(image_path).context("Failed to read image metadata")?;
+    if metadata.len() > MAX_IMAGE_SIZE_MB * 1024 * 1024 {
+        return Err(anyhow!(
+            "Image file too large: {} MB (max: {} MB)",
+            metadata.len() / (1024 * 1024),
+            MAX_IMAGE_SIZE_MB
+        ));
+    }
+    
+    let img = image::open(image_path).context("Failed to open image")?;
     let (width, height) = img.dimensions();
-    let root_path = Path::new(image_path).parent().unwrap();
-    let stem = Path::new(image_path).file_stem().unwrap().to_str().unwrap();
-    let ext = Path::new(image_path).extension().unwrap().to_str().unwrap();
+    
+    if width > MAX_IMAGE_DIMENSION || height > MAX_IMAGE_DIMENSION {
+        return Err(anyhow!(
+            "Image dimensions too large: {}x{} (max: {}x{})",
+            width, height, MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION
+        ));
+    }
+
+    let p = Path::new(image_path);
+    let root_path = p.parent().unwrap_or_else(|| Path::new("."));
+    let stem = p.file_stem().and_then(|s| s.to_str()).context("Invalid filename")?;
+    let ext = p.extension().and_then(|s| s.to_str()).unwrap_or("png");
     
     let default_output = root_path.join(format!("{}_{}.{}", stem, theme_name, ext));
     let out_path = output_path.map(PathBuf::from).unwrap_or(default_output);
     let is_jpeg = out_path.extension().map_or(false, |e| {
-        let s = e.to_string_lossy().to_lowercase();
-        s == "jpg" || s == "jpeg"
+         let s = e.to_string_lossy().to_lowercase();
+         s == "jpg" || s == "jpeg"
     });
 
-    let bg_hex = theme.get("bg").ok_or_else(|| anyhow::anyhow!("Theme missing 'bg'"))?;
-    let primary_hex = theme.get("primary").ok_or_else(|| anyhow::anyhow!("Theme missing 'primary'"))?;
+    let bg_hex = theme.get("bg").ok_or_else(|| anyhow!("Theme missing 'bg'"))?;
+    let primary_hex = theme.get("primary").ok_or_else(|| anyhow!("Theme missing 'primary'"))?;
     
-    let bg_color = Srgb::from_str(bg_hex).map_err(|_| anyhow::anyhow!("Invalid bg color"))?.into_linear();
-    let primary_color = Srgb::from_str(primary_hex).map_err(|_| anyhow::anyhow!("Invalid primary color"))?.into_linear();
+    let bg_color: palette::LinSrgb = Srgb::from_str(bg_hex).map_err(|_| anyhow!("Invalid bg color"))?.into_linear();
+    let primary_color: palette::LinSrgb = Srgb::from_str(primary_hex).map_err(|_| anyhow!("Invalid primary color"))?.into_linear();
     
     let mut buffer = ImageBuffer::new(width, height);
     
@@ -69,37 +93,31 @@ pub fn recolor_image(
         // Convert to RGB8 (drop alpha)
         let dynamic = image::DynamicImage::ImageRgba8(buffer);
         let rgb_img = dynamic.to_rgb8();
-        rgb_img.save(&out_path)?;
+        rgb_img.save(&out_path).context("Failed to save image")?;
     } else {
-        buffer.save(&out_path)?;
+        buffer.save(&out_path).context("Failed to save image")?;
     }
     
     Ok(out_path.to_string_lossy().to_string())
 }
 
-pub fn generate_contours(image_path: &str) -> anyhow::Result<String> {
-    // Simplistic edge detection using Sobel or similar, or just converting to grayscale and thresholding high frequency
-    // For now, let's implement a basic version or simple copy. 
-    // Since PIL FIND_EDGES is used in Python, we can simulate it.
-    // However, `image` crate doesn't have built-in comprehensive filters like PIL. 
-    // We can use `imageproc` if added, or simple manual convolution.
-    // For this migration, let's just copy the image for now or skip complex processing to save time, 
-    // as edge detection in pure `image` crate requires manual kernel application.
-    
-    // Placeholder implementation
-    let img = image::open(image_path)?;
+pub fn generate_contours(image_path: &str) -> Result<String> {
+    let img = image::open(image_path).context("Failed to open image for contour")?;
     let gray = img.grayscale();
     
     let p = Path::new(image_path);
-    let output_path = p.parent().unwrap().join(format!("{}_contour.png", p.file_stem().unwrap().to_str().unwrap()));
+    let root = p.parent().unwrap_or_else(|| Path::new("."));
+    let stem = p.file_stem().and_then(|s| s.to_str()).context("Invalid file stem")?;
+    
+    let output_path = root.join(format!("{}_contour.png", stem));
     
     // Saving grayscale as "contour" for now. A real implementation would need edge detection kernel.
-    gray.save(&output_path)?;
+    gray.save(&output_path).context("Failed to save contour")?;
     
     Ok(output_path.to_string_lossy().to_string())
 }
 
-pub fn generate_noise_contours(_root_path: &Path) -> anyhow::Result<String> {
+pub fn generate_noise_contours(_root_path: &Path) -> Result<String> {
      // TODO: Implement Perlin noise contour generation
-     Err(anyhow::anyhow!("Noise contour generation not yet implemented"))
+     Err(anyhow!("Noise contour generation not yet implemented"))
 }

@@ -18,6 +18,7 @@
   title: "",
   bg-image: none,
   brand: "Presuposicionalismo",
+  ..args,
 ) = {
   let total = slides.len()
 
