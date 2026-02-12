@@ -33,6 +33,7 @@ pub struct PostConfig {
     pub contour: Option<bool>,
     pub recolor: Option<bool>,
     pub recolor_intensity: Option<f32>,
+    pub source: Option<String>,
 }
 
 impl Config {

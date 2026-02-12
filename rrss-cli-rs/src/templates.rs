@@ -50,6 +50,7 @@ pub const MAIN_TEMPLATE_QUOTE: &str = r##"
     t,
     quote-text: "{quote}",
     author: "{author}",
+    source: {source}
   )
   #watermark(t, "{brand}")
 ]

@@ -127,3 +127,13 @@ slides = [
   "Si el universo tuvo un inicio, debe tener una causa trascendente, inmaterial y sumamente poderosa.",
   "Esta causa incausada coincide perfectamente con la descripción del Dios bíblico."
 ]
+
+[[post]]
+name   = "quote-einstein"
+title  = "La imaginación"
+quote  = "La imaginación es más importante que el conocimiento. El conocimiento es limitado, la imaginación rodea el mundo."
+author = "Albert Einstein"
+source = "Entrevista, 1929"
+layout = "quote"
+theme  = "dark"
+brand  = "@tu_marca"
