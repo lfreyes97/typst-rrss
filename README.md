@@ -1,92 +1,131 @@
 # typst-rrss
 
-Sistema modular para generar imágenes de redes sociales usando **Typst** y **Python**.
+Sistema modular para generar imágenes de redes sociales usando **Typst** y una CLI de alto rendimiento en **Rust**.
 
-Diseñado para crear contenido visual coherente (frases, artículos, estadísticas) de forma programática y estilizada.
+Diseñado para crear contenido visual coherente (frases, artículos, estadísticas) de forma programática, estilizada y automatizada.
 
 ## 🚀 Inicio Rápido
 
 ### Requisitos
-- **Typst** (para compilar las imágenes)
-- **uv** (para gestionar el entorno de Python)
-- **Python 3.12+**
+- **Typst** (para compilar las imágenes a PNG/PDF)
+- **Rust** (para compilar la CLI)
+
+### Instalación
 
 ```bash
-# Instalar dependencias
-uv sync
+# Compilar la CLI
+cd rrss-cli-rs
+cargo build --release
+cd ..
 
-# Generar imágenes de ejemplo
-./rrss build
+# (Opcional) Crear un alias o symlink
+ln -s rrss-cli-rs/target/release/rrss-cli-rs rrss
 ```
 
-## 🛠️ CLI `rrss`
+### Uso Básico
 
-El script `rrss` es tu centro de comando. Funciona como un wrapper que automatiza la generación de archivos `.typ` y su compilación.
+```bash
+# Generar todas las imágenes definidas en posts.toml
+./rrss build
+
+# Generar solo un post específico
+./rrss build --only ciencia
+
+# Extraer paleta de colores de una imagen
+./rrss extract assets/mi-imagen.jpg
+```
+
+---
+
+## 🛠️ CLI `rrss-cli-rs`
+
+El ejecutable `rrss` (o `rrss-cli-rs`) automatiza todo el flujo: parseo de configuración, procesamiento de imágenes, generación de código Typst y compilación.
 
 ### Comandos Principales
 
 | Comando | Descripción |
 | :--- | :--- |
-| **`./rrss build`** | Genera todos los posts definidos en `posts.toml`. |
-| **`./rrss extract <img.jpg>`** | Analiza una imagen y extrae su paleta de colores. |
-| **`./rrss colors "#hex"`** | Genera un esquema de color completo (HSL) a partir de un hex. |
-| **`./rrss compile`** | Compila manualmente archivos `.typ` a PNG. |
-
-### Opciones de Build
-
-```bash
-# Generar solo un post específico por nombre
-./rrss build --only ciencia
-
-# Ver qué se generaría sin ejecutar nada (dry-run)
-./rrss build --dry-run
-```
+| **`build`** | Genera y compila los posts definidos en `posts.toml`. Opciones: `--only <name>`, `--dry-run`. |
+| **`generate`** | Genera un *único* archivo `.typ` basado en argumentos de línea de comandos. |
+| **`full`** | Pipeline completo para un solo post (generar `.typ` + compilar a `.png`). |
+| **`extract`** | Analiza una imagen y extrae una paleta de colores dominante y sugerencias de acento. |
+| **`compile`** | Utilería para compilar manualmente archivos `.typ` en lote. |
+| **`colors`** | Genera esquemas de color armónicos a partir de un color base hexadecimal. |
 
 ---
 
-## 📝 Configuración Declarativa (`posts.toml`)
+## 📝 Configuración (`posts.toml`)
 
-Define tu contenido en `posts.toml`. Puedes configurar valores por defecto y sobreescribirlos en cada post.
+Control total de tu contenido y diseño en un solo archivo.
+
+### Definición de Temas (`[themes]`)
+
+Puedes definir tus propias paletas de colores. El sistema soporta dos modos de coloreado:
+
+1.  **Modo Recolor (Predefinido)**: Usa una paleta fija y tiñe la imagen de fondo.
+2.  **Modo Extracción (Auto)**: Extrae colores de la imagen automáticamente.
 
 ```toml
+# Definir un tema personalizado
+[themes.ocean]
+bg = "#0a192f"
+text = "#ccd6f6"
+primary = "#64ffda"
+secondary = "#8892b0"
+accent = "#112240"
+surface = "#112240"
+
+# Valores por defecto para todos los posts
 [defaults]
 brand = "Mi Marca"
-theme = "dark"      # dark, light, ocean, sunset, forest
-layout = "article"  # article, quote, hero
+layout = "article"
+theme = "dark"
 
+# Post 1: Usa el tema "ocean" y recolorea la imagen
 [[post]]
-name = "ejemplo"
-title = "Título del Post"
-image = "assets/fondo.jpg"
+name = "oceano"
+title = "La Roca de los Siglos"
+image = "assets/mar.jpg"
+theme = "ocean"
+recolor = true      # Aplica duotone con los colores del tema
+recolor_intensity = 0.7
 
-# ✨ Características Mágicas ✨
-accent = "auto"     # Extrae el mejor color de acento de la imagen
-recolor = true      # Aplica un tinte (duotone) con los colores del tema
+# Post 2: Extrae colores automáticamente de la imagen
+[[post]]
+name = "naturaleza"
+title = "Creación"
+image = "assets/bosque.jpg"
+theme = "auto"      # ✨ MODO AUTOMÁTICO
 ```
 
 ---
 
-## 🎨 Temas y Layouts
+## 🎨 Layouts y Templates
 
-### Layouts Disponibles
-1.  **`article-layout`**: Estilo "Presuposicionalismo" (título grande, cita, footer).
-2.  **`quote-layout`**: Cita centrada, autor y marca de agua.
-3.  **`hero-layout`**: Título impactante con subtítulo y tag.
+Los diseños están definidos en Typst (`lib/layouts/*.typ` y `templates/*.typ`) y reciben dinámicamente la paleta de colores desde Rust.
 
-### Paletas (Themes)
-Definidos en `lib/theme.typ`:
-- `dark` / `light` (Neutros)
-- `ocean` (Azules profundos y cian)
-- `sunset` (Morados, rojos y naranjas)
-- `forest` (Verdes naturales)
+### Layouts Soportados
+- **`article`**: Para contenido tipo blog o ensayo.
+- **`quote`**: Para citas destacadas.
+- **`hero`**: Para títulos grandes o portadas.
+- **`carousel`**: Para secuencias de imágenes (Instagram Carousels).
+
+### Templates de Redes Sociales
+Archivos en `templates/` listos para usar con dimensiones específicas:
+- `instagram-post` (1080x1080)
+- `instagram-story` (1080x1920)
+- `twitter-post` (1600x900)
+- `linkedin-post` (1200x627)
+- `facebook-post` (1200x630)
+- `og-image` (1200x630)
 
 ---
 
 ## 📂 Estructura del Proyecto
 
-- `posts.toml`: Configuración de tus posts.
-- `rrss`: Wrapper ejecutable (bash).
-- `rrss.py`: Lógica de generación y procesamiento de imagen (Python).
-- `lib/`: Componentes reutilizables de Typst (`theme`, `layouts`, `elements`).
-- `assets/`: Imágenes de fondo y recursos.
-- `output/`: Imágenes generadas (PNG).
+- **`posts.toml`**: Archivo maestro de configuración.
+- **`rrss-cli-rs/`**: Código fuente de la CLI en Rust.
+- **`lib/`**: Librería Typst modular (`layouts`, `elements`).
+- **`templates/`**: Plantillas `.typ` para cada plataforma.
+- **`assets/`**: Imágenes y recursos.
+- **`output/`**: Resultados generados.

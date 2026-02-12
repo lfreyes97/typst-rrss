@@ -2,18 +2,16 @@
 // TEMPLATE: LinkedIn Post (1200×627 px)
 // =============================================================================
 
-#import "../lib/theme.typ": *
-#import "../lib/layouts.typ": *
-#import "../lib/elements.typ": *
+#import "../lib.typ": *
 
 /// Crea una imagen lista para LinkedIn Feed.
 ///
-/// - palette-name (str): Nombre del tema
+/// - theme (dict): Diccionario de tema (inyectado)
 /// - body (content): Contenido del post
 /// -> document
-#let linkedin-post(palette-name: "dark", body) = {
+#let linkedin-post(theme: (:), body) = {
   let dims = platforms.at("linkedin-post")
-  let t = theme(palette-name)
+  let t = theme
 
   set page(
     width: dims.width,
@@ -22,7 +20,7 @@
     fill: t.bg,
   )
 
-  set text(font: fonts.body.first(), fill: t.text)
+  set text(font: fonts.body.first(), fill: t.text, size: 30pt)
 
   // Decoraciones profesionales sutiles
   deco-circle(t.primary, 80pt, -20pt, -20pt)

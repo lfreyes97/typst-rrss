@@ -1,24 +1,18 @@
-// Auto-generado por rrss.py
+
+// Auto-generado por rrss-cli-rs
 #import "lib.typ": *
+#import "templates/instagram-post.typ": instagram-post
 
-#let platform = "instagram-post"
-#let t = theme("dark")
-#let dims = platforms.at(platform)
+#let t = (accent: rgb("#0f3460"), bg: rgb("#0f0f0f"), highlight: rgb("#ffd369"), muted: rgb("#a0a0a0"), primary: rgb("#e94560"), secondary: rgb("#533483"), surface: rgb("#1a1a2e"), text: rgb("#f5f5f5"), )
 
-#set page(
-  width: dims.width,
-  height: dims.height,
-  margin: 0pt,
-  fill: rgb("#1a1a1a"),
-)
-
-#set text(font: fonts.body.first(), fill: t.text)
-
-#article-layout(
-  brand: "Presuposicionalismo",
-  title: "La Creación bajo ataque",
-  quote-text: "Cuando los incrédulos dicen que saben que el mundo es eterno o auto-existente, por un lado, están ejerciendo fe en sus presuposiciones naturalistas",
-  bg-image: image("assets/bg-ciencia.jpg", width: 100%),
-  accent: rgb("#e28263"),
-  url: "Presuposicionalismo.com",
-)
+#instagram-post(theme: t)[
+  #article-layout(
+    t,
+    brand: "Presuposicionalismo",
+    title: "La Creación bajo ataque",
+    quote-text: "Cuando los incrédulos dicen que saben que el mundo es eterno o auto-existente, por un lado, están ejerciendo fe en sus presuposiciones naturalistas",
+    bg-image: image("assets/bg-ciencia.jpg", width: 100%),
+    accent: rgb("#aa2837"),
+    url: "Presuposicionalismo.com",
+  )
+]

@@ -1,10 +1,22 @@
-# Output generado
+# Rust
+rrss-cli-rs/target/
+**/*.rs.bk
+
+# Output Generated
 output/
-
-# Archivos temporales de Typst
 *.pdf
+*.png
 
-# Python / uv
-.venv/
-__pycache__/
-*.pyc
+# Generated Intermediate Files
+*.typ
+!lib.typ
+!lib/**/*.typ
+
+# Logic Legacy / Backups
+*.old
+*.bak
+
+# System / IDE
+.DS_Store
+.vscode/
+.idea/

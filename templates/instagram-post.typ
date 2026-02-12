@@ -2,18 +2,16 @@
 // TEMPLATE: Instagram Post (1080×1080 px)
 // =============================================================================
 
-#import "../lib/theme.typ": *
-#import "../lib/layouts.typ": *
-#import "../lib/elements.typ": *
+#import "../lib.typ": *
 
 /// Crea una imagen lista para Instagram Feed (cuadrada).
 ///
-/// - palette-name (str): Nombre del tema ("dark", "light", "ocean", etc.)
+/// - theme (dict): Diccionario de tema (inyectado)
 /// - body (content): Contenido del post
 /// -> document
-#let instagram-post(palette-name: "dark", body) = {
+#let instagram-post(theme: (:), body) = {
   let dims = platforms.at("instagram-post")
-  let t = theme(palette-name)
+  let t = theme
 
   set page(
     width: dims.width,
@@ -22,7 +20,7 @@
     fill: t.bg,
   )
 
-  set text(font: fonts.body.first(), fill: t.text)
+  set text(font: fonts.body.first(), fill: t.text, size: 36pt)
 
   // Decoraciones de fondo
   deco-circle(t.primary, 120pt, -40pt, -40pt)

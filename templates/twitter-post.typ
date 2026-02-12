@@ -2,18 +2,16 @@
 // TEMPLATE: Twitter/X Post (1600×900 px)
 // =============================================================================
 
-#import "../lib/theme.typ": *
-#import "../lib/layouts.typ": *
-#import "../lib/elements.typ": *
+#import "../lib.typ": *
 
 /// Crea una imagen lista para Twitter/X (16:9 widescreen).
 ///
-/// - palette-name (str): Nombre del tema
+/// - theme (dict): Diccionario de tema (inyectado)
 /// - body (content): Contenido del post
 /// -> document
-#let twitter-post(palette-name: "dark", body) = {
+#let twitter-post(theme: (:), body) = {
   let dims = platforms.at("twitter-post")
-  let t = theme(palette-name)
+  let t = theme
 
   set page(
     width: dims.width,
@@ -22,7 +20,7 @@
     fill: t.bg,
   )
 
-  set text(font: fonts.body.first(), fill: t.text)
+  set text(font: fonts.body.first(), fill: t.text, size: 34pt)
 
   // Decoraciones widescreen
   deco-circle(t.primary, 130pt, -50pt, -50pt)

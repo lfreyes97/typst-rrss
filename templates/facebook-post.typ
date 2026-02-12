@@ -2,18 +2,16 @@
 // TEMPLATE: Facebook Post (1200×630 px)
 // =============================================================================
 
-#import "../lib/theme.typ": *
-#import "../lib/layouts.typ": *
-#import "../lib/elements.typ": *
+#import "../lib.typ": *
 
 /// Crea una imagen lista para Facebook Feed (horizontal).
 ///
-/// - palette-name (str): Nombre del tema
+/// - theme (dict): Diccionario de tema (inyectado)
 /// - body (content): Contenido del post
 /// -> document
-#let facebook-post(palette-name: "dark", body) = {
+#let facebook-post(theme: (:), body) = {
   let dims = platforms.at("facebook-post")
-  let t = theme(palette-name)
+  let t = theme
 
   set page(
     width: dims.width,
@@ -22,7 +20,7 @@
     fill: t.bg,
   )
 
-  set text(font: fonts.body.first(), fill: t.text)
+  set text(font: fonts.body.first(), fill: t.text, size: 30pt)
 
   // Decoraciones horizontales
   deco-circle(t.primary, 100pt, -30pt, -30pt)

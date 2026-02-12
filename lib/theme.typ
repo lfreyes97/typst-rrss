@@ -73,14 +73,14 @@
 )
 
 #let sizes = (
-  hero: 48pt,
-  title: 36pt,
-  subtitle: 24pt,
-  body: 18pt,
-  caption: 14pt,
-  small: 12pt,
-  stat: 72pt,
-  stat-xl: 96pt,
+  hero: 3em,
+  title: 2em,
+  subtitle: 1.5em,
+  body: 1em,
+  caption: 0.8em,
+  small: 0.7em,
+  stat: 4em,
+  stat-xl: 6em,
 )
 
 // ─── Dimensiones de página por plataforma ────────────────────────────────────
@@ -100,10 +100,10 @@
 // ─── Espaciado ───────────────────────────────────────────────────────────────
 
 #let spacing = (
-  xs: 8pt,
-  sm: 12pt,
-  md: 20pt,
-  lg: 32pt,
-  xl: 48pt,
-  xxl: 64pt,
+  xs: 0.5em,
+  sm: 0.75em,
+  md: 1.25em,
+  lg: 2em,
+  xl: 3em,
+  xxl: 4em,
 )

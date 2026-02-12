@@ -1,24 +1,18 @@
-// Auto-generado por rrss.py
+
+// Auto-generado por rrss-cli-rs
 #import "lib.typ": *
+#import "templates/instagram-post.typ": instagram-post
 
-#let platform = "instagram-post"
-#let t = theme("ocean")
-#let dims = platforms.at(platform)
+#let t = (accent: rgb("#233554"), bg: rgb("#0a192f"), highlight: rgb("#64ffda"), muted: rgb("#8892b0"), primary: rgb("#64ffda"), secondary: rgb("#8892b0"), surface: rgb("#112240"), text: rgb("#ccd6f6"), )
 
-#set page(
-  width: dims.width,
-  height: dims.height,
-  margin: 0pt,
-  fill: rgb("#1a1a1a"),
-)
-
-#set text(font: fonts.body.first(), fill: t.text)
-
-#article-layout(
-  brand: "Presuposicionalismo",
-  title: "La Roca de los siglos",
-  quote-text: "Dios no necesita que lo defendamos. Él es la precondición de toda defensa.",
-  bg-image: image("assets/bg-ciencia_ocean.jpg", width: 100%),
-  accent: rgb("#162d38"),
-  url: "Presuposicionalismo.com",
-)
+#instagram-post(theme: t)[
+  #article-layout(
+    t,
+    brand: "Presuposicionalismo",
+    title: "La Roca de los siglos",
+    quote-text: "Dios no necesita que lo defendamos. Él es la precondición de toda defensa.",
+    bg-image: image("assets/bg-ciencia_ocean.jpg", width: 100%),
+    accent: rgb("#051324"),
+    url: "Presuposicionalismo.com",
+  )
+]
