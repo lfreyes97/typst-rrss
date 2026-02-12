@@ -121,3 +121,21 @@
     #handle
   ]
 }
+
+/// Carga un SVG y reemplaza un color específico.
+/// Útil para iconos y fondos vectoriales que deben adaptarse al tema.
+///
+/// - path (str): Ruta al archivo SVG (ej: "assets/icon.svg"). Nota: asume que lib/ está a un nivel de la raíz.
+/// - original (color, str): Color original a reemplazar (por defecto busca negro puro #000000).
+/// - replacement (color, str): Nuevo color.
+/// -> content
+#let recolor-svg(path, replacement, original: "#000000", width: auto, height: auto) = {
+  // Como estamos en lib/, subimos un nivel para encontrar assets/
+  let real-path = "../" + path
+  let data = read(real-path)
+
+  let old-marker = if type(original) == color { original.to-hex() } else { original }
+  let new-marker = if type(replacement) == color { replacement.to-hex() } else { replacement }
+
+  image(bytes(data.replace(old-marker, new-marker)), format: "svg", width: width, height: height)
+}

@@ -1,5 +1,6 @@
 # Rust
 rrss-cli-rs/target/
+rrss
 **/*.rs.bk
 
 # Output Generated

@@ -9,9 +9,11 @@
   #article-layout(
     t,
     brand: "Presuposicionalismo",
+    logo: recolor-svg("assets/Logo.svg", t.text, original: "currentColor"),
     title: "La luz en la oscuridad",
     quote-text: "El temor de Jehová es el principio de la sabiduría, y el conocimiento del Santo es la inteligencia.",
     bg-image: image("assets/bg3.jpg", width: 100%),
+    overlay: recolor-svg("assets/Solid-bg.svg", t.bg, original: "#000000", width: 100%),
     accent: rgb("#972c0f"),
     url: "Presuposicionalismo.com",
   )

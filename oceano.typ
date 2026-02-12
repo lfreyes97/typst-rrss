@@ -9,9 +9,11 @@
   #article-layout(
     t,
     brand: "Presuposicionalismo",
+    logo: recolor-svg("assets/Logo.svg", t.text, original: "currentColor"),
     title: "La Roca de los siglos",
     quote-text: "Dios no necesita que lo defendamos. Él es la precondición de toda defensa.",
     bg-image: image("assets/bg-ciencia_ocean.jpg", width: 100%),
+    overlay: recolor-svg("assets/Solid-bg.svg", t.bg, original: "#000000", width: 100%),
     accent: rgb("#051324"),
     url: "Presuposicionalismo.com",
   )

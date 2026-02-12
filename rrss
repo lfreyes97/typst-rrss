@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-# rrss — wrapper Rust para rrss-cli-rs
-set -euo pipefail
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-exec "$SCRIPT_DIR/rrss-cli-rs/target/release/rrss-cli-rs" "$@"

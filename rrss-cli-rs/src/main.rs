@@ -64,6 +64,12 @@ enum Commands {
         
         #[arg(short, long)]
         image: Option<String>,
+
+        #[arg(long)]
+        logo: Option<String>,
+
+        #[arg(long)]
+        overlay: Option<String>,
         
         #[arg(short, long, default_value = "#4a3f6b")]
         accent: String,
@@ -130,6 +136,12 @@ enum Commands {
         
         #[arg(short, long)]
         image: Option<String>,
+
+        #[arg(long)]
+        logo: Option<String>,
+
+        #[arg(long)]
+        overlay: Option<String>,
         
         #[arg(short, long, default_value = "#4a3f6b")]
         accent: String,
@@ -250,7 +262,7 @@ fn main() -> Result<()> {
                  }
             }
         }
-        Commands::Generate { brand, title, quote, image, accent, auto_accent, url, platform, layout, theme, author, tag, slides, contour, output } => {
+        Commands::Generate { brand, title, quote, image, logo, overlay, accent, auto_accent, url, platform, layout, theme, author, tag, slides, contour, output } => {
             let mut final_accent = accent.clone();
             if *auto_accent {
                 if let Some(img_path) = image {
@@ -264,7 +276,7 @@ fn main() -> Result<()> {
 
             // Generate content
             let content = generate_typst_content(
-                brand, title, quote, image.as_deref(), &final_accent, url, platform, layout, &theme_map, author, tag.as_deref(), slides.as_deref(), *contour
+                brand, title, quote, image.as_deref(), logo.as_deref(), overlay.as_deref(), &final_accent, url, platform, layout, &theme_map, author, tag.as_deref(), slides.as_deref(), *contour
             )?;
             
             fs::write(output, content)?;
@@ -326,7 +338,7 @@ fn main() -> Result<()> {
                 }
             }
         }
-        Commands::Full { brand, title, quote, image, accent, auto_accent, url, platform, layout, theme, author, tag, ppi, output_name } => {
+        Commands::Full { brand, title, quote, image, logo, overlay, accent, auto_accent, url, platform, layout, theme, author, tag, ppi, output_name } => {
             let typ_file = format!("{}.typ", output_name);
             
             // Re-use logic from Generate (simplification: calling recursively implies cloning arguments or extracting logic)
@@ -342,7 +354,7 @@ fn main() -> Result<()> {
              let theme_map = resolve_theme(&theme, image.as_deref(), None);
 
              let content = generate_typst_content(
-                brand, title, quote, image.as_deref(), &final_accent, url, platform, layout, &theme_map, author, tag.as_deref(), None, false
+                brand, title, quote, image.as_deref(), logo.as_deref(), overlay.as_deref(), &final_accent, url, platform, layout, &theme_map, author, tag.as_deref(), None, false
             )?;
             fs::write(&typ_file, content)?;
             
@@ -414,6 +426,13 @@ fn main() -> Result<()> {
                      let tag = post.tag.clone().or_else(|| defaults.get("tag").and_then(|v| v.as_str()).map(|s| s.to_string()));
                      
                      let mut image = post.image.clone().or_else(|| defaults.get("image").and_then(|v| v.as_str()).map(|s| s.to_string()));
+                      let logo = post.logo.clone().or_else(|| defaults.get("logo").and_then(|v| v.as_str()).map(|s| s.to_string()));
+
+                     let overlay = post.overlay.clone()
+                         .or_else(|| defaults.get("overlay").and_then(|v| v.as_str()).map(|s| s.to_string()))
+                         .or(Some("assets/Solid-bg.svg".to_string()));
+
+
                      let accent_def = get_str(&post.accent, "accent", "#4a3f6b");
                      let auto_accent = accent_def == "auto";
                      
@@ -477,7 +496,7 @@ fn main() -> Result<()> {
                      // Generate .typ
                      let typ_file = format!("{}.typ", name);
                      match generate_typst_content(
-                         &brand, &title, &quote, image.as_deref(), &final_accent, &url, &platform, &layout, &final_theme_map, &author, tag.as_deref(), slides_str.as_deref(), contour
+                         &brand, &title, &quote, image.as_deref(), logo.as_deref(), overlay.as_deref(), &final_accent, &url, &platform, &layout, &final_theme_map, &author, tag.as_deref(), slides_str.as_deref(), contour
                      ) {
                          Ok(content) => {
                              if let Err(e) = fs::write(&typ_file, content) {
@@ -528,13 +547,39 @@ fn main() -> Result<()> {
 // This tool call is just for main.rs, will do templates.rs in next step or parallel.
 
 fn generate_typst_content(
-    brand: &str, title: &str, quote: &str, image: Option<&str>, accent: &str, url: &str, 
+    brand: &str, title: &str, quote: &str, image: Option<&str>, logo: Option<&str>, overlay: Option<&str>, accent: &str, url: &str, 
     platform: &str, layout: &str, theme: &HashMap<String, String>, author: &str, tag: Option<&str>, slides: Option<&str>, contour: bool
 ) -> Result<String> {
     let bg_image_line = if let Some(img) = image {
         format!("bg-image: image(\"{}\", width: 100%),", img)
     } else {
         "// sin imagen de fondo".to_string()
+    };
+    
+    let overlay_line = if let Some(ov) = overlay {
+        if ov.to_lowercase().ends_with(".svg") {
+             // Assuming SVGs are masks that should take the background color
+             format!("overlay: recolor-svg(\"{}\", t.bg, original: \"#000000\", width: 100%),", ov)
+        } else {
+             format!("overlay: image(\"{}\", width: 100%, height: 100%),", ov)
+        }
+    } else {
+        "// sin overlay".to_string()
+    };
+    
+    let logo_line = if let Some(l) = logo {
+        if l.to_lowercase().ends_with(".svg") {
+             // Assuming Logo should take text color
+             // If original is currentColor or black? User used currentColor in SVG.
+             // We can check or assume. 
+             // If logo has currentColor, I need to pass it to recolor-svg.
+             // My helper supports original="currentColor".
+             format!("logo: recolor-svg(\"{}\", t.text, original: \"currentColor\"),", l)
+        } else {
+             format!("logo: image(\"{}\", width: 100%),", l)
+        }
+    } else {
+        "// sin logo".to_string()
     };
     
     // Construct Typst dictionary for theme
@@ -554,9 +599,11 @@ fn generate_typst_content(
             .replace("{platform}", platform)
             .replace("{theme}", &theme_str)
             .replace("{brand}", brand)
+            .replace("{logo_line}", &logo_line)
             .replace("{title}", title)
             .replace("{quote}", quote)
             .replace("{bg_image_line}", &bg_image_line)
+            .replace("{overlay_line}", &overlay_line)
             .replace("{accent}", accent)
             .replace("{url}", url),
         "quote" => templates::MAIN_TEMPLATE_QUOTE

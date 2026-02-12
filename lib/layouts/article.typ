@@ -5,101 +5,105 @@
 #import "../theme.typ": *
 
 /// Layout de artículo con imagen de fondo — estilo Presuposicionalismo.
+/// Refactorizado para usar sistema de partición vertical estricto (Header/Body/Footer).
 ///
 /// - t (dictionary): Paleta de tema
 /// - brand (str): Nombre de la marca/logo
-/// - title (str): Título del artículo (se muestra en mayúsculas)
-/// - quote-text (str): Cita o extracto con guillemets
-/// - bg-image (content): Imagen de fondo (pasar `image("ruta")` directamente)
-/// - accent (color): Color de acento para la barra del título
+/// - title (str): Título del artículo
+/// - quote-text (str): Cita o extracto
+/// - bg-image (content|str): Ruta a imagen de fondo o content
+/// - overlay (content|str): Ruta a overlay SVG o content
+/// - logo (content|str): Ruta a logo SVG o content
 /// - url (str): URL del sitio para el footer
 /// -> content
 #let article-layout(
   t,
   brand: "PRESUPOSICIONALISMO",
+  logo: none,
   title: "",
   quote-text: "",
   bg-image: none,
-  accent: rgb("#4a3f6b"),
+  overlay: none,
+  accent: none,
   url: "Presuposicionalismo.com",
 ) = {
-  // Porcentajes relativos a la altura de la página
-  let header-h = 15%
-  let title-zone-h = 45%
-  let footer-h = 12%
-
-  // ─── Imagen de fondo (capa base) ──────────────────────────────
-  if bg-image != none {
-    place(bottom + center, dy: -footer-h)[
-      #block(width: 100%, clip: true)[
-        #bg-image
-      ]
-    ]
+  // Override accent color if provided
+  let t = if accent != none {
+    t + (accent: accent)
+  } else {
+    t
   }
+  // 1. CONFIGURACIÓN DEL LAYOUT
+  let header-height = 150pt
+  let footer-height = 100pt
+  // Nota: Asumimos page width/height definidos en el documento principal, o usamos 100%
+  // Para cálculos relativos exactos como en main.typ, usamos 1080pt como base si no hay contexto
+  let page-height = 1080pt
 
-  // ─── Header: barra oscura con marca ───────────────────────────
-  place(top + center)[
-    #block(
-      width: 100%,
-      height: header-h,
-      fill: t.surface,
-    )[
+  // Secciones calculadas
+  let body-start = header-height
+  let body-height = page-height - header-height - footer-height
+
+  // --- SECCIÓN HEADER ---
+  place(top + left, dy: 0pt)[
+    #block(width: 100%, height: header-height, fill: t.surface)[
       #set align(center + horizon)
-      #set text(fill: t.text, font: fonts.heading.first())
-      #text(size: 1.5em, tracking: 0.1em)[꩜]
-      #v(-0.2em)
-      #text(size: sizes.caption * 0.9, weight: "bold", tracking: 0.15em)[#upper(brand)]
+      #if logo != none {
+        block(height: 60%, logo)
+      } else {
+        stack(dir: ltr, spacing: 1em)[
+          #text(size: 40pt, fill: t.text, font: fonts.heading.first())[꩜]
+          #text(size: 32pt, weight: "bold", fill: t.text, tracking: 0.1em)[#upper(brand)]
+        ]
+      }
     ]
   ]
 
-  // ─── Zona de título + cita (con fondo semi-transparente) ──────
-  place(top + center, dy: header-h)[
-    #block(
-      width: 100%,
-      height: title-zone-h,
-      fill: accent.transparentize(10%),
-      inset: (x: spacing.lg, top: spacing.md, bottom: spacing.sm),
-    )[
-      #set align(center + top)
-      #set text(fill: if t.bg == rgb("#fafafa") { t.bg } else { white }, font: fonts.heading.first())
+  // --- SECCIÓN BODY (BACKGROUND + CONTENIDO) ---
+  place(top + left, dy: body-start)[
+    #block(width: 100%, height: body-height, clip: true, fill: t.bg)[
 
-      // Título
-      #block(width: 100%)[
-        #set text(size: sizes.subtitle * 1.1, weight: "black", tracking: 0.05em)
-        #set par(leading: 0.7em)
-        #upper(title)
-      ]
+      // Capa 1: Imagen de Fondo
+      #if bg-image != none {
+        place(center + horizon)[
+          #bg-image
+        ]
+      }
 
-      #v(spacing.xs)
+      // Capa 2: Overlay
+      #if overlay != none {
+        place(center + horizon)[#overlay]
+      }
 
-      // Separador
-      #line(length: 90%, stroke: 0.1em + (if t.bg == rgb("#fafafa") { t.bg } else { white }).transparentize(40%))
+      // Capa 3: Contenido de Texto
+      #place(center + horizon)[
+        #block(width: 85%)[
+          #set align(center)
+          #set text(font: fonts.heading.first(), fill: t.text)
 
-      #v(spacing.xs)
+          // Título Principal
+          #set par(leading: 0.8em)
+          #text(size: sizes.title, weight: "black")[#upper(title)]
 
-      // Cita
-      #block(width: 92%)[
-        #set text(
-          size: sizes.body * 0.9,
-          weight: "regular",
-          fill: (if t.bg == rgb("#fafafa") { t.bg } else { white }).transparentize(5%),
-        )
-        #set par(leading: 0.7em)
-        «#quote-text»
+          #v(1em)
+          #line(length: 30%, stroke: 2pt + t.accent)
+          #v(1em)
+
+          // Cita / Texto
+          #set text(font: fonts.body.first(), style: "italic", size: sizes.body)
+          "#quote-text"
+        ]
       ]
     ]
   ]
 
-  // ─── Footer: barra con URL ────────────────────────────────────
-  place(bottom + center)[
-    #block(
-      width: 100%,
-      height: footer-h,
-      fill: t.surface,
-    )[
+  // --- SECCIÓN FOOTER ---
+  place(bottom + left, dy: 0pt)[
+    #block(width: 100%, height: footer-height, fill: t.surface)[
       #set align(center + horizon)
-      #set text(fill: t.text, font: fonts.heading.first(), size: sizes.body * 0.8, style: "italic")
-      #url
+      #text(fill: t.text, font: fonts.body.first(), size: sizes.caption, weight: "medium")[
+        #url
+      ]
     ]
   ]
 }

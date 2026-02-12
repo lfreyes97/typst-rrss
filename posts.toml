@@ -62,9 +62,11 @@ highlight = "#ffaaa5"
 
 [defaults]
 brand    = "Presuposicionalismo"
+logo     = "assets/Logo.svg"
 url      = "Presuposicionalismo.com"
 platform = "instagram-post"
 layout   = "article"
+overlay = "assets/Solid-bg.svg"
 theme    = "dark"
 ppi      = 144
 
@@ -109,6 +111,7 @@ image  = "assets/bg3.jpg"
 theme  = "forest"
 recolor = false
 recolor_intensity = 0.85
+overlay = "assets/Solid-bg.svg"
 accent = "auto"
 
 [[post]]

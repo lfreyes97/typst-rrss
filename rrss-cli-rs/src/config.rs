@@ -18,6 +18,8 @@ pub struct PostConfig {
     pub title: Option<String>,
     pub quote: Option<String>,
     pub image: Option<String>,
+    pub logo: Option<String>,
+    pub overlay: Option<String>,
     pub accent: Option<String>,
     pub brand: Option<String>,
     pub url: Option<String>,

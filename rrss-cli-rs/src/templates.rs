@@ -27,9 +27,11 @@ pub const MAIN_TEMPLATE_ARTICLE: &str = r##"
   #article-layout(
     t,
     brand: "{brand}",
+    {logo_line}
     title: "{title}",
     quote-text: "{quote}",
     {bg_image_line}
+    {overlay_line}
     accent: rgb("{accent}"),
     url: "{url}",
   )
