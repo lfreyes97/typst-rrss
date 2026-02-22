@@ -1,10 +1,4 @@
 use std::collections::HashMap;
-use std::path::PathBuf;
-
-pub fn project_root() -> PathBuf {
-    std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-}
-
 pub fn get_platforms() -> HashMap<&'static str, (u32, u32)> {
     let mut m = HashMap::new();
     m.insert("instagram-post", (1080, 1080));

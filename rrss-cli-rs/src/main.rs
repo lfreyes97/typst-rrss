@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Context, Result};
 use clap::{Parser, Subcommand, ValueEnum};
-use rrss_cli_rs::{colors, config, constants, themes};
+use rrss_cli_rs::{colors, config, themes};
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -75,6 +75,12 @@ enum Commands {
         contour: bool,
         #[arg(short, long, default_value = "main.typ")]
         output: String,
+        #[arg(long)]
+        font_heading: Option<String>,
+        #[arg(long)]
+        font_body: Option<String>,
+        #[arg(long)]
+        font_mono: Option<String>,
     },
 
     /// Compila archivos .typ a PNG
@@ -127,6 +133,12 @@ enum Commands {
         ppi: u32,
         #[arg(short, long, default_value = "main")]
         output_name: String,
+        #[arg(long)]
+        font_heading: Option<String>,
+        #[arg(long)]
+        font_body: Option<String>,
+        #[arg(long)]
+        font_mono: Option<String>,
     },
 
     /// Genera posts desde TOML
@@ -172,11 +184,18 @@ struct GenerateParams {
     tag: Option<String>,
     slides: Option<String>,
     contour: bool,
+    font_heading: Option<String>,
+    font_body: Option<String>,
+    font_mono: Option<String>,
 }
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
-    let root = constants::project_root();
+    // Assuming working directory is where user calls the CLI from.
+    let root = match std::env::current_dir() {
+        Ok(d) => d,
+        Err(_) => PathBuf::from("."),
+    };
 
     match &cli.command {
         Commands::Colors {
@@ -260,6 +279,9 @@ fn main() -> Result<()> {
             slides,
             contour,
             output,
+            font_heading,
+            font_body,
+            font_mono,
         } => {
             let params = GenerateParams {
                 brand: brand.clone(),
@@ -279,6 +301,9 @@ fn main() -> Result<()> {
                 tag: tag.clone(),
                 slides: slides.clone(),
                 contour: *contour,
+                font_heading: font_heading.clone(),
+                font_body: font_body.clone(),
+                font_mono: font_mono.clone(),
             };
             let content = do_generate(&params, None)?;
             fs::write(output, content).context("Failed to write output file")?;
@@ -302,6 +327,9 @@ fn main() -> Result<()> {
             tag,
             ppi,
             output_name,
+            font_heading,
+            font_body,
+            font_mono,
         } => {
             let params = GenerateParams {
                 brand: brand.clone(),
@@ -321,6 +349,9 @@ fn main() -> Result<()> {
                 tag: tag.clone(),
                 slides: None,
                 contour: false,
+                font_heading: font_heading.clone(),
+                font_body: font_body.clone(),
+                font_mono: font_mono.clone(),
             };
             let content = do_generate(&params, None)?;
             let typ_file = format!("{}.typ", output_name);
@@ -492,6 +523,24 @@ fn main() -> Result<()> {
                             None
                         }, // Simplified
                         contour: get_bool(post.contour, "contour", false),
+                        font_heading: post.font_heading.clone().or_else(|| {
+                            defaults
+                                .get("font-heading")
+                                .and_then(|v| v.as_str())
+                                .map(|s| s.to_string())
+                        }),
+                        font_body: post.font_body.clone().or_else(|| {
+                            defaults
+                                .get("font-body")
+                                .and_then(|v| v.as_str())
+                                .map(|s| s.to_string())
+                        }),
+                        font_mono: post.font_mono.clone().or_else(|| {
+                            defaults
+                                .get("font-mono")
+                                .and_then(|v| v.as_str())
+                                .map(|s| s.to_string())
+                        }),
                     };
 
                     println!("\n  ⟩ {} — {}", name, params.title);
@@ -580,13 +629,7 @@ fn do_generate(params: &GenerateParams, cfg: Option<&config::Config>) -> Result<
     // Start building the Typst file
     let mut out = String::new();
     out.push_str("// Auto-generado por rrss-cli-rs\n");
-    out.push_str("#import \"lib.typ\": *\n");
-
-    // Clean platform import
-    out.push_str(&format!(
-        "#import \"templates/{}.typ\": {}\n\n",
-        params.platform, params.platform
-    ));
+    out.push_str("#import \"@local/rrss:0.1.0\": *\n\n");
 
     // Construct Typst dictionary for theme
     out.push_str("#let t = (");
@@ -600,13 +643,28 @@ fn do_generate(params: &GenerateParams, cfg: Option<&config::Config>) -> Result<
             out.push_str(&format!("{}: rgb(\"{}\"), ", k, v));
         }
     }
+
+    // Inject fonts if provided
+    if let Some(f) = &params.font_heading {
+        out.push_str(&format!(" \"font-heading\": \"{}\", ", f));
+    }
+    if let Some(f) = &params.font_body {
+        out.push_str(&format!(" \"font-body\": \"{}\", ", f));
+    }
+    if let Some(f) = &params.font_mono {
+        out.push_str(&format!(" \"font-mono\": \"{}\", ", f));
+    }
+
     out.push_str(")\n\n");
 
-    // Start Template wrapper
-    out.push_str(&format!("#{}(theme: t)[\n", params.platform));
+    // Configuration line (explicit dimensions)
+    out.push_str(&format!(
+        "#show: set-dimensions.with(platform: \"{}\", theme: t)\n\n",
+        params.platform
+    ));
 
     // Start Layout call
-    out.push_str(&format!("  #{}-layout(\n", params.layout));
+    out.push_str(&format!("#{}(\n", params.layout));
     out.push_str("    t,\n");
 
     // Required parameters
@@ -629,13 +687,8 @@ fn do_generate(params: &GenerateParams, cfg: Option<&config::Config>) -> Result<
         out.push_str(&format!("    title: \"{}\",\n", params.title));
     }
     if !params.quote.is_empty() {
-        if params.layout == "quote" {
-            out.push_str(&format!("    quote-text: \"{}\",\n", params.quote));
-        } else {
-            // Keep backwards compatibility with variable naming in layouts if needed
-            // Most laytous seem to use `quote-text` based on user's oceano.typ
-            out.push_str(&format!("    quote-text: \"{}\",\n", params.quote));
-        }
+        // All layouts now use quote-text for consistency
+        out.push_str(&format!("    quote-text: \"{}\",\n", params.quote));
     }
 
     // Optional metadata
@@ -665,7 +718,6 @@ fn do_generate(params: &GenerateParams, cfg: Option<&config::Config>) -> Result<
     }
 
     // Colors and URL
-    // Accent is now handled within the #let t = (...) constructor directly
     if !params.url.is_empty() {
         out.push_str(&format!("    url: \"{}\",\n", params.url));
     }
@@ -688,8 +740,7 @@ fn do_generate(params: &GenerateParams, cfg: Option<&config::Config>) -> Result<
         }
     }
 
-    out.push_str("  )\n");
-    out.push_str("]\n");
+    out.push_str(")\n");
 
     Ok(out)
 }

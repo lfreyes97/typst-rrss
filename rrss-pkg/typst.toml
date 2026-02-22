@@ -1,0 +1,10 @@
+[package]
+name = "rrss"
+version = "0.1.0"
+entrypoint = "lib/lib.typ"
+authors = ["Luis F. Reyes <author@example.com>"]
+description = "A Typst package for creating social media posts"
+repository = "https://github.com/lfreyes97/typst-rrss"
+keywords = ["social media", "posts", "instagram", "facebook", "twitter"]
+compiler = "0.12.0"
+license = "MIT"

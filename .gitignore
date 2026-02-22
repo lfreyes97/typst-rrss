@@ -9,9 +9,9 @@ output/
 *.png
 
 # Generated Intermediate Files
-*.typ
-!lib.typ
-!lib/**/*.typ
+#*.typ
+#!lib.typ
+#!lib/**/*.typ
 
 # Logic Legacy / Backups
 *.old

@@ -1,8 +1,8 @@
+use anyhow::{Context, Result};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
-use anyhow::{Context, Result};
 
 #[derive(Debug, Deserialize)]
 pub struct Config {
@@ -34,6 +34,9 @@ pub struct PostConfig {
     pub recolor: Option<bool>,
     pub recolor_intensity: Option<f32>,
     pub source: Option<String>,
+    pub font_heading: Option<String>,
+    pub font_body: Option<String>,
+    pub font_mono: Option<String>,
 }
 
 impl Config {

@@ -1,0 +1,26 @@
+[defaults]
+brand = "RRSS Test"
+layout = "article"
+theme = "dark"
+platform = "instagram-post"
+contour = false
+
+# Post 1: Default global theme
+[[post]]
+name = "test-ocean"
+title = "Ocean Theme Test"
+quote = "Typst makes design programmable."
+image = "assets/bg-ciencia.jpg"
+overlay = "assets/Solid-bg.svg"
+author = "Typst RRSS"
+tag = "@typst_rrss"
+
+# Post 2: Auto color extraction
+[[post]]
+name = "test-forest"
+title = "Nature Extracted Colors"
+image = "assets/bg3.jpg"
+theme = "auto"
+layout = "quote"
+quote = "Nature never did betray the heart that loved her."
+author = "William Wordsworth"
