@@ -3,6 +3,7 @@
 // =============================================================================
 
 #import "../theme.typ": *
+#import "centered.typ": base-card
 
 /// Layout hero — texto grande centrado con subtítulo.
 ///
@@ -10,17 +11,15 @@
 /// - title (str): Título principal
 /// - subtitle (str): Subtítulo
 /// - tag (str): Tag/etiqueta opcional
+/// - bg-image (content): Imagen de fondo opcional
+/// - overlay (content): Capa sobre la imagen opcional
 /// -> content
-#let hero-layout(t, title: "", subtitle: "", tag: none, ..args) = {
-  set align(center + horizon)
-  block(
-    width: 100%,
-    height: 100%,
-    fill: t.bg,
-    inset: spacing.xl,
+#let hero-layout(t, title: "", subtitle: "", tag: none, bg-image: none, overlay: none, ..args) = {
+  base-card(
+    t,
+    bg-image: bg-image,
+    overlay: overlay,
   )[
-    #set text(fill: t.text, font: fonts.heading.first())
-
     #if tag != none {
       block(
         inset: (x: spacing.md, y: spacing.xs),

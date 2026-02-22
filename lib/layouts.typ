@@ -2,7 +2,7 @@
 // LAYOUTS — Módulo principal de re-exportación
 // =============================================================================
 
-#import "layouts/centered.typ": centered-card
+#import "layouts/centered.typ": base-card
 #import "layouts/hero.typ": hero-layout
 #import "layouts/split.typ": split-layout
 #import "layouts/stat.typ": stat-layout

@@ -2,67 +2,9 @@
 // THEME — Sistema de diseño para imágenes de redes sociales
 // =============================================================================
 
-// ─── Paletas de colores ──────────────────────────────────────────────────────
+// Nota: Las paletas (t) son inyectadas dinámicamente por la CLI rrss-cli-rs
+// al inicio de cada archivo Typst generado, asegurando sincronización total.
 
-#let palettes = (
-  dark: (
-    bg: rgb("#0f0f0f"),
-    surface: rgb("#1a1a2e"),
-    primary: rgb("#e94560"),
-    secondary: rgb("#533483"),
-    accent: rgb("#0f3460"),
-    text: rgb("#f5f5f5"),
-    muted: rgb("#a0a0a0"),
-    highlight: rgb("#ffd369"),
-  ),
-  light: (
-    bg: rgb("#fafafa"),
-    surface: rgb("#ffffff"),
-    primary: rgb("#e94560"),
-    secondary: rgb("#6c5ce7"),
-    accent: rgb("#00b894"),
-    text: rgb("#1a1a2e"),
-    muted: rgb("#6b7280"),
-    highlight: rgb("#fdcb6e"),
-  ),
-  ocean: (
-    bg: rgb("#0a192f"),
-    surface: rgb("#112240"),
-    primary: rgb("#64ffda"),
-    secondary: rgb("#8892b0"),
-    accent: rgb("#233554"),
-    text: rgb("#ccd6f6"),
-    muted: rgb("#8892b0"),
-    highlight: rgb("#64ffda"),
-  ),
-  sunset: (
-    bg: rgb("#1a1a2e"),
-    surface: rgb("#16213e"),
-    primary: rgb("#ff6b6b"),
-    secondary: rgb("#feca57"),
-    accent: rgb("#ff9ff3"),
-    text: rgb("#f5f5f5"),
-    muted: rgb("#a0a0a0"),
-    highlight: rgb("#feca57"),
-  ),
-  forest: (
-    bg: rgb("#1b2d1b"),
-    surface: rgb("#2d4a2d"),
-    primary: rgb("#a8e6cf"),
-    secondary: rgb("#dcedc1"),
-    accent: rgb("#ffd3b6"),
-    text: rgb("#f0f0f0"),
-    muted: rgb("#98b898"),
-    highlight: rgb("#ffaaa5"),
-  ),
-)
-
-/// Obtener una paleta por nombre.
-/// - name (str): Nombre de la paleta (dark, light, ocean, sunset, forest)
-/// -> dictionary
-#let theme(name) = {
-  palettes.at(name, default: palettes.dark)
-}
 
 // ─── Tipografía ──────────────────────────────────────────────────────────────
 

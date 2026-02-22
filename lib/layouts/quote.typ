@@ -3,6 +3,7 @@
 // =============================================================================
 
 #import "../theme.typ": *
+#import "centered.typ": base-card
 
 /// Layout de cita — texto con comillas decorativas y autor.
 ///
@@ -10,17 +11,15 @@
 /// - quote-text (str): Texto de la cita
 /// - author (str): Autor de la cita
 /// - source (str): Fuente opcional (libro, discurso, etc.)
+/// - bg-image (content): Imagen de fondo opcional
+/// - overlay (content): Capa sobre la imagen opcional
 /// -> content
-#let quote-layout(t, quote-text: "", author: "", source: none, ..args) = {
-  set align(center + horizon)
-  block(
-    width: 100%,
-    height: 100%,
-    fill: t.bg,
-    inset: spacing.xl,
+#let quote-layout(t, quote-text: "", author: "", source: none, bg-image: none, overlay: none, ..args) = {
+  base-card(
+    t,
+    bg-image: bg-image,
+    overlay: overlay,
   )[
-    #set text(fill: t.text, font: fonts.heading.first())
-
     // Comilla decorativa de apertura
     #text(size: 5em, fill: t.primary, weight: "black")["]
 

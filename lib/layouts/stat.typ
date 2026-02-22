@@ -3,6 +3,7 @@
 // =============================================================================
 
 #import "../theme.typ": *
+#import "centered.typ": base-card
 
 /// Layout para estadísticas — número grande arriba, texto abajo.
 ///
@@ -10,17 +11,15 @@
 /// - number (str): Número o cifra principal
 /// - label (str): Descripción de la estadística
 /// - source (str): Fuente de la estadística
+/// - bg-image (content): Imagen de fondo opcional
+/// - overlay (content): Capa sobre la imagen opcional
 /// -> content
-#let stat-layout(t, number: "", label: "", source: none) = {
-  set align(center + horizon)
-  block(
-    width: 100%,
-    height: 100%,
-    fill: t.bg,
-    inset: spacing.lg,
+#let stat-layout(t, number: "", label: "", source: none, bg-image: none, overlay: none, ..args) = {
+  base-card(
+    t,
+    bg-image: bg-image,
+    overlay: overlay,
   )[
-    #set text(fill: t.text, font: fonts.heading.first())
-
     // Número grande
     #text(
       size: sizes.stat,

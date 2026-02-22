@@ -9,12 +9,17 @@
   #article-layout(
     t,
     brand: "Presuposicionalismo",
-    logo: recolor-svg("assets/Logo.svg", t.text, original: "currentColor"),
     title: "La Creación bajo ataque",
     quote-text: "Cuando los incrédulos dicen que saben que el mundo es eterno o auto-existente, por un lado, están ejerciendo fe en sus presuposiciones naturalistas",
+    author: "",
+    source: none,
+    url: "Presuposicionalismo.com",
     bg-image: image("assets/bg-ciencia.jpg", width: 100%),
     overlay: recolor-svg("assets/Solid-bg.svg", t.bg, original: "#000000", width: 100%),
+    logo: recolor-svg("assets/Logo.svg", t.text, original: "currentColor"),
     accent: rgb("#aa2837"),
-    url: "Presuposicionalismo.com",
+    tag: none,
+    slides: (),
+    contour: false,
   )
 ]
