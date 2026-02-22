@@ -556,7 +556,7 @@ fn do_generate(params: &GenerateParams, cfg: Option<&config::Config>) -> Result<
 
     // Theme resolution
     let palettes = themes::predefined::get_theme_palettes(cfg);
-    let mut theme_map = if let Some(map) = palettes.get(&params.theme) {
+    let theme_map = if let Some(map) = palettes.get(&params.theme) {
         map.clone()
     } else if params.theme == "auto" {
         if let Some(path) = &params.image {

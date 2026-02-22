@@ -1,25 +1,18 @@
-
 // Auto-generado por rrss-cli-rs
 #import "lib.typ": *
 #import "templates/instagram-post.typ": instagram-post
 
-#let t = (accent: rgb("#233554"), bg: rgb("#0a192f"), highlight: rgb("#64ffda"), muted: rgb("#8892b0"), primary: rgb("#64ffda"), secondary: rgb("#8892b0"), surface: rgb("#112240"), text: rgb("#ccd6f6"), )
+#let t = (accent: rgb("#aa2837"), bg: rgb("#0a192f"), highlight: rgb("#64ffda"), muted: rgb("#8892b0"), primary: rgb("#64ffda"), secondary: rgb("#8892b0"), surface: rgb("#112240"), text: rgb("#ccd6f6"), )
 
 #instagram-post(theme: t)[
   #article-layout(
     t,
     brand: "Presuposicionalismo",
+    logo: recolor-svg("assets/Logo.svg", t.text, original: "currentColor"),
     title: "La Roca de los siglos",
     quote-text: "Dios no necesita que lo defendamos. Él es la precondición de toda defensa.",
-    author: "",
-    source: none,
-    url: "Presuposicionalismo.com",
     bg-image: image("assets/bg-ciencia.jpg", width: 100%),
-    overlay: recolor-svg("assets/Solid-bg.svg", t.bg, original: "#000000", width: 100%),
-    logo: recolor-svg("assets/Logo.svg", t.text, original: "currentColor"),
-    accent: rgb("#aa2837"),
-    tag: none,
-    slides: (),
-    contour: false,
+    overlay: recolor-svg("assets/Solid-bg.svg", t.bg, width: 100%),
+    url: "Presuposicionalismo.com",
   )
 ]
