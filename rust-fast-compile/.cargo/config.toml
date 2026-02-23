@@ -1,7 +1,0 @@
-[target.x86_64-unknown-linux-gnu]
-linker = "clang"
-rustflags = ["-C", "link-arg=-fuse-ld=mold"]
-
-[build]
-# Opcional: target-dir local para no colisionar con otros proyectos si se comparte caché
-# target-dir = "target"
