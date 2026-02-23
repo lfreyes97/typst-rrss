@@ -61,54 +61,54 @@ highlight = "#ffaaa5"
 # ─── Valores por defecto (se heredan a cada [[post]]) ────────────────────────
 
 [defaults]
-brand    = "Presuposicionalismo"
-logo     = "assets/Logo.svg"
-url      = "Presuposicionalismo.com"
+brand = "Presuposicionalismo"
+logo = "assets/Logo.svg"
+url = "Presuposicionalismo.com"
 platform = "instagram-post"
-layout   = "article"
+layout = "article"
 overlay = "assets/Solid-bg.svg"
-theme    = "dark"
-ppi      = 144
+theme = "dark"
+ppi = 144
 
 # ─── Posts ───────────────────────────────────────────────────────────────────
 
 [[post]]
-name   = "ciencia"
-title  = "Ciencia: Una celebración y un lamento"
-quote  = "Cuando David vio las estrellas y el sol, alabó a Dios. ¡Qué nuevas y espectaculares bellezas tenemos ahora a la vista, gracias a los descubrimientos del siglo XX!"
-image  = "assets/bg-ciencia.jpg"
+name = "ciencia"
+title = "Ciencia: Una celebración y un lamento"
+quote = "Cuando David vio las estrellas y el sol, alabó a Dios. ¡Qué nuevas y espectaculares bellezas tenemos ahora a la vista, gracias a los descubrimientos del siglo XX!"
+image = "assets/bg-ciencia.jpg"
 accent = "#2d2d2d"
 theme = "auto"
 
 [[post]]
-name   = "creacion"
-title  = "La Creación bajo ataque"
-quote  = "Cuando los incrédulos dicen que saben que el mundo es eterno o auto-existente, por un lado, están ejerciendo fe en sus presuposiciones naturalistas"
-image  = "assets/bg-ciencia.jpg"
-accent = "auto"  # extrae el acento de la imagen automáticamente
+name = "creacion"
+title = "La Creación bajo ataque"
+quote = "Cuando los incrédulos dicen que saben que el mundo es eterno o auto-existente, por un lado, están ejerciendo fe en sus presuposiciones naturalistas"
+image = "assets/bg-ciencia.jpg"
+accent = "auto"                                                                                                                                               # extrae el acento de la imagen automáticamente
 
 [[post]]
-name   = "cosmovisiones"
-title  = "Definiendo las cosmovisiones"
-quote  = "Una cosmovisión es una red de presuposiciones que no están verificadas por los procedimientos de la ciencia natural, acerca de la realidad, del saber y de la conducta"
-image  = "assets/bg-ciencia.jpg"
+name = "cosmovisiones"
+title = "Definiendo las cosmovisiones"
+quote = "Una cosmovisión es una red de presuposiciones que no están verificadas por los procedimientos de la ciencia natural, acerca de la realidad, del saber y de la conducta"
+image = "assets/bg-ciencia.jpg"
 accent = "#8b6914"
 
 [[post]]
-name   = "oceano"
-title  = "La Roca de los siglos"
-quote  = "Dios no necesita que lo defendamos. Él es la precondición de toda defensa."
-image  = "assets/bg-ciencia.jpg"
-theme  = "ocean"
+name = "oceano"
+title = "La Roca de los siglos"
+quote = "Dios no necesita que lo defendamos. Él es la precondición de toda defensa."
+image = "assets/bg-ciencia.jpg"
+theme = "ocean"
 recolor = true
-accent  = "auto"
+accent = "auto"
 
 [[post]]
-name   = "atardecer"
-title  = "La luz en la oscuridad"
-quote  = "El temor de Jehová es el principio de la sabiduría, y el conocimiento del Santo es la inteligencia."
-image  = "assets/bg3.jpg"
-theme  = "forest"
+name = "atardecer"
+title = "La luz en la oscuridad"
+quote = "El temor de Jehová es el principio de la sabiduría, y el conocimiento del Santo es la inteligencia."
+image = "assets/bg3.jpg"
+theme = "forest"
 recolor = false
 recolor_intensity = 0.85
 overlay = "assets/Solid-bg.svg"
@@ -125,15 +125,31 @@ slides = [
   "¿Sabías que la ciencia apunta hacia un Creador?",
   "El argumento cosmológico Kalam demuestra que el universo tuvo un inicio absoluto.",
   "Si el universo tuvo un inicio, debe tener una causa trascendente, inmaterial y sumamente poderosa.",
-  "Esta causa incausada coincide perfectamente con la descripción del Dios bíblico."
+  "Esta causa incausada coincide perfectamente con la descripción del Dios bíblico.",
 ]
 
 [[post]]
-name   = "quote-einstein"
-title  = "La imaginación"
-quote  = "La imaginación es más importante que el conocimiento. El conocimiento es limitado, la imaginación rodea el mundo."
+name = "quote-einstein"
+title = "La imaginación"
+quote = "La imaginación es más importante que el conocimiento. El conocimiento es limitado, la imaginación rodea el mundo."
 author = "Albert Einstein"
 source = "Entrevista, 1929"
 layout = "quote"
-theme  = "dark"
-brand  = "@tu_marca"
+theme = "dark"
+brand = "@tu_marca"
+
+[[post]]
+name = "nord-demo"
+title = "Estética Ártica: Nord"
+quote = "Un diseño minimalista inspirado en los colores de la aurora ártica y el hielo."
+image = "assets/bg-ciencia.jpg"
+theme = "nord"
+accent = "auto"
+
+[[post]]
+name = "material-demo"
+title = "Diseño Dinámico: Material You"
+quote = "Tus colores se adaptan automáticamente a la imagen de fondo con el motor de Material Design 3."
+image = "assets/bg2.jpg"
+theme = "auto-matugen"
+accent = "auto"

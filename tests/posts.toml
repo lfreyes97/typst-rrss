@@ -24,3 +24,19 @@ theme = "auto"
 layout = "quote"
 quote = "Nature never did betray the heart that loved her."
 author = "William Wordsworth"
+
+# Post 3: Nord theme test
+[[post]]
+name = "test-nord"
+title = "Nord Theme Test"
+image = "assets/bg-ciencia.jpg"
+theme = "nord"
+quote = "Minimalist polar aesthetics."
+
+# Post 4: Material You test
+[[post]]
+name = "test-material"
+title = "Material You Test"
+image = "assets/bg2.jpg"
+theme = "auto-matugen"
+quote = "Dynamic colors from image."

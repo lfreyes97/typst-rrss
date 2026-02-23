@@ -622,6 +622,33 @@ fn do_generate(params: &GenerateParams, cfg: Option<&config::Config>) -> Result<
         } else {
             palettes.get("dark").unwrap().clone()
         }
+    } else if params.theme == "auto-matugen" {
+        if let Some(path) = &params.image {
+            let mut m = std::collections::HashMap::new();
+            if let Ok(image) = material_colors::ImageReader::open(path) {
+                let color = material_colors::ImageReader::extract_color(&image);
+
+                let theme = material_colors::theme_from_source_color(color, vec![]);
+                let scheme = theme.schemes.dark;
+
+                m.insert("bg".to_string(), scheme.background.as_hex());
+                m.insert("surface".to_string(), scheme.surface.as_hex());
+                m.insert("primary".to_string(), scheme.primary.as_hex());
+                m.insert("secondary".to_string(), scheme.secondary.as_hex());
+                m.insert("accent".to_string(), scheme.tertiary.as_hex());
+                m.insert("text".to_string(), scheme.on_background.as_hex());
+                m.insert("muted".to_string(), scheme.outline.as_hex());
+                m.insert("highlight".to_string(), scheme.primary_container.as_hex());
+            }
+
+            if m.is_empty() {
+                palettes.get("dark").unwrap().clone()
+            } else {
+                m
+            }
+        } else {
+            palettes.get("dark").unwrap().clone()
+        }
     } else {
         palettes.get("dark").unwrap().clone()
     };

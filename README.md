@@ -87,12 +87,26 @@ quote = "Una cita inspiradora aquí..."
 image = "assets/mar.jpg"
 overlay = "assets/Solid-bg.svg"
 
-# Post 2: Extrae colores automáticamente de la imagen
+# Post 2: Extrae colores automáticamente de la imagen (Modo Clásico)
 [[posts]]
 name = "naturaleza"
 title = "Creación"
 image = "assets/bosque.jpg"
-theme = "auto"      # ✨ MODO AUTOMÁTICO
+theme = "auto"      # ✨ MODO AUTOMÁTICO (Thaimeleon)
+
+# Post 3: Estética minimalista (Nord)
+[[posts]]
+name = "minimalista"
+title = "Menos es más"
+image = "assets/hielo.jpg"
+theme = "nord"      # ❄️ TEMA PREDEFINIDO
+
+# Post 4: Material You (Material Design 3)
+[[posts]]
+name = "dinamico"
+title = "Diseño Adaptativo"
+image = "assets/bg2.jpg"
+theme = "auto-matugen" # 🤖 MODO MATERIAL YOU
 ```
 
 Luego, simplemente ejecuta:
