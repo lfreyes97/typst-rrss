@@ -13,6 +13,10 @@
     # pkgs.nodePackages.nodemon
     pkgs.typst
     pkgs.cargo
+    pkgs.gcc
+    pkgs.mold-wrapped
+    pkgs.fish
+    pkgs.sccache
   ];
 
   # Sets environment variables in the workspace

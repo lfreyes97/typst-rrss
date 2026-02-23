@@ -1,0 +1,11 @@
+# .cargo/config.toml
+
+# Use sccache to cache compilation results.
+# This is provided by your NixOS development environment.
+[build]
+rustc-wrapper = "sccache"
+
+# Use the mold linker for faster linking on x86-64 Linux.
+# `mold-wrapped` is provided by your NixOS development environment.
+[target.x86_64-unknown-linux-gnu]
+rustflags = ["-C", "link-arg=-fuse-ld=mold"]
