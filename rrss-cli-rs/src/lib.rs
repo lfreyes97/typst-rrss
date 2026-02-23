@@ -1,6 +1,9 @@
+pub mod build;
+pub mod cli;
 pub mod colors;
 pub mod config;
 pub mod constants;
+pub mod generate;
 pub mod images;
 pub mod templates;
 pub mod themes;
