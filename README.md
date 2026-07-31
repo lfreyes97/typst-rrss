@@ -1,29 +1,45 @@
-# typst-rrss
+# 🚀 typst-rrss
 
-Sistema modular para generar imágenes de redes sociales usando **Typst** y una CLI de alto rendimiento en **Rust**.
+Sistema modular de alto rendimiento para generar imágenes de redes sociales usando **Typst** y una CLI segura escrita en **Rust**.
 
-Diseñado para crear contenido visual coherente (frases, artículos, estadísticas) de forma programática, estilizada y automatizada.
+Diseñado para crear contenido visual coherente (frases, artículos, estadísticas) de forma programática, estilizada y automatizada, garantizando robustez y seguridad en el procesamiento de datos.
+
+---
+
+## 🛡️ Seguridad y Robustez
+
+Tras una auditoría exhaustiva, el sistema ha sido fortalecido con protecciones de grado de producción:
+
+- **Prevención de Inyección de Comandos**: Ejecución segura de binarios externos (`typst`) mediante el paso de argumentos estructurados en lugar de interpolación de strings.
+- **Validación de Rutas (Safe Path Validation)**: El sistema detecta y bloquea intentos de *Path Traversal*, restringiendo el acceso únicamente a directorios seguros (`/home`, `/tmp` y el directorio de trabajo).
+- **Protección contra Agotamiento de Recursos (DoS)**: 
+  - Límites estrictos de PPI (72 - 1200).
+  - Validación de dimensiones de imagen (máximo 4K).
+  - Control de tamaño de archivos de entrada (máximo 256MB).
+- **Sanitización de Entradas**: Validación de longitud máxima y eliminación de bytes nulos en todos los strings de entrada (títulos, citas, marcas).
+- **Escapado Automático**: Sanitización de caracteres especiales para el motor de Typst, evitando inyecciones de scripting en las plantillas.
+- **Manejo de Errores Moderno**: Eliminación total de `panics` en el flujo principal, utilizando `anyhow` para una propagación de errores limpia y descriptiva.
+
+---
 
 ## 🚀 Inicio Rápido
 
 ### Requisitos
-- **Typst** (para compilar las imágenes a PNG/PDF)
-- **Rust** (para compilar la CLI)
+- **Typst 0.11+** (para compilar las imágenes a PNG/PDF)
+- **Rust 1.75+** (para compilar la CLI)
 
 ### Instalación
 
-El sistema se divide en dos partes: el paquete de diseño de Typst y el CLI de Rust.
-
 1. **Instalar el Paquete Typst localmente**
-   Crea un enlace simbólico de la carpeta `rrss-pkg` hacia donde Typst busca paquetes locales:
+   Crea un enlace simbólico de la carpeta `rrss-pkg` hacia el directorio de paquetes locales de Typst:
 
 ```bash
 mkdir -p ~/.local/share/typst/packages/local/rrss/0.1.0
 ln -s $(pwd)/rrss-pkg/* ~/.local/share/typst/packages/local/rrss/0.1.0/
 ```
 
-2. **Instalar la CLI de manera Global**
-   Usa Cargo para instalar el binario en tu sistema, lo que te permitirá ejecutar `rrss` desde cualquier carpeta:
+2. **Instalar la CLI**
+   Compila e instala el binario en tu sistema:
 
 ```bash
 cargo install --path rrss-cli-rs
@@ -31,46 +47,44 @@ cargo install --path rrss-cli-rs
 
 ### Uso Básico
 
-Una vez instalada, puedes usar la CLI desde cualquier carpeta para generar posts basados en un archivo TOML o argumentos directos.
-
 ```bash
-# Generar todas las imágenes definidas en un posts.toml local
+# Generar todas las imágenes definidas en un posts.toml
 rrss-cli-rs build
 
-# Generar solo un post específico desde el TOML
+# Generar solo un post específico
 rrss-cli-rs build --only ciencia
 
-# Generar directamente con parámetros de consola
-rrss-cli-rs generate --title "Hola Mundo" --brand "Mi Marca" --layout article --platform instagram-post --output post.typ
-typst compile post.typ post.png
+# Generar directamente con parámetros (con validaciones de seguridad automáticas)
+rrss-cli-rs generate --title "Seguridad Primero" --brand "Typst-RRSS" --layout article --platform instagram-post --output post.typ
 ```
 
 ---
 
 ## 🛠️ CLI `rrss-cli-rs`
 
-El ejecutable `rrss-cli-rs` automatiza todo el flujo: parseo de configuración, procesamiento de imágenes, generación de código Typst y compilación usando el paquete global `@local/rrss:0.1.0`.
+La CLI automatiza el flujo completo: validación, procesamiento, generación de código Typst y compilación.
 
 ### Comandos Principales
 
 | Comando | Descripción |
 | :--- | :--- |
-| **`build`** | Genera y compila los posts definidos en `posts.toml`. Opciones: `--only <name>`, `--dry-run`. |
-| **`generate`** | Genera un *único* archivo `.typ` basado en argumentos de línea de comandos. |
-| **`full`** | Pipeline completo para un solo post (generar `.typ` + compilar a `.png`). |
-| **`extract`** | Analiza una imagen y extrae una paleta de colores dominante y sugerencias de acento. |
-| **`compile`** | Utilería para compilar manualmente archivos `.typ` en lote. |
-| **`colors`** | Genera esquemas de color armónicos a partir de un color base hexadecimal. |
+| **`build`** | Genera y compila los posts definidos en `posts.toml`. |
+| **`generate`** | Genera un archivo `.typ` basado en argumentos. Incluye sanitización. |
+| **`full`** | Pipeline completo: genera `.typ` y compila a `.png` en un solo paso. |
+| **`extract`** | Analiza una imagen para extraer paletas de colores y acentos. |
+| **`colors`** | Genera esquemas de color armónicos desde un hex base. |
+
+### 🪵 Logging y Observabilidad (Tracing)
+
+El sistema utiliza `tracing` para proporcionar visibilidad en tiempo real:
+- **Nivel INFO (default)**: Progreso de generación y compilación.
+- **Errores Detallados**: Incluye el stderr del motor de Typst si la compilación falla, facilitando el debug.
 
 ---
 
 ## 📝 Configuración (`posts.toml`)
 
-Control total de tu contenido y diseño en un solo archivo. Puedes tener este archivo en cualquier carpeta de tu ordenador.
-
-### Uso con `.toml`
-
-Simplemente crea un archivo `posts.toml` en tu carpeta actual:
+Control total de contenido y diseño. Ejemplo de configuración:
 
 ```toml
 [defaults]
@@ -79,73 +93,43 @@ layout = "article"
 theme = "dark"
 platform = "instagram-post"
 
-# Post 1: Usa el tema por defecto ("dark")
 [[posts]]
-name = "oceano"
-title = "La Roca de los Siglos"
-quote = "Una cita inspiradora aquí..."
-image = "assets/mar.jpg"
-overlay = "assets/Solid-bg.svg"
-
-# Post 2: Extrae colores automáticamente de la imagen (Modo Clásico)
-[[posts]]
-name = "naturaleza"
-title = "Creación"
-image = "assets/bosque.jpg"
-theme = "auto"      # ✨ MODO AUTOMÁTICO (Thaimeleon)
-
-# Post 3: Estética minimalista (Nord)
-[[posts]]
-name = "minimalista"
-title = "Menos es más"
-image = "assets/hielo.jpg"
-theme = "nord"      # ❄️ TEMA PREDEFINIDO
-
-# Post 4: Material You (Material Design 3)
-[[posts]]
-name = "dinamico"
-title = "Diseño Adaptativo"
-image = "assets/bg2.jpg"
-theme = "auto-matugen" # 🤖 MODO MATERIAL YOU
-```
-
-Luego, simplemente ejecuta:
-```bash
-rrss-cli-rs build
+name = "seguridad"
+title = "Arquitectura Segura"
+quote = "La seguridad no es un producto, es un proceso."
+image = "assets/tech.jpg"
+theme = "auto" # ✨ Modo Inteligente (Thaimeleon)
 ```
 
 ---
 
 ## 🎨 Layouts y Templates
 
-Los diseños están definidos en Typst dentro del paquete `rrss-pkg/` y pueden ser usados independientemente de la CLI usando:
-```typst
-#import "@local/rrss:0.1.0": *
-```
+Los diseños están definidos en Typst dentro del paquete `rrss-pkg/`.
 
 ### Layouts Soportados
-- **`article`**: Para contenido tipo blog o ensayo.
-- **`quote`**: Para citas destacadas.
-- **`hero`**: Para títulos grandes o portadas.
-- **`carousel`**: Para secuencias de imágenes (Instagram Carousels).
+- **`article`**: Contenido editorial.
+- **`quote`**: Frases y citas destacadas.
+- **`hero`**: Títulos de alto impacto.
+- **`carousel`**: Secuencias para Instagram.
 
 ### Templates de Redes Sociales
-Listos para usar con dimensiones específicas:
-- `instagram-post` (1080x1080)
-- `instagram-story` (1080x1920)
-- `twitter-post` (1600x900)
-- `linkedin-post` (1200x627)
-- `facebook-post` (1200x630)
-- `og-image` (1200x630)
+- `instagram-post` / `instagram-story`
+- `twitter-post` / `linkedin-post`
+- `facebook-post` / `og-image`
 
 ---
 
 ## 📂 Estructura del Proyecto
 
-- **`posts.toml`**: Ejemplo de configuración.
-- **`rrss-cli-rs/`**: Código fuente de la CLI global en Rust.
-- **`rrss-pkg/`**: Paquete oficial de Typst que contiene temas, layouts y elementos de diseño.
-  - `lib/`: Librería Typst modular.
-  - `templates/`: Plantillas para cada plataforma.
-- **`content/`**: Ejemplos independientes construidos en Typst puro.
-- **`assets/`**: Imágenes y recursos de ejemplo.
+- **`rrss-cli-rs/`**: CLI en Rust (motor de lógica y seguridad).
+- **`rrss-pkg/`**: Paquete oficial de Typst (estilos y templates).
+- **`assets/`**: Recursos y ejemplos multimedia.
+- **`tests/`**: Suite de validación funcional.
+
+---
+
+## 📄 Licencia
+
+Este proyecto se distribuye bajo la licencia MIT. Consulta el archivo `LICENSE` para más detalles.
+
