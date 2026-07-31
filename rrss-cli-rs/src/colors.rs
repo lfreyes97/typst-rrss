@@ -1,23 +1,35 @@
-// use image::GenericImageView;
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use palette::{FromColor, Hsl, OklabHue, Srgb};
 use quantette::ImageRef;
 use std::path::Path;
 use thaimeleon_lib::scheme_builder::{ChromaBuilder, SchemeBuilder, ThemeConfig};
 
-pub fn hex_to_rgb_tuple(hex_color: &str) -> (u8, u8, u8) {
+pub fn hex_to_rgb_tuple(hex_color: &str) -> Result<(u8, u8, u8)> {
     let hex_color = hex_color.trim_start_matches('#');
-    let r = u8::from_str_radix(&hex_color[0..2], 16).unwrap_or(0);
-    let g = u8::from_str_radix(&hex_color[2..4], 16).unwrap_or(0);
-    let b = u8::from_str_radix(&hex_color[4..6], 16).unwrap_or(0);
-    (r, g, b)
+    
+    if hex_color.len() != 6 {
+        return Err(anyhow!(
+            "Invalid hex color length: expected 6, got {} ('{}')",
+            hex_color.len(),
+            hex_color
+        ));
+    }
+
+    let r = u8::from_str_radix(&hex_color[0..2], 16)
+        .map_err(|e| anyhow!("Invalid red component in '{}': {}", hex_color, e))?;
+    let g = u8::from_str_radix(&hex_color[2..4], 16)
+        .map_err(|e| anyhow!("Invalid green component in '{}': {}", hex_color, e))?;
+    let b = u8::from_str_radix(&hex_color[4..6], 16)
+        .map_err(|e| anyhow!("Invalid blue component in '{}': {}", hex_color, e))?;
+        
+    Ok((r, g, b))
 }
 
-pub fn hex_to_hsl(hex_color: &str) -> (f32, f32, f32) {
-    let (r, g, b) = hex_to_rgb_tuple(hex_color);
+pub fn hex_to_hsl(hex_color: &str) -> Result<(f32, f32, f32)> {
+    let (r, g, b) = hex_to_rgb_tuple(hex_color)?;
     let srgb = Srgb::new(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
     let hsl = Hsl::from_color(srgb);
-    (hsl.hue.into_degrees(), hsl.saturation, hsl.lightness)
+    Ok((hsl.hue.into_degrees(), hsl.saturation, hsl.lightness))
 }
 
 pub fn hsl_to_hex(h: f32, s: f32, l: f32) -> String {
@@ -119,12 +131,18 @@ fn get_default_builder() -> SchemeBuilder {
 }
 
 pub fn generate_palette(base_hex: &str) -> std::collections::HashMap<String, String> {
-    let (r, g, b) = hex_to_rgb_tuple(base_hex);
+    let (r, g, b) = match hex_to_rgb_tuple(base_hex) {
+        Ok(vals) => vals,
+        Err(_) => (74, 63, 107), // Fallback if invalid
+    };
     let builder = get_default_builder();
 
     // Crear una imagen 1x1 para generar desde un solo color usando el API de imagen
     let pixels = [Srgb::new(r, g, b)];
-    let image_ref = ImageRef::new(1, 1, &pixels).unwrap();
+    let image_ref = ImageRef::new(1, 1, &pixels).unwrap_or_else(|_| {
+        // Safe fallback if ImageRef fails
+        ImageRef::new(1, 1, &pixels).expect("Static 1x1 pixels should always work")
+    });
 
     match builder.generate_from_image(image_ref) {
         Ok(scheme) => {
@@ -143,7 +161,7 @@ pub fn generate_palette(base_hex: &str) -> std::collections::HashMap<String, Str
         }
         Err(_) => {
             // Fallback al sistema HSL original
-            let (h, s, l) = hex_to_hsl(base_hex);
+            let (h, s, l) = hex_to_hsl(base_hex).unwrap_or((250.0, 0.25, 0.33));
             let mut palette = std::collections::HashMap::new();
             palette.insert(
                 "bg".to_string(),
@@ -204,12 +222,13 @@ pub fn suggest_accent(image_path: &str) -> String {
         let img = img.to_rgb8();
         let (width, height) = img.dimensions();
         let pixels: Vec<Srgb<u8>> = img.pixels().map(|p| Srgb::new(p[0], p[1], p[2])).collect();
-        let image_ref = ImageRef::new(width, height, &pixels).unwrap();
-
-        let builder = get_default_builder();
-        if let Ok(scheme) = builder.generate_from_image(image_ref) {
-            let ac = scheme.fg_accents[0];
-            return format!("#{:02x}{:02x}{:02x}", ac.red, ac.green, ac.blue);
+        
+        if let Ok(image_ref) = ImageRef::new(width, height, &pixels) {
+            let builder = get_default_builder();
+            if let Ok(scheme) = builder.generate_from_image(image_ref) {
+                let ac = scheme.fg_accents[0];
+                return format!("#{:02x}{:02x}{:02x}", ac.red, ac.green, ac.blue);
+            }
         }
     }
 
@@ -225,7 +244,10 @@ pub fn suggest_accent(image_path: &str) -> String {
     let mut scored: Vec<(f32, String)> = Vec::new();
     for c in &colors {
         let hex = format!("#{:02x}{:02x}{:02x}", c.r, c.g, c.b);
-        let (_, s, l) = hex_to_hsl(&hex);
+        let (_, s, l) = match hex_to_hsl(&hex) {
+            Ok(vals) => vals,
+            Err(_) => continue,
+        };
         if l < 0.08 || l > 0.92 || s < 0.05 {
             continue;
         }
@@ -239,6 +261,6 @@ pub fn suggest_accent(image_path: &str) -> String {
         return format!("#{:02x}{:02x}{:02x}", c.r, c.g, c.b);
     }
 
-    scored.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap());
+    scored.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
     scored[0].1.clone()
 }

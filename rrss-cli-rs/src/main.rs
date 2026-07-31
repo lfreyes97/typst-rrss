@@ -1,11 +1,22 @@
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use clap::Parser;
-use rrss_cli_rs::{build, cli, colors, config, generate};
+use rrss_cli_rs::{build, cli, colors, config, generate, process};
 
 use std::fs;
 use std::path::Path;
+use tracing::info;
+use tracing_subscriber::{fmt, prelude::*, EnvFilter};
+
+fn setup_logging() {
+    tracing_subscriber::registry()
+        .with(fmt::layer())
+        .with(EnvFilter::from_default_env().add_directive(tracing::Level::INFO.into()))
+        .init();
+}
 
 fn main() -> Result<()> {
+    setup_logging();
+    info!("Starting rrss-cli-rs");
     let parsed = cli::Cli::parse();
     let root = std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
 
@@ -47,6 +58,10 @@ fn main() -> Result<()> {
             font_body,
             font_mono,
         } => {
+            validate_string_input(&title, 300, "title")?;
+            validate_string_input(&quote, 2000, "quote")?;
+            validate_string_input(&brand, 200, "brand")?;
+
             let params = cli::GenerateParams {
                 brand: brand.clone(),
                 title: title.clone(),
@@ -107,6 +122,10 @@ fn main() -> Result<()> {
             font_mono,
             format,
         } => {
+            validate_string_input(&title, 300, "title")?;
+            validate_string_input(&quote, 2000, "quote")?;
+            validate_string_input(&brand, 200, "brand")?;
+
             let params = cli::GenerateParams {
                 brand: brand.clone(),
                 title: title.clone(),
@@ -142,12 +161,12 @@ fn main() -> Result<()> {
             };
             let output_path = Path::new(out_dir).join(&out_filename);
 
-            println!("Compiling {} -> {}", typ_file, output_path.display());
-            build::run_typst_compile(&root, Path::new(&typ_file), &output_path, *ppi)?;
+            info!("Compiling {} -> {}", typ_file, output_path.display());
+            process::compile_typst(Path::new(&typ_file), &output_path, *ppi, &root)?;
 
             if *format == cli::ImageFormat::Webp {
                 let webp = build::convert_to_webp(&output_path)?;
-                println!("✓ Converted to {}", webp.display());
+                info!("✓ Converted to {}", webp.display());
             }
             Ok(())
         }
@@ -162,6 +181,24 @@ fn main() -> Result<()> {
             build::run_build(&cfg, &root, only, *dry_run, format)
         }
     }
+}
+
+// ─── Input Validation ────────────────────────────────────────────────────────
+
+pub fn validate_string_input(s: &str, max_len: usize, field_name: &str) -> Result<()> {
+    if s.len() > max_len {
+        return Err(anyhow::anyhow!(
+            "{} exceeds maximum length of {} characters",
+            field_name,
+            max_len
+        ));
+    }
+
+    if s.contains('\0') {
+        return Err(anyhow::anyhow!("{} contains null bytes", field_name));
+    }
+
+    Ok(())
 }
 
 // ─── Command handlers ──────────────────────────────────────────────────────────
@@ -285,7 +322,7 @@ fn cmd_compile(
         let output_path = Path::new(output_dir).join(&out_filename);
 
         print!("  ⟩ {}... ", stem);
-        match build::run_typst_compile(root, &target, &output_path, ppi) {
+        match process::compile_typst(&target, &output_path, ppi, root) {
             Ok(_) => {
                 if *format == cli::ImageFormat::Webp {
                     match build::convert_to_webp(&output_path) {
@@ -296,7 +333,7 @@ fn cmd_compile(
                     println!("✓");
                 }
             }
-            Err(_) => println!("✗ Error"),
+            Err(e) => println!("✗ Error: {}", e),
         }
     }
     Ok(())

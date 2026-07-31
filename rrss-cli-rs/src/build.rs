@@ -5,6 +5,7 @@ use std::path::Path;
 use crate::cli::{GenerateParams, ImageFormat};
 use crate::config::Config;
 use crate::generate::do_generate;
+use crate::process;
 
 /// Convert a PNG file to WebP format, removing the original PNG
 pub fn convert_to_webp(png_path: &Path) -> Result<std::path::PathBuf> {
@@ -15,25 +16,6 @@ pub fn convert_to_webp(png_path: &Path) -> Result<std::path::PathBuf> {
     Ok(webp_path)
 }
 
-/// Run the typst compile command
-pub fn run_typst_compile(root: &Path, input: &Path, output: &Path, ppi: u32) -> Result<()> {
-    let status = std::process::Command::new("typst")
-        .arg("compile")
-        .arg("--root")
-        .arg(root)
-        .arg("--ppi")
-        .arg(ppi.to_string())
-        .arg(input)
-        .arg(output)
-        .status()
-        .map_err(|e| anyhow::anyhow!("Failed to execute typst command: {}", e))?;
-
-    if status.success() {
-        Ok(())
-    } else {
-        Err(anyhow::anyhow!("Typst compilation failed"))
-    }
-}
 
 /// Execute the Build command: iterate posts from config, generate .typ, compile
 pub fn run_build(
@@ -144,6 +126,16 @@ pub fn run_build(
             }),
         };
 
+        // Validate inputs before continuing
+        if params.title.len() > 300 {
+            println!("    ✗ Error: Title too long in post '{}'", name);
+            continue;
+        }
+        if params.quote.len() > 2000 {
+            println!("    ✗ Error: Quote too long in post '{}'", name);
+            continue;
+        }
+
         println!("\n  ⟩ {} — {}", name, params.title);
 
         if dry_run {
@@ -178,7 +170,7 @@ pub fn run_build(
         };
         let output_path = Path::new(output_dir).join(&out_filename);
 
-        match run_typst_compile(root, Path::new(&typ_file), &output_path, ppi) {
+        match process::compile_typst(Path::new(&typ_file), &output_path, ppi, root) {
             Ok(_) => {
                 if *format == ImageFormat::Webp {
                     match convert_to_webp(&output_path) {
@@ -189,7 +181,7 @@ pub fn run_build(
                     println!("    ✓ Compiled");
                 }
             }
-            Err(_) => println!("    ✗ Compilation failed"),
+            Err(e) => println!("    ✗ Compilation failed: {}", e),
         }
     }
 

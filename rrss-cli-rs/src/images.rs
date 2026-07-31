@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::str::FromStr;
 use std::path::{Path, PathBuf};
 use anyhow::{Context, Result, anyhow};
+use tracing::error;
 
 // Security limits
 const MAX_IMAGE_SIZE_MB: u64 = 256;
@@ -102,7 +103,18 @@ pub fn recolor_image(
 }
 
 pub fn generate_contours(image_path: &str) -> Result<String> {
+    // Resource limit check
+    let metadata = std::fs::metadata(image_path).context("Failed to read image metadata")?;
+    if metadata.len() > MAX_IMAGE_SIZE_MB * 1024 * 1024 {
+        return Err(anyhow!("Image file too large for contour generation (max 256MB)"));
+    }
+
     let img = image::open(image_path).context("Failed to open image for contour")?;
+    let (width, height) = img.dimensions();
+    if width > MAX_IMAGE_DIMENSION || height > MAX_IMAGE_DIMENSION {
+        return Err(anyhow!("Image dimensions too large for contour generation (max 4096px)"));
+    }
+    
     let gray = img.grayscale();
     
     let p = Path::new(image_path);
@@ -118,6 +130,7 @@ pub fn generate_contours(image_path: &str) -> Result<String> {
 }
 
 pub fn generate_noise_contours(_root_path: &Path) -> Result<String> {
-     // TODO: Implement Perlin noise contour generation
-     Err(anyhow!("Noise contour generation not yet implemented"))
+     // TODO: Implement Perlin noise contour generation safely
+     error!("Attempted to use unimplemented feature: noise contour generation");
+     Err(anyhow!("Noise contour generation is not yet implemented in this version (0.1.0)"))
 }

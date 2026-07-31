@@ -19,7 +19,10 @@ fn resolve_theme(
     match params.theme.as_str() {
         "auto" => resolve_auto_theme(params, &palettes),
         "auto-matugen" => resolve_matugen_theme(params, &palettes),
-        _ => Ok(palettes.get("dark").unwrap().clone()),
+        _ => Ok(palettes
+            .get("dark")
+            .cloned()
+            .unwrap_or_else(HashMap::new)),
     }
 }
 
@@ -36,10 +39,10 @@ fn resolve_auto_theme(
                 );
                 Ok(colors::generate_palette(&base))
             }
-            Err(_) => Ok(palettes.get("dark").unwrap().clone()),
+            Err(_) => Ok(palettes.get("dark").cloned().unwrap_or_else(HashMap::new)),
         }
     } else {
-        Ok(palettes.get("dark").unwrap().clone())
+        Ok(palettes.get("dark").cloned().unwrap_or_else(HashMap::new))
     }
 }
 
@@ -52,14 +55,14 @@ fn resolve_matugen_theme(
 
     let path = match &params.image {
         Some(p) => p,
-        None => return Ok(palettes.get("dark").unwrap().clone()),
+        None => return Ok(palettes.get("dark").cloned().unwrap_or_else(HashMap::new)),
     };
 
     let bytes = match std::fs::read(path) {
         Ok(b) => b,
         Err(e) => {
             eprintln!("⚠ Could not read image {:?}: {}", path, e);
-            return Ok(palettes.get("dark").unwrap().clone());
+            return Ok(palettes.get("dark").cloned().unwrap_or_else(HashMap::new));
         }
     };
 
@@ -67,7 +70,7 @@ fn resolve_matugen_theme(
         Ok(d) => d,
         Err(e) => {
             eprintln!("⚠ Could not decode image {:?}: {}", path, e);
-            return Ok(palettes.get("dark").unwrap().clone());
+            return Ok(palettes.get("dark").cloned().unwrap_or_else(HashMap::new));
         }
     };
 
@@ -150,7 +153,7 @@ pub fn do_generate(params: &GenerateParams, cfg: Option<&Config>) -> Result<Stri
     out.push_str("    t,\n");
 
     // Required parameters
-    out.push_str(&format!("    brand: \"{}\",\n", params.brand));
+    out.push_str(&format!("    brand: \"{}\",\n", escape_typst(&params.brand)));
 
     // Logo
     if let Some(l) = &params.logo {
@@ -166,15 +169,15 @@ pub fn do_generate(params: &GenerateParams, cfg: Option<&Config>) -> Result<Stri
 
     // Title & Quote
     if !params.title.is_empty() {
-        out.push_str(&format!("    title: \"{}\",\n", params.title));
+        out.push_str(&format!("    title: \"{}\",\n", escape_typst(&params.title)));
     }
     if !params.quote.is_empty() {
-        out.push_str(&format!("    quote-text: \"{}\",\n", params.quote));
+        out.push_str(&format!("    quote-text: \"{}\",\n", escape_typst(&params.quote)));
     }
 
     // Optional metadata
     if !params.author.is_empty() {
-        out.push_str(&format!("    author: \"{}\",\n", params.author));
+        out.push_str(&format!("    author: \"{}\",\n", escape_typst(&params.author)));
     }
     if let Some(s) = &params.source {
         out.push_str(&format!("    source: \"{}\",\n", s));
@@ -224,4 +227,8 @@ pub fn do_generate(params: &GenerateParams, cfg: Option<&Config>) -> Result<Stri
     out.push_str(")\n");
 
     Ok(out)
+}
+
+fn escape_typst(s: &str) -> String {
+    s.replace("\"", "\\\"")
 }

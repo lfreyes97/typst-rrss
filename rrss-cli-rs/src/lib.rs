@@ -7,3 +7,4 @@ pub mod generate;
 pub mod images;
 pub mod templates;
 pub mod themes;
+pub mod process;
