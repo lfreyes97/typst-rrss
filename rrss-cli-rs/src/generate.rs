@@ -6,10 +6,7 @@ use crate::config::Config;
 use crate::{colors, themes};
 
 /// Resolve the theme palette from parameters
-fn resolve_theme(
-    params: &GenerateParams,
-    cfg: Option<&Config>,
-) -> Result<HashMap<String, String>> {
+fn resolve_theme(params: &GenerateParams, cfg: Option<&Config>) -> Result<HashMap<String, String>> {
     let palettes = themes::predefined::get_theme_palettes(cfg);
 
     if let Some(map) = palettes.get(&params.theme) {
@@ -19,10 +16,7 @@ fn resolve_theme(
     match params.theme.as_str() {
         "auto" => resolve_auto_theme(params, &palettes),
         "auto-matugen" => resolve_matugen_theme(params, &palettes),
-        _ => Ok(palettes
-            .get("dark")
-            .cloned()
-            .unwrap_or_else(HashMap::new)),
+        _ => Ok(palettes.get("dark").cloned().unwrap_or_else(HashMap::new)),
     }
 }
 
@@ -85,7 +79,10 @@ fn resolve_matugen_theme(
     m.insert("bg".to_string(), scheme.background.to_hex_with_pound());
     m.insert("surface".to_string(), scheme.surface.to_hex_with_pound());
     m.insert("primary".to_string(), scheme.primary.to_hex_with_pound());
-    m.insert("secondary".to_string(), scheme.secondary.to_hex_with_pound());
+    m.insert(
+        "secondary".to_string(),
+        scheme.secondary.to_hex_with_pound(),
+    );
     m.insert("accent".to_string(), scheme.tertiary.to_hex_with_pound());
     m.insert("text".to_string(), scheme.on_background.to_hex_with_pound());
     m.insert("muted".to_string(), scheme.outline.to_hex_with_pound());
@@ -153,7 +150,10 @@ pub fn do_generate(params: &GenerateParams, cfg: Option<&Config>) -> Result<Stri
     out.push_str("    t,\n");
 
     // Required parameters
-    out.push_str(&format!("    brand: \"{}\",\n", escape_typst(&params.brand)));
+    out.push_str(&format!(
+        "    brand: \"{}\",\n",
+        escape_typst(&params.brand)
+    ));
 
     // Logo
     if let Some(l) = &params.logo {
@@ -169,15 +169,24 @@ pub fn do_generate(params: &GenerateParams, cfg: Option<&Config>) -> Result<Stri
 
     // Title & Quote
     if !params.title.is_empty() {
-        out.push_str(&format!("    title: \"{}\",\n", escape_typst(&params.title)));
+        out.push_str(&format!(
+            "    title: \"{}\",\n",
+            escape_typst(&params.title)
+        ));
     }
     if !params.quote.is_empty() {
-        out.push_str(&format!("    quote-text: \"{}\",\n", escape_typst(&params.quote)));
+        out.push_str(&format!(
+            "    quote-text: \"{}\",\n",
+            escape_typst(&params.quote)
+        ));
     }
 
     // Optional metadata
     if !params.author.is_empty() {
-        out.push_str(&format!("    author: \"{}\",\n", escape_typst(&params.author)));
+        out.push_str(&format!(
+            "    author: \"{}\",\n",
+            escape_typst(&params.author)
+        ));
     }
     if let Some(s) = &params.source {
         out.push_str(&format!("    source: \"{}\",\n", s));

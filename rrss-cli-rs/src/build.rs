@@ -16,7 +16,6 @@ pub fn convert_to_webp(png_path: &Path) -> Result<std::path::PathBuf> {
     Ok(webp_path)
 }
 
-
 /// Execute the Build command: iterate posts from config, generate .typ, compile
 pub fn run_build(
     cfg: &Config,
@@ -162,13 +161,20 @@ pub fn run_build(
 
         let ppi = post.ppi.unwrap_or(144);
         let output_dir = "output";
-        fs::create_dir_all(output_dir)?;
         let out_filename = if params.platform == "instagram-carousel" {
             format!("{}_{{{}}}.png", name, "p")
         } else {
             format!("{}.png", name)
         };
         let output_path = Path::new(output_dir).join(&out_filename);
+        // `name` may itself contain subdirectories, so create the full parent
+        // chain, not just `output_dir`.
+        if let Some(parent) = output_path.parent() {
+            if let Err(e) = fs::create_dir_all(parent) {
+                println!("    ✗ Error creating output directory: {}", e);
+                continue;
+            }
+        }
 
         match process::compile_typst(Path::new(&typ_file), &output_path, ppi, root) {
             Ok(_) => {

@@ -9,8 +9,8 @@
 // ─── Tipografía ──────────────────────────────────────────────────────────────
 
 #let fonts = (
-  heading: ("Fira Sans",),
-  body: ("Fira Sans",),
+  heading: ("Urbanist",),
+  body: ("Urbanist",),
   mono: ("Fira Mono",),
 )
 

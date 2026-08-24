@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main, rust-cli]
+    paths:
+      - "rrss-cli-rs/**"
+      - ".github/workflows/ci.yml"
+  pull_request:
+    paths:
+      - "rrss-cli-rs/**"
+      - ".github/workflows/ci.yml"
+
+defaults:
+  run:
+    working-directory: rrss-cli-rs
+
+env:
+  CARGO_TERM_COLOR: always
+  # The repo's local .cargo/config.toml wires sccache + the mold linker,
+  # both provided by the project's Nix dev shell. Neither is installed on
+  # GitHub-hosted runners, so override them back to cargo's defaults here.
+  RUSTC_WRAPPER: ""
+  CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: ""
+
+jobs:
+  fmt:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: cargo fmt --all -- --check
+
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rrss-cli-rs
+      - run: cargo clippy --all-targets --all-features -- -D warnings
+
+  build-and-test:
+    name: Build & test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rrss-cli-rs
+      - run: cargo build --all-targets
+      - run: cargo test

@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result};
 use clap::Parser;
 use rrss_cli_rs::{build, cli, colors, config, generate, process};
 
@@ -58,9 +58,9 @@ fn main() -> Result<()> {
             font_body,
             font_mono,
         } => {
-            validate_string_input(&title, 300, "title")?;
-            validate_string_input(&quote, 2000, "quote")?;
-            validate_string_input(&brand, 200, "brand")?;
+            validate_string_input(title, 300, "title")?;
+            validate_string_input(quote, 2000, "quote")?;
+            validate_string_input(brand, 200, "brand")?;
 
             let params = cli::GenerateParams {
                 brand: brand.clone(),
@@ -122,9 +122,9 @@ fn main() -> Result<()> {
             font_mono,
             format,
         } => {
-            validate_string_input(&title, 300, "title")?;
-            validate_string_input(&quote, 2000, "quote")?;
-            validate_string_input(&brand, 200, "brand")?;
+            validate_string_input(title, 300, "title")?;
+            validate_string_input(quote, 2000, "quote")?;
+            validate_string_input(brand, 200, "brand")?;
 
             let params = cli::GenerateParams {
                 brand: brand.clone(),
@@ -153,13 +153,17 @@ fn main() -> Result<()> {
             fs::write(&typ_file, content).context("Failed to write typ file")?;
 
             let out_dir = "output";
-            fs::create_dir_all(out_dir)?;
             let out_filename = if params.platform == "instagram-carousel" {
                 format!("{}_{{{}}}.png", output_name, "p")
             } else {
                 format!("{}.png", output_name)
             };
             let output_path = Path::new(out_dir).join(&out_filename);
+            // output_name may itself contain subdirectories (e.g. "campaign/post"),
+            // so create the full parent chain, not just `out_dir`.
+            if let Some(parent) = output_path.parent() {
+                fs::create_dir_all(parent)?;
+            }
 
             info!("Compiling {} -> {}", typ_file, output_path.display());
             process::compile_typst(Path::new(&typ_file), &output_path, *ppi, &root)?;
@@ -279,7 +283,7 @@ fn cmd_compile(
         if content_dir.exists() {
             for entry in walkdir::WalkDir::new(content_dir).max_depth(1) {
                 let entry = entry?;
-                if entry.path().extension().map_or(false, |e| e == "typ") {
+                if entry.path().extension().is_some_and(|e| e == "typ") {
                     found.push(entry.path().to_path_buf());
                 }
             }

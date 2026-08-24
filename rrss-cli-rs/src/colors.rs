@@ -6,7 +6,7 @@ use thaimeleon_lib::scheme_builder::{ChromaBuilder, SchemeBuilder, ThemeConfig};
 
 pub fn hex_to_rgb_tuple(hex_color: &str) -> Result<(u8, u8, u8)> {
     let hex_color = hex_color.trim_start_matches('#');
-    
+
     if hex_color.len() != 6 {
         return Err(anyhow!(
             "Invalid hex color length: expected 6, got {} ('{}')",
@@ -21,7 +21,7 @@ pub fn hex_to_rgb_tuple(hex_color: &str) -> Result<(u8, u8, u8)> {
         .map_err(|e| anyhow!("Invalid green component in '{}': {}", hex_color, e))?;
     let b = u8::from_str_radix(&hex_color[4..6], 16)
         .map_err(|e| anyhow!("Invalid blue component in '{}': {}", hex_color, e))?;
-        
+
     Ok((r, g, b))
 }
 
@@ -131,10 +131,7 @@ fn get_default_builder() -> SchemeBuilder {
 }
 
 pub fn generate_palette(base_hex: &str) -> std::collections::HashMap<String, String> {
-    let (r, g, b) = match hex_to_rgb_tuple(base_hex) {
-        Ok(vals) => vals,
-        Err(_) => (74, 63, 107), // Fallback if invalid
-    };
+    let (r, g, b) = hex_to_rgb_tuple(base_hex).unwrap_or((74, 63, 107));
     let builder = get_default_builder();
 
     // Crear una imagen 1x1 para generar desde un solo color usando el API de imagen
@@ -222,7 +219,7 @@ pub fn suggest_accent(image_path: &str) -> String {
         let img = img.to_rgb8();
         let (width, height) = img.dimensions();
         let pixels: Vec<Srgb<u8>> = img.pixels().map(|p| Srgb::new(p[0], p[1], p[2])).collect();
-        
+
         if let Ok(image_ref) = ImageRef::new(width, height, &pixels) {
             let builder = get_default_builder();
             if let Ok(scheme) = builder.generate_from_image(image_ref) {
@@ -248,7 +245,7 @@ pub fn suggest_accent(image_path: &str) -> String {
             Ok(vals) => vals,
             Err(_) => continue,
         };
-        if l < 0.08 || l > 0.92 || s < 0.05 {
+        if !(0.08..=0.92).contains(&l) || s < 0.05 {
             continue;
         }
         let lum_score = 1.0 - (l - 0.4).abs() * 2.0;
