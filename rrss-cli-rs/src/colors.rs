@@ -25,6 +25,26 @@ pub fn hex_to_rgb_tuple(hex_color: &str) -> Result<(u8, u8, u8)> {
     Ok((r, g, b))
 }
 
+/// Luminancia relativa WCAG de un `#RRGGBB`.
+fn luminancia(hex: &str) -> Result<f64> {
+    let (r, g, b) = hex_to_rgb_tuple(hex)?;
+    let lin = |c: u8| {
+        let c = c as f64 / 255.0;
+        if c <= 0.04045 {
+            c / 12.92
+        } else {
+            ((c + 0.055) / 1.055).powf(2.4)
+        }
+    };
+    Ok(0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b))
+}
+
+/// Proporción de contraste WCAG entre dos colores (1.0 – 21.0).
+pub fn contrast_ratio(a: &str, b: &str) -> Result<f64> {
+    let (la, lb) = (luminancia(a)?, luminancia(b)?);
+    Ok((la.max(lb) + 0.05) / (la.min(lb) + 0.05))
+}
+
 pub fn hex_to_hsl(hex_color: &str) -> Result<(f32, f32, f32)> {
     let (r, g, b) = hex_to_rgb_tuple(hex_color)?;
     let srgb = Srgb::new(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
@@ -260,4 +280,54 @@ pub fn suggest_accent(image_path: &str) -> String {
 
     scored.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
     scored[0].1.clone()
+}
+
+/// Paleta Material You (esquema oscuro) a partir de una imagen. Falla si no se puede leer.
+pub fn matugen_palette(path: &str) -> Result<std::collections::HashMap<String, String>> {
+    use anyhow::Context;
+    use material_colors::image::{FilterType, ImageReader};
+    use material_colors::theme::ThemeBuilder;
+
+    let bytes =
+        std::fs::read(path).with_context(|| format!("no se pudo leer la imagen {path:?}"))?;
+    let mut data = ImageReader::read(bytes)
+        .map_err(|e| anyhow::anyhow!("no se pudo decodificar {path:?}: {e}"))?;
+
+    // 128x128: rápido y estable para extraer color (recomendado por material-colors)
+    data.resize(128, 128, FilterType::Lanczos3);
+
+    let color = ImageReader::extract_color(&data);
+    let theme = ThemeBuilder::with_source(color).build();
+    let scheme = &theme.schemes.dark;
+
+    let mut m = std::collections::HashMap::new();
+    m.insert("bg".to_string(), scheme.background.to_hex_with_pound());
+    m.insert("surface".to_string(), scheme.surface.to_hex_with_pound());
+    m.insert("primary".to_string(), scheme.primary.to_hex_with_pound());
+    m.insert(
+        "secondary".to_string(),
+        scheme.secondary.to_hex_with_pound(),
+    );
+    m.insert("accent".to_string(), scheme.tertiary.to_hex_with_pound());
+    m.insert("text".to_string(), scheme.on_background.to_hex_with_pound());
+    m.insert("muted".to_string(), scheme.outline.to_hex_with_pound());
+    m.insert(
+        "highlight".to_string(),
+        scheme.primary_container.to_hex_with_pound(),
+    );
+    Ok(m)
+}
+
+#[cfg(test)]
+mod contraste_tests {
+    use super::contrast_ratio;
+
+    #[test]
+    fn extremos_y_simetria() {
+        assert!((contrast_ratio("#000000", "#ffffff").unwrap() - 21.0).abs() < 0.01);
+        assert!((contrast_ratio("#777777", "#777777").unwrap() - 1.0).abs() < 1e-9);
+        let a = contrast_ratio("#691322", "#f5f5f5").unwrap();
+        assert_eq!(a, contrast_ratio("#f5f5f5", "#691322").unwrap());
+        assert!(contrast_ratio("rojo", "#fff").is_err());
+    }
 }

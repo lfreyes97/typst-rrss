@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand, ValueEnum};
+use clap::{Args, Parser, Subcommand, ValueEnum};
 use std::path::PathBuf;
 
 #[derive(Parser)]
@@ -32,57 +32,20 @@ pub enum Commands {
         name: String,
     },
 
-    /// Genera main.typ (comando único)
+    /// Genera el .typ de una pieza desde flags, sin compilarlo
     Generate {
-        #[arg(short, long, default_value = "Presuposicionalismo")]
-        brand: String,
-        #[arg(short, long)]
-        title: String,
-        #[arg(short, long)]
-        quote: String,
-        #[arg(short, long)]
-        image: Option<String>,
-        #[arg(long)]
-        logo: Option<String>,
-        #[arg(long)]
-        overlay: Option<String>,
-        #[arg(short, long, default_value = "theme")]
-        accent: String,
-        #[arg(long)]
-        auto_accent: bool,
-        #[arg(short, long, default_value = "Presuposicionalismo.com")]
-        url: String,
-        #[arg(short, long, default_value = "instagram-post")]
-        platform: String,
-        #[arg(short, long, default_value = "article")]
-        layout: String,
-        #[arg(long, default_value = "dark")]
-        theme: String,
-        #[arg(long, default_value = "")]
-        author: String,
-        #[arg(long)]
-        source: Option<String>,
-        #[arg(long)]
-        tag: Option<String>,
-        #[arg(long)]
-        slides: Option<String>,
-        #[arg(long)]
-        contour: bool,
-        #[arg(short, long, default_value = "main.typ")]
-        output: String,
-        #[arg(long)]
-        font_heading: Option<String>,
-        #[arg(long)]
-        font_body: Option<String>,
-        #[arg(long)]
-        font_mono: Option<String>,
+        #[command(flatten)]
+        pieza: PiezaArgs,
+        /// Archivo .typ de salida
+        #[arg(short, long, default_value = "pieza.typ")]
+        output: PathBuf,
     },
 
     /// Compila archivos .typ a PNG/WebP
     Compile {
         #[arg(num_args = 0..)]
         files: Vec<PathBuf>,
-        #[arg(long, default_value_t = 144)]
+        #[arg(long, default_value_t = 72)]
         ppi: u32,
         #[arg(short = 'd', long, default_value = "output")]
         output_dir: String,
@@ -94,48 +57,13 @@ pub enum Commands {
         format: ImageFormat,
     },
 
-    /// Pipeline completo: genera y compila
+    /// Genera y compila una pieza desde flags (el .typ queda en output/typ/)
     Full {
-        #[arg(short, long, default_value = "Presuposicionalismo")]
-        brand: String,
-        #[arg(short, long)]
-        title: String,
-        #[arg(short, long)]
-        quote: String,
-        #[arg(short, long)]
-        image: Option<String>,
-        #[arg(long)]
-        logo: Option<String>,
-        #[arg(long)]
-        overlay: Option<String>,
-        #[arg(short, long, default_value = "theme")]
-        accent: String,
-        #[arg(long)]
-        auto_accent: bool,
-        #[arg(short, long, default_value = "Presuposicionalismo.com")]
-        url: String,
-        #[arg(short, long, default_value = "instagram-post")]
-        platform: String,
-        #[arg(short, long, default_value = "article")]
-        layout: String,
-        #[arg(long, default_value = "dark")]
-        theme: String,
-        #[arg(long, default_value = "")]
-        author: String,
-        #[arg(long)]
-        source: Option<String>,
-        #[arg(long)]
-        tag: Option<String>,
-        #[arg(long, default_value_t = 144)]
-        ppi: u32,
-        #[arg(short, long, default_value = "main")]
+        #[command(flatten)]
+        pieza: PiezaArgs,
+        /// Nombre de la pieza: output/<nombre>.png (admite subcarpetas)
+        #[arg(short = 'o', long, default_value = "pieza")]
         output_name: String,
-        #[arg(long)]
-        font_heading: Option<String>,
-        #[arg(long)]
-        font_body: Option<String>,
-        #[arg(long)]
-        font_mono: Option<String>,
         #[arg(long, default_value = "png")]
         format: ImageFormat,
     },
@@ -173,25 +101,32 @@ pub enum ImageFormat {
     Webp,
 }
 
-pub struct GenerateParams {
-    pub brand: String,
-    pub title: String,
-    pub quote: String,
+/// Una pieza descrita con flags; la comparten `generate` y `full`.
+#[derive(Args, Clone)]
+pub struct PiezaArgs {
+    /// Preset de instatypst: `suizo`, `liso`, `fleurones.orla`…
+    pub preset: String,
+    /// Argumentos posicionales del preset, en orden (`frase`, `remate`…)
+    pub pos: Vec<String>,
+    /// Paleta de la CLI, `auto` / `auto-matugen` (desde --image) o un tema de instatypst
+    #[arg(long)]
+    pub tema: Option<String>,
+    /// Imagen de la que se extrae el tema
+    #[arg(long)]
     pub image: Option<String>,
-    pub logo: Option<String>,
-    pub overlay: Option<String>,
-    pub accent: String,
-    pub auto_accent: bool,
-    pub url: String,
-    pub platform: String,
-    pub layout: String,
-    pub theme: String,
-    pub author: String,
-    pub source: Option<String>,
-    pub tag: Option<String>,
-    pub slides: Option<String>,
-    pub contour: bool,
-    pub font_heading: Option<String>,
-    pub font_body: Option<String>,
-    pub font_mono: Option<String>,
+    /// feed-4x5, feed-1x1, story, twitter, linkedin o ANCHOxALTO (por defecto: el del preset)
+    #[arg(long)]
+    pub formato: Option<String>,
+    #[arg(long)]
+    pub ppi: Option<u32>,
+    /// Argumento con nombre del preset. El valor se lee como TOML y, si no lo es,
+    /// como texto: `--arg peso=500`, `--arg marca=@yo`, `--arg 'fondo={color="#691322"}'`
+    #[arg(long = "arg", value_name = "CLAVE=VALOR")]
+    pub args: Vec<String>,
+    /// Carpeta de fuentes extra (se repite)
+    #[arg(long = "font-path")]
+    pub font_paths: Vec<PathBuf>,
+    /// posts.toml del que tomar [themes] y `fonts` de [defaults]
+    #[arg(long)]
+    pub config: Option<PathBuf>,
 }

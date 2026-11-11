@@ -7,6 +7,17 @@ use tracing::{error, info};
 /// This function prevents command injection by using separate arguments
 /// instead of string interpolation and validates the input paths.
 pub fn compile_typst(input: &Path, output: &Path, ppi: u32, root: &Path) -> Result<()> {
+    compile_typst_with(input, output, ppi, root, &[])
+}
+
+/// Como `compile_typst`, con carpetas de fuentes extra (`typst --font-path`).
+pub fn compile_typst_with(
+    input: &Path,
+    output: &Path,
+    ppi: u32,
+    root: &Path,
+    font_paths: &[std::path::PathBuf],
+) -> Result<()> {
     // 1. Path validation to prevent traversal outside allowed directories
     validate_path(input)?;
     validate_path(output)?;
@@ -27,10 +38,12 @@ pub fn compile_typst(input: &Path, output: &Path, ppi: u32, root: &Path) -> Resu
     );
 
     // 3. Command execution using separate arguments to prevent Command Injection
-    let output_result = Command::new("typst")
-        .arg("compile")
-        .arg("--root")
-        .arg(root)
+    let mut cmd = Command::new("typst");
+    cmd.arg("compile").arg("--root").arg(root);
+    for f in font_paths {
+        cmd.arg("--font-path").arg(f);
+    }
+    let output_result = cmd
         .arg("--ppi")
         .arg(ppi.to_string())
         .arg(input)
@@ -45,6 +58,11 @@ pub fn compile_typst(input: &Path, output: &Path, ppi: u32, root: &Path) -> Resu
             input.display(),
             stderr
         );
+        if stderr.contains("multiple images") {
+            return Err(anyhow!(
+                "la pieza ocupa más de una página (el texto se desbordó): baja el tamaño o los márgenes"
+            ));
+        }
         return Err(anyhow!("Typst compilation failed: {}", stderr.trim()));
     }
 

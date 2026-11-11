@@ -1,8 +1,8 @@
 # =============================================================================
 # posts.toml — Define tus posts para redes sociales
 # =============================================================================
-# Genera todos:  ./rrss build
-# Genera uno:    ./rrss build --only ciencia
+# Genera todos:  rrss-cli-rs build
+# Genera uno:    rrss-cli-rs build --only ciencia
 # =============================================================================
 
 # ─── Temas (Paletas de Colores) ────────────────────────────────────────────────
@@ -59,97 +59,85 @@ muted = "#98b898"
 highlight = "#ffaaa5"
 
 # ─── Valores por defecto (se heredan a cada [[post]]) ────────────────────────
+# preset  → función de instatypst (carteles.<preset>); `fleurones.orla` se escribe completo.
+# formato → feed-4x5 (por defecto) | feed-1x1 | story | [ancho, alto]
+# ppi     → 72: un lienzo de 1080pt sale de 1080px.
 
 [defaults]
-brand = "Presuposicionalismo"
-logo = "assets/Logo.svg"
-url = "Presuposicionalismo.com"
-platform = "instagram-post"
-layout = "article"
-overlay = "assets/Solid-bg.svg"
-theme = "dark"
-ppi = 144
+preset = "liso"
+fonts = ["/home/home/Documents/Instatypst/Fonts"]
+
+# Args de un solo preset: epigrafe no tiene `fuente`, así que no van en [defaults.args].
+[defaults.por_preset.liso]
+fuente = "EB Garamond 12"
+peso = 500
 
 # ─── Posts ───────────────────────────────────────────────────────────────────
+# pos  → argumentos posicionales del preset, en orden.
+# args → argumentos con nombre (se suman a [defaults.args]).
+# image + tema = "auto" → la paleta sale de la imagen; el fondo va en args.fondo.
 
 [[post]]
 name = "ciencia"
-title = "Ciencia: Una celebración y un lamento"
-quote = "Cuando David vio las estrellas y el sol, alabó a Dios. ¡Qué nuevas y espectaculares bellezas tenemos ahora a la vista, gracias a los descubrimientos del siglo XX!"
+tema = "auto"
 image = "assets/bg-ciencia.jpg"
-accent = "#2d2d2d"
-theme = "auto"
+pos = ["Cuando David vio las estrellas y el sol, alabó a Dios. ¡Qué nuevas y espectaculares bellezas tenemos ahora a la vista, gracias a los descubrimientos del siglo XX!"]
+[post.args]
+autor = "Ciencia: una celebración y un lamento"
+fondo = { image = "assets/bg-ciencia.jpg" }
 
 [[post]]
 name = "creacion"
-title = "La Creación bajo ataque"
-quote = "Cuando los incrédulos dicen que saben que el mundo es eterno o auto-existente, por un lado, están ejerciendo fe en sus presuposiciones naturalistas"
+tema = "auto"
 image = "assets/bg-ciencia.jpg"
-accent = "auto"                                                                                                                                               # extrae el acento de la imagen automáticamente
+pos = ["Cuando los incrédulos dicen que saben que el mundo es eterno o auto-existente, por un lado, están ejerciendo fe en sus presuposiciones naturalistas"]
+[post.args]
+autor = "La Creación bajo ataque"
+fondo = { image = "assets/bg-ciencia.jpg" }
 
 [[post]]
 name = "cosmovisiones"
-title = "Definiendo las cosmovisiones"
-quote = "Una cosmovisión es una red de presuposiciones que no están verificadas por los procedimientos de la ciencia natural, acerca de la realidad, del saber y de la conducta"
+tema = "auto"
 image = "assets/bg-ciencia.jpg"
-accent = "#8b6914"
+pos = ["Una cosmovisión es una red de presuposiciones que no están verificadas por los procedimientos de la ciencia natural, acerca de la realidad, del saber y de la conducta"]
+[post.args]
+autor = "Definiendo las cosmovisiones"
+fondo = { image = "assets/bg-ciencia.jpg" }
 
 [[post]]
 name = "oceano"
-title = "La Roca de los siglos"
-quote = "Dios no necesita que lo defendamos. Él es la precondición de toda defensa."
-image = "assets/bg-ciencia.jpg"
-theme = "ocean"
-recolor = true
-accent = "auto"
+tema = "ocean"
+pos = ["Dios no necesita que lo defendamos. Él es la precondición de toda defensa."]
+[post.args]
+autor = "La Roca de los siglos"
 
 [[post]]
 name = "atardecer"
-title = "La luz en la oscuridad"
-quote = "El temor de Jehová es el principio de la sabiduría, y el conocimiento del Santo es la inteligencia."
+tema = "forest"
 image = "assets/bg3.jpg"
-theme = "forest"
-recolor = false
-recolor_intensity = 0.85
-overlay = "assets/Solid-bg.svg"
-accent = "auto"
-
-[[post]]
-name = "carrusel-test"
-title = "La evidencia de Dios"
-layout = "carousel"
-platform = "instagram-carousel"
-# image = ... # eliminamos imagen para forzar generación
-contour = true
-slides = [
-  "¿Sabías que la ciencia apunta hacia un Creador?",
-  "El argumento cosmológico Kalam demuestra que el universo tuvo un inicio absoluto.",
-  "Si el universo tuvo un inicio, debe tener una causa trascendente, inmaterial y sumamente poderosa.",
-  "Esta causa incausada coincide perfectamente con la descripción del Dios bíblico.",
-]
+pos = ["El temor de Jehová es el principio de la sabiduría, y el conocimiento del Santo es la inteligencia."]
+[post.args]
+autor = "La luz en la oscuridad"
+fondo = { image = "assets/bg3.jpg" }
 
 [[post]]
 name = "quote-einstein"
-title = "La imaginación"
-quote = "La imaginación es más importante que el conocimiento. El conocimiento es limitado, la imaginación rodea el mundo."
-author = "Albert Einstein"
-source = "Entrevista, 1929"
-layout = "quote"
-theme = "dark"
-brand = "@tu_marca"
-
-[[post]]
-name = "nord-demo"
-title = "Estética Ártica: Nord"
-quote = "Un diseño minimalista inspirado en los colores de la aurora ártica y el hielo."
-image = "assets/bg-ciencia.jpg"
-theme = "nord"
-accent = "auto"
+preset = "epigrafe"
+tema = "dark"
+pos = ["La imaginación es más importante que el conocimiento. El conocimiento es limitado, la imaginación rodea el mundo."]
+[post.args]
+autor = "Albert Einstein"
+obra = "Entrevista, 1929"
+estilo = "pergamino"   # los estilos de la familia C (luto, aura…) fallan con `tema` propio: bug de instatypst
 
 [[post]]
 name = "material-demo"
-title = "Diseño Dinámico: Material You"
-quote = "Tus colores se adaptan automáticamente a la imagen de fondo con el motor de Material Design 3."
+tema = "auto-matugen"
 image = "assets/bg2.jpg"
-theme = "auto-matugen"
-accent = "auto"
+pos = ["Tus colores se adaptan automáticamente a la imagen de fondo con el motor de Material Design 3."]
+[post.args]
+autor = "Diseño dinámico: Material You"
+fondo = { image = "assets/bg2.jpg" }
+
+# El carrusel (`carrusel-test`) queda fuera hasta que `build` soporte láminas
+# de varias páginas (`{p}`).

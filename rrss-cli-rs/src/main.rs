@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use clap::Parser;
-use rrss_cli_rs::{build, cli, colors, config, generate, process};
+use rrss_cli_rs::{build, cli, colors, config, process, render};
 
 use std::fs;
 use std::path::Path;
@@ -35,58 +35,18 @@ fn main() -> Result<()> {
             name: _,
         } => cmd_extract(image, *count, format, *suggest_accent),
 
-        cli::Commands::Generate {
-            brand,
-            title,
-            quote,
-            image,
-            logo,
-            overlay,
-            accent,
-            auto_accent,
-            url,
-            platform,
-            layout,
-            theme,
-            author,
-            source,
-            tag,
-            slides,
-            contour,
-            output,
-            font_heading,
-            font_body,
-            font_mono,
-        } => {
-            validate_string_input(title, 300, "title")?;
-            validate_string_input(quote, 2000, "quote")?;
-            validate_string_input(brand, 200, "brand")?;
-
-            let params = cli::GenerateParams {
-                brand: brand.clone(),
-                title: title.clone(),
-                quote: quote.clone(),
-                image: image.clone(),
-                logo: logo.clone(),
-                overlay: overlay.clone(),
-                accent: accent.clone(),
-                auto_accent: *auto_accent,
-                url: url.clone(),
-                platform: platform.clone(),
-                layout: layout.clone(),
-                theme: theme.clone(),
-                author: author.clone(),
-                source: source.clone(),
-                tag: tag.clone(),
-                slides: slides.clone(),
-                contour: *contour,
-                font_heading: font_heading.clone(),
-                font_body: font_body.clone(),
-                font_mono: font_mono.clone(),
-            };
-            let content = generate::do_generate(&params, None)?;
-            fs::write(output, content).context("Failed to write output file")?;
-            println!("✓ Generated {} ({}, {})", output, layout, platform);
+        cli::Commands::Generate { pieza, output } => {
+            let (cfg, post) = pieza_desde_flags(pieza, "pieza")?;
+            let r = render::render(&post, &cfg)?;
+            process::validate_path(output)?;
+            if let Some(dir) = output.parent().filter(|d| !d.as_os_str().is_empty()) {
+                fs::create_dir_all(dir)?;
+            }
+            fs::write(output, r.typ).context("No se pudo escribir el .typ")?;
+            for a in &r.avisos {
+                println!("⚠ {a}");
+            }
+            println!("✓ {} ({})", output.display(), post.preset);
             Ok(())
         }
 
@@ -100,79 +60,15 @@ fn main() -> Result<()> {
         } => cmd_compile(&root, files, *ppi, output_dir, *all, template, format),
 
         cli::Commands::Full {
-            brand,
-            title,
-            quote,
-            image,
-            logo,
-            overlay,
-            accent,
-            auto_accent,
-            url,
-            platform,
-            layout,
-            theme,
-            author,
-            source,
-            tag,
-            ppi,
+            pieza,
             output_name,
-            font_heading,
-            font_body,
-            font_mono,
             format,
         } => {
-            validate_string_input(title, 300, "title")?;
-            validate_string_input(quote, 2000, "quote")?;
-            validate_string_input(brand, 200, "brand")?;
-
-            let params = cli::GenerateParams {
-                brand: brand.clone(),
-                title: title.clone(),
-                quote: quote.clone(),
-                image: image.clone(),
-                logo: logo.clone(),
-                overlay: overlay.clone(),
-                accent: accent.clone(),
-                auto_accent: *auto_accent,
-                url: url.clone(),
-                platform: platform.clone(),
-                layout: layout.clone(),
-                theme: theme.clone(),
-                author: author.clone(),
-                source: source.clone(),
-                tag: tag.clone(),
-                slides: None,
-                contour: false,
-                font_heading: font_heading.clone(),
-                font_body: font_body.clone(),
-                font_mono: font_mono.clone(),
-            };
-            let content = generate::do_generate(&params, None)?;
-            let typ_file = format!("{}.typ", output_name);
-            fs::write(&typ_file, content).context("Failed to write typ file")?;
-
-            let out_dir = "output";
-            let out_filename = if params.platform == "instagram-carousel" {
-                format!("{}_{{{}}}.png", output_name, "p")
-            } else {
-                format!("{}.png", output_name)
-            };
-            let output_path = Path::new(out_dir).join(&out_filename);
-            // output_name may itself contain subdirectories (e.g. "campaign/post"),
-            // so create the full parent chain, not just `out_dir`.
-            if let Some(parent) = output_path.parent() {
-                fs::create_dir_all(parent)?;
-            }
-
-            info!("Compiling {} -> {}", typ_file, output_path.display());
-            process::compile_typst(Path::new(&typ_file), &output_path, *ppi, &root)?;
-
-            if *format == cli::ImageFormat::Webp {
-                let webp = build::convert_to_webp(&output_path)?;
-                info!("✓ Converted to {}", webp.display());
-            }
-            Ok(())
+            let (cfg, post) = pieza_desde_flags(pieza, output_name)?;
+            let mut fonts: Vec<std::path::PathBuf> =
+                cfg.defaults.fonts.iter().map(Into::into).collect();
+            fonts.extend(pieza.font_paths.iter().cloned());
+            build::construir(&post, &cfg, &root, &fonts, format)
         }
 
         cli::Commands::Build {
@@ -187,22 +83,25 @@ fn main() -> Result<()> {
     }
 }
 
-// ─── Input Validation ────────────────────────────────────────────────────────
-
-pub fn validate_string_input(s: &str, max_len: usize, field_name: &str) -> Result<()> {
-    if s.len() > max_len {
-        return Err(anyhow::anyhow!(
-            "{} exceeds maximum length of {} characters",
-            field_name,
-            max_len
-        ));
-    }
-
-    if s.contains('\0') {
-        return Err(anyhow::anyhow!("{} contains null bytes", field_name));
-    }
-
-    Ok(())
+/// `generate` y `full`: una pieza desde flags, validada como las del TOML.
+fn pieza_desde_flags(p: &cli::PiezaArgs, name: &str) -> Result<(config::Config, config::Post)> {
+    let cfg = match &p.config {
+        Some(path) => config::Config::load(path)?,
+        None => config::Config::parse("")?,
+    };
+    let post = cfg.post_desde_flags(
+        name,
+        &config::Flags {
+            preset: &p.preset,
+            pos: &p.pos,
+            tema: p.tema.as_deref(),
+            image: p.image.as_deref(),
+            formato: p.formato.as_deref(),
+            ppi: p.ppi,
+            args: &p.args,
+        },
+    )?;
+    Ok((cfg, post))
 }
 
 // ─── Command handlers ──────────────────────────────────────────────────────────
