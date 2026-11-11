@@ -1,135 +1,140 @@
-# 🚀 typst-rrss
+# typst-rrss
 
-Sistema modular de alto rendimiento para generar imágenes de redes sociales usando **Typst** y una CLI segura escrita en **Rust**.
+CLI en Rust para producir imágenes de redes sociales con [**instatypst**](https://github.com/lfreyes97/Instatypst), el marco de diseño en Typst (presets, paletas, tipografía). `instatypst` pone el diseño; esta herramienta lo produce: pasa datos a piezas, en lote y de forma repetible.
 
-Diseñado para crear contenido visual coherente (frases, artículos, estadísticas) de forma programática, estilizada y automatizada, garantizando robustez y seguridad en el procesamiento de datos.
+Lo que aporta encima de `instatypst`:
 
----
-
-## 🛡️ Seguridad y Robustez
-
-Tras una auditoría exhaustiva, el sistema ha sido fortalecido con protecciones de grado de producción:
-
-- **Prevención de Inyección de Comandos**: Ejecución segura de binarios externos (`typst`) mediante el paso de argumentos estructurados en lugar de interpolación de strings.
-- **Validación de Rutas (Safe Path Validation)**: El sistema detecta y bloquea intentos de *Path Traversal*, restringiendo el acceso únicamente a directorios seguros (`/home`, `/tmp` y el directorio de trabajo).
-- **Protección contra Agotamiento de Recursos (DoS)**: 
-  - Límites estrictos de PPI (72 - 1200).
-  - Validación de dimensiones de imagen (máximo 4K).
-  - Control de tamaño de archivos de entrada (máximo 256MB).
-- **Sanitización de Entradas**: Validación de longitud máxima y eliminación de bytes nulos en todos los strings de entrada (títulos, citas, marcas).
-- **Escapado Automático**: Sanitización de caracteres especiales para el motor de Typst, evitando inyecciones de scripting en las plantillas.
-- **Manejo de Errores Moderno**: Eliminación total de `panics` en el flujo principal, utilizando `anyhow` para una propagación de errores limpia y descriptiva.
+- **`posts.toml`**: describe muchas piezas y las compila de una vez.
+- **Temas desde una imagen**: extrae la paleta de una foto (clustering o Material You) y avisa si el contraste texto/fondo es bajo.
+- **Compilación por lote** a PNG o WebP, con errores y desbordes de página claros.
+- **Escapado seguro**: nada de lo que escribes en el TOML o en los flags se interpola a mano en el Typst generado.
 
 ---
 
-## 🚀 Inicio Rápido
+## Requisitos
 
-### Requisitos
-- **Typst 0.11+** (para compilar las imágenes a PNG/PDF)
-- **Rust 1.75+** (para compilar la CLI)
-
-### Instalación
-
-1. **Instalar el Paquete Typst localmente**
-   Crea un enlace simbólico de la carpeta `rrss-pkg` hacia el directorio de paquetes locales de Typst:
-
-```bash
-mkdir -p ~/.local/share/typst/packages/local/rrss/0.1.0
-ln -s $(pwd)/rrss-pkg/* ~/.local/share/typst/packages/local/rrss/0.1.0/
-```
-
-2. **Instalar la CLI**
-   Compila e instala el binario en tu sistema:
+- [`typst`](https://typst.app) en el `PATH`.
+- `instatypst` instalado como paquete local (`@local/instatypst:0.1.0`). Mira su `README`.
+- Las fuentes de `instatypst`: instálalas en el sistema (sección «Instalar las fuentes en el sistema» de su `README`) o pásalas con `fonts` en `[defaults]` / `--font-path`. `compile` no tiene `--font-path`: usa las del sistema o `TYPST_FONT_PATHS`.
+- Rust estable, para compilar la CLI.
 
 ```bash
 cargo install --path rrss-cli-rs
 ```
 
-### Uso Básico
+---
+
+## Comandos
+
+| Comando | Qué hace |
+| :--- | :--- |
+| **`build`** | Genera y compila los posts de un `posts.toml`. |
+| **`full`** | Una pieza desde flags: genera el `.typ` y lo compila. |
+| **`generate`** | Una pieza desde flags: escribe el `.typ`, sin compilarlo. |
+| **`compile`** | Compila `.typ` que ya existen (hechos a mano o con `instatypst`). |
+| **`extract`** | Extrae una paleta de colores de una imagen. |
+| **`colors`** | Genera una paleta armónica desde un color base. |
 
 ```bash
-# Generar todas las imágenes definidas en un posts.toml
+# Todo un posts.toml, o solo uno
 rrss-cli-rs build
+rrss-cli-rs build examples/presets.toml --only presets/suizo
+rrss-cli-rs build --dry-run
 
-# Generar solo un post específico
-rrss-cli-rs build --only ciencia
+# Una pieza desde flags: PRESET [POS...] y --arg clave=valor
+rrss-cli-rs full suizo "Dios no necesita que lo defendamos." "Él es la precondición." \
+    --tema ocean --formato feed-1x1 -o creacion
 
-# Generar directamente con parámetros (con validaciones de seguridad automáticas)
-rrss-cli-rs generate --title "Seguridad Primero" --brand "Typst-RRSS" --layout article --platform instagram-post --output post.typ
+# Solo el .typ, para revisarlo o editarlo
+rrss-cli-rs generate liso "Todo es gracia." --tema auto --image assets/bg-ciencia.jpg -o pieza.typ
+
+rrss-cli-rs extract assets/bg-ciencia.jpg --suggest-accent
+rrss-cli-rs colors "#691322" --format typst
 ```
 
----
-
-## 🛠️ CLI `rrss-cli-rs`
-
-La CLI automatiza el flujo completo: validación, procesamiento, generación de código Typst y compilación.
-
-### Comandos Principales
-
-| Comando | Descripción |
-| :--- | :--- |
-| **`build`** | Genera y compila los posts definidos en `posts.toml`. |
-| **`generate`** | Genera un archivo `.typ` basado en argumentos. Incluye sanitización. |
-| **`full`** | Pipeline completo: genera `.typ` y compila a `.png` en un solo paso. |
-| **`extract`** | Analiza una imagen para extraer paletas de colores y acentos. |
-| **`colors`** | Genera esquemas de color armónicos desde un hex base. |
-
-### 🪵 Logging y Observabilidad (Tracing)
-
-El sistema utiliza `tracing` para proporcionar visibilidad en tiempo real:
-- **Nivel INFO (default)**: Progreso de generación y compilación.
-- **Errores Detallados**: Incluye el stderr del motor de Typst si la compilación falla, facilitando el debug.
+Las imágenes salen en `output/` y los `.typ` generados en `output/typ/`. El `ppi` por defecto es **72**: un lienzo de 1080 pt sale de 1080 px.
 
 ---
 
-## 📝 Configuración (`posts.toml`)
+## `posts.toml`
 
-Control total de contenido y diseño. Ejemplo de configuración:
+Cada `[[post]]` es una llamada a un preset de `instatypst` (`carteles.<preset>`). Los argumentos posicionales van en `pos` y los que llevan nombre, en `[post.args]`.
 
 ```toml
 [defaults]
-brand = "Mi Marca"
-layout = "article"
-theme = "dark"
-platform = "instagram-post"
+preset = "liso"
+fonts = ["/ruta/a/Instatypst/Fonts"]        # opcional si las fuentes están en el sistema
 
-[[posts]]
-name = "seguridad"
-title = "Arquitectura Segura"
-quote = "La seguridad no es un producto, es un proceso."
-image = "assets/tech.jpg"
-theme = "auto" # ✨ Modo Inteligente (Thaimeleon)
+[defaults.por_preset.liso]                  # args por defecto de un solo preset
+fuente = "EB Garamond 12"
+peso = 500
+
+[[post]]
+name = "ciencia"
+tema = "auto"                               # paleta extraída de `image`
+image = "assets/bg-ciencia.jpg"
+pos = ["Cuando David vio las estrellas y el sol, alabó a Dios."]
+[post.args]
+autor = "Ciencia: una celebración y un lamento"
+fondo = { image = "assets/bg-ciencia.jpg" }
 ```
 
+| Campo | Significado |
+| :--- | :--- |
+| `preset` | Nombre del preset (`suizo`) o ruta completa (`fleurones.orla`). Si no existe, falla Typst con un error claro. |
+| `formato` | `feed-4x5`, `feed-1x1`, `story`, `twitter`, `linkedin` o `[ancho, alto]`. Sin él, manda el del preset. |
+| `ppi` | 72–1200. Por defecto, 72. |
+| `tema` | Paleta de `[themes.*]`, `auto` / `auto-matugen` (desde `image`), o un tema de `instatypst`. |
+| `image` | Imagen de la que se extrae el tema. El fondo va aparte, en `args`. |
+| `pos` / `args` | Argumentos del preset; `args` se suma a `[defaults.args]` y a `por_preset`. |
+| `defs` | Variables de Typst compartidas (`#let nombre = valor`). |
+
+Un campo desconocido es un error: un typo no se ignora en silencio.
+
+### Cómo se escriben los valores
+
+| TOML | Typst |
+| :--- | :--- |
+| `"texto"` | `"texto"` (un `str`) |
+| `{ txt = "texto" }` o `etiqueta_txt = "…"` | contenido de texto plano, sin interpretar nada |
+| `{ md = "*texto*" }` o `etiqueta_md = "…"` | contenido con formato; ve `carteles.*` y los `defs` |
+| `{ color = "#691322" }` | `rgb("#691322")` |
+| `{ len = "96pt" }` | `96pt` |
+| `{ kw = "center" }` | `center`, `auto`, `none`… |
+| `{ image = "assets/x.jpg" }` | imagen a sangre, desde la raíz del proyecto |
+| `{ typst = "3pt + red" }` | la expresión tal cual (sin escapar) |
+
+Un `str` y un contenido **no son lo mismo** para un preset: si una pieza no sale como en los ejemplos de `instatypst`, prueba con `_txt`.
+
+Hay un ejemplo con 8 presets en [`examples/presets.toml`](examples/presets.toml).
+
 ---
 
-## 🎨 Layouts y Templates
+## Robustez
 
-Los diseños están definidos en Typst dentro del paquete `rrss-pkg/`.
+- **Escapado**: cualquier texto pasa por un único módulo (`typst.rs`) que lo escapa para Typst; verificado con casos hostiles contra el propio `typst`.
+- **`typst` se invoca con argumentos separados**, nunca interpolando una línea de shell.
+- **Rutas**: se rechazan `..` y bytes nulos en nombres de post y recursos.
+- **Límites**: `ppi` entre 72 y 1200; lados del lienzo entre 100 y 4320.
+- **Errores**: `build` procesa todos los posts, muestra qué falló y termina con código distinto de 0. Un texto que no cabe se informa como desborde de página.
 
-### Layouts Soportados
-- **`article`**: Contenido editorial.
-- **`quote`**: Frases y citas destacadas.
-- **`hero`**: Títulos de alto impacto.
-- **`carousel`**: Secuencias para Instagram.
-
-### Templates de Redes Sociales
-- `instagram-post` / `instagram-story`
-- `twitter-post` / `linkedin-post`
-- `facebook-post` / `og-image`
+Se comprobó que `build` reproduce, píxel a píxel, 88 láminas de los ejemplos de presets de `instatypst`.
 
 ---
 
-## 📂 Estructura del Proyecto
+## Estructura
 
-- **`rrss-cli-rs/`**: CLI en Rust (motor de lógica y seguridad).
-- **`rrss-pkg/`**: Paquete oficial de Typst (estilos y templates).
-- **`assets/`**: Recursos y ejemplos multimedia.
-- **`tests/`**: Suite de validación funcional.
+- **`rrss-cli-rs/`**: la CLI.
+  - `config.rs`: parser de `posts.toml` (esquema, herencia, validación).
+  - `render.rs`: un post se convierte en el `.typ`.
+  - `typst.rs`: valores a literales de Typst, con escapado.
+  - `colors.rs`, `themes.rs`: extracción de paletas y contraste.
+  - `build.rs`, `process.rs`: compilación.
+- **`examples/`**: `posts.toml` de muestra.
+- **`assets/`**: imágenes de ejemplo.
 
 ---
 
-## 📄 Licencia
+## Licencia
 
-Este proyecto se distribuye bajo la licencia MIT. Consulta el archivo `LICENSE` para más detalles.
-
+MIT. Consulta `LICENSE`.

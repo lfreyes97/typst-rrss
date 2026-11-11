@@ -1,0 +1,157 @@
+# =============================================================================
+# presets.toml — un post por preset de instatypst, como muestra de la sintaxis
+# =============================================================================
+#   rrss-cli-rs build examples/presets.toml
+#   rrss-cli-rs build examples/presets.toml --only presets/suizo
+#
+# Cómo se escribe cada valor (el nombre del preset va sin `carteles.`):
+#
+#   "texto"                  str de Typst
+#   { txt = "texto" }        contenido de texto plano (lo que irías entre [ y ])
+#   { md = "*texto*" }       contenido con formato; ve `carteles.*` y los `defs`
+#   etiqueta_txt = "..."     igual que { txt }, como sufijo del nombre del argumento
+#   { color = "#691322" }    rgb("#691322")
+#   { len = "96pt" }         longitud
+#   { kw = "center" }        palabra clave: center, auto, none…
+#   { image = "assets/x" }   imagen a sangre, desde la raíz del proyecto
+#   { typst = "3pt + red" }  expresión tal cual (sin escapar)
+#
+# Un `str` y un contenido NO son lo mismo para un preset: si una pieza no sale
+# como en examples/presets/ de instatypst, prueba con `_txt`.
+# Sin `formato`, manda el del preset.
+# =============================================================================
+
+[defaults]
+# Carpeta de fuentes de instatypst (ajusta la ruta a tu equipo).
+fonts = ["/home/home/Documents/Instatypst/Fonts"]
+
+# ─── liso: un fondo y un texto que llena la caja ─────────────────────────────
+# Argumentos posicionales en `pos`, los demás con nombre en [post.args].
+
+[[post]]
+name = "presets/liso"
+preset = "liso"
+formato = "feed-4x5"                       # feed-4x5 | feed-1x1 | story | twitter | linkedin | [ancho, alto]
+pos = ["Estamos asistiendo al lecho de muerte de una palabra."]
+[post.args]
+autor = "B. B. Warfield"
+fondo = { color = "#1d4ed8" }
+alinear = { kw = "center" }
+fuente = "Baskervville"                    # fuente: str normal
+peso = 400
+
+# ─── suizo: frase + remate sobre retícula ────────────────────────────────────
+
+[[post]]
+name = "presets/suizo"
+preset = "suizo"
+formato = "feed-1x1"
+pos = ["El calvinismo es simplemente la religión en su", "PUREZA."]
+[post.args]
+autor = "B. B. WARFIELD"
+fechas = "1851 – 1921"
+etiqueta = "DEL ENSAYO"
+planteo = "¿Qué es el calvinismo?"
+acento = { color = "#1d4ed8" }
+
+# ─── bauhaus: formas primarias; `tema` con roles propios ─────────────────────
+
+[[post]]
+name = "presets/bauhaus"
+preset = "bauhaus"
+formato = "story"
+pos = ["Todo es", "GRACIA."]
+[post.args]
+etiqueta = "UNA PALABRA"
+autor = "B. B. WARFIELD"
+tema = { fondo = { color = "#14213d" }, tinta = { color = "#f4efe3" }, suave = { color = "#b8c0d4" }, acento = { color = "#e63946" }, amarillo = { color = "#fca311" }, azul = { color = "#4a6fa5" } }
+
+# ─── epigrafe: cita breve; 15 estilos (pergamino, portada, lapida, luto…) ────
+
+[[post]]
+name = "presets/epigrafe"
+preset = "epigrafe"
+pos = [{ md = "«Cuando un pueblo ha de perecer en sus pecados, \\ en la Iglesia comienza la lepra del alma.»" }]
+[post.args]
+estilo = "pergamino"
+autor_txt = "Willem Bilderdijk"
+obra_md = "_Oprakeling_"                  # _md: con formato (cursiva)
+
+# ─── esquela: aviso de imprenta; argumentos de texto con salto de línea ──────
+
+[[post]]
+name = "presets/esquela"
+preset = "esquela"
+formato = "feed-4x5"
+pos = ["Expiación"]
+[post.args]
+anuncio_md = "Estamos asistiendo al lecho \\ de muerte de una palabra."
+duelo_md = "Y es triste presenciar la muerte \\ de cualquier cosa valiosa."
+autor = "B. B. Warfield"
+obra = "«Redentor» y «redención»"
+orla = "celosia"
+vineta = "trebol"
+vineta-pie = "cruz"
+
+# ─── mosaico: sin posicionales; los textos son contenido (_txt) ──────────────
+
+[[post]]
+name = "presets/mosaico"
+preset = "mosaico"
+formato = "feed-4x5"
+[post.args]
+variante = "u"
+frase_txt = "El que tiene entendimiento, calcule el número de la bestia. No pide cómputo, pide sabiduría."
+etiqueta_txt = "Apocalipsis 13:18"
+remate_txt = "Sabiduría"
+autor_txt = "B. B. Warfield"
+obra_txt = "La imputación"
+
+# ─── escalera: peldaños anidados, con longitudes y estilos por línea ─────────
+
+[[post]]
+name = "presets/escalera"
+preset = "escalera"
+formato = "feed-4x5"
+pos = [
+  [
+    [{ texto = "El calvinista es el hombre", cuerpo = { len = "64pt" } }, { texto = "que ve a Dios", cuerpo = { len = "104pt" }, peso = 600 }],
+    [{ texto = "detrás de todos", estilo = "italic" }, { texto = "los fenómenos,", estilo = "italic" }],
+  ],
+  { md = "la mano \\ de Dios," },
+]
+[post.args]
+coda = "obrando su voluntad."
+autor = "B. B. WARFIELD"
+obra = "La teología de Calvino"
+
+# ─── gozne: texto con llamadas numeradas (carteles.llamada) ──────────────────
+
+[[post]]
+name = "presets/gozne"
+preset = "gozne"
+formato = [1600, 900]
+pos = [
+  { md = "La ley muestra el pecado#carteles.llamada(1) y el evangelio, al Salvador#carteles.llamada(2). Confundirlas es perder las dos." },
+  { md = "Ley y \\ evangelio" },
+  ["La ley", "El evangelio"],
+]
+[post.args]
+autor = "B. B. Warfield"
+obra = "La imputación"
+
+# ─── franjas: cita con cabecera de marca, título e ilustración a sangre ──────
+# `imagen` es contenido ya hecho: { image = "..." } lo da a sangre. El logo es un
+# SVG con `currentColor`; se recolorea leyéndolo y cambiando el color, que es lo
+# que hace falta para que salga blanco sobre la cabecera.
+
+[[post]]
+name = "presets/franjas"
+preset = "franjas"
+formato = "feed-1x1"
+pos = ["«Por supuesto, todos los hombres tienen fe. Los incrédulos tienen fe tanto como los creyentes. Pero eso se debe al hecho de que ellos también son criaturas de Dios. Por lo tanto, la fe siempre tiene contenido.»"]
+[post.args]
+titulo = "El autoengaño del incrédulo"
+imagen = { image = "assets/bg-ciencia.jpg" }
+marca = { md = '#image(bytes(read("/assets/Logo.svg").replace("currentColor", "white")), format: "svg", height: 52pt)' }
+pie = "Presuposicionalismo.com"
