@@ -408,7 +408,7 @@ impl Block {
 
     /// Bloques que, por función, aparecen una sola vez en la pieza. `label` no: marca quiebres,
     /// inicios de arcos internos o una idea enfatizada, y puede haber varios.
-    fn es_unico(&self) -> bool {
+    pub fn es_unico(&self) -> bool {
         matches!(
             self,
             Block::Title { .. }
@@ -1024,6 +1024,40 @@ impl Catalog {
         v
     }
 
+    /// Los bloques que un estilo acepta tal cual: los requeridos (con sus alternativas) y los opcionales.
+    pub fn aceptados<'a>(&self, sig: &'a StyleSig) -> Vec<&'a str> {
+        sig.bloques
+            .requeridos
+            .iter()
+            .flat_map(Slot::alternativas)
+            .chain(sig.bloques.opcionales.iter().map(String::as_str))
+            .collect()
+    }
+
+    /// Como qué cuenta un bloque `kind` en ese estilo: el más específico de su cadena que el estilo
+    /// acepta (`verse` vale como `quote` o, si no, como `body`), y solo ese. `None`: no lo acepta.
+    pub fn resuelve(&self, sig: &StyleSig, kind: &str) -> Option<String> {
+        let aceptados = self.aceptados(sig);
+        self.cadena(kind).into_iter().find(|k| aceptados.contains(k)).map(str::to_string)
+    }
+
+    /// ¿Acepta el estilo un bloque de este tipo?
+    pub fn acepta(&self, sig: &StyleSig, kind: &str) -> bool {
+        self.resuelve(sig, kind).is_some()
+    }
+
+    /// Los requisitos que los bloques `kinds` no cubren: las alternativas de cada uno
+    /// (`["quote", "body"]` es «uno de»). Es lo mismo que `block_missing` de `validate_semantic`.
+    pub fn faltan(&self, sig: &StyleSig, kinds: &[&str]) -> Vec<Vec<String>> {
+        let resueltos: Vec<String> = kinds.iter().filter_map(|k| self.resuelve(sig, k)).collect();
+        sig.bloques
+            .requeridos
+            .iter()
+            .map(|r| r.alternativas().into_iter().map(str::to_string).collect::<Vec<_>>())
+            .filter(|alt| !resueltos.iter().any(|r| alt.contains(r)))
+            .collect()
+    }
+
     /// Las firmas que vienen con la CLI (copia de `schema/firmas.json` de Instatypst).
     pub fn embedded() -> Self {
         serde_json::from_str(include_str!("firmas.json")).expect("src/firmas.json es válido")
@@ -1174,5 +1208,86 @@ pub fn load_checked(
         Ok(doc)
     } else {
         Err(v)
+    }
+}
+
+#[cfg(test)]
+mod tests_firma {
+    use super::*;
+
+    fn bloque(kind: &str) -> Block {
+        let t = || "x".to_string();
+        match kind {
+            "title" => Block::Title { text: t() },
+            "subtitle" => Block::Subtitle { text: t() },
+            "label" => Block::Label { text: t() },
+            "body" => Block::Body { text: t() },
+            "quote" => Block::Quote { text: t() },
+            "epigraph" => Block::Epigraph { text: t(), source: None },
+            "verse" => Block::Verse { lines: vec![t()], role: None },
+            "conclusion" => Block::Conclusion { text: t() },
+            "attribution" => Block::Attribution { author: Some(t()), role: None, work: None, date: None },
+            "list" => Block::List { order: ListOrder::None, items: vec![Item::Text(t())] },
+            "contrast" => Block::Contrast {
+                left: Side { label: None, title: None, items: vec![Item::Text(t())] },
+                right: Side { label: None, title: None, items: vec![Item::Text(t())] },
+            },
+            "signature" => Block::Signature { text: t() },
+            "footer" => Block::Footer { text: t() },
+            "number" => Block::Number { value: 1, total: None },
+            "date" => Block::Date { day: 1, month: "ENE".into() },
+            otro => panic!("bloque desconocido {otro}"),
+        }
+    }
+
+    fn doc(style: &str, bloques: Vec<Block>) -> Document {
+        Document {
+            schema: None,
+            defaults: None,
+            render: None,
+            brand: None,
+            palettes: Default::default(),
+            posts: vec![PieceSpec { name: Some("p".into()), style: Some(Style::Catalog(style.into())), content: Some(Content::Blocks(bloques)), ..Default::default() }],
+        }
+    }
+
+    /// `acepta` y `faltan` dicen lo mismo que `validate_semantic`, en cada estilo y cada bloque.
+    #[test]
+    fn acepta_y_faltan_coinciden_con_validate_semantic() {
+        let cat = Catalog::embedded();
+        let (mut pares, mut con_faltas) = (0, 0);
+        for (nombre, sig) in &cat.styles {
+            for kind in &cat.blocks {
+                let d = doc(nombre, vec![bloque(kind)]);
+                let issues = validate_semantic(&d, &cat);
+                let rechazado = issues.iter().any(|i| i.code == "block_unsupported");
+                assert_eq!(cat.acepta(sig, kind), !rechazado, "{nombre} / {kind}");
+                let faltan = issues.iter().filter(|i| i.code == "block_missing").count();
+                assert_eq!(cat.faltan(sig, &[kind.as_str()]).len(), faltan, "{nombre} / {kind}: requisitos sin cubrir");
+                pares += 1;
+                con_faltas += (faltan > 0) as usize;
+            }
+            // sin ningún bloque, faltan todos los requeridos
+            let d = doc(nombre, vec![]);
+            let faltan = validate_semantic(&d, &cat).iter().filter(|i| i.code == "block_missing").count();
+            assert_eq!(cat.faltan(sig, &[]).len(), faltan, "{nombre} vacío");
+            assert_eq!(faltan, sig.bloques.requeridos.len());
+        }
+        assert_eq!(pares, cat.styles.len() * cat.blocks.len());
+        assert!(con_faltas > 0);
+    }
+
+    #[test]
+    fn el_parentesco_decide_como_cuenta_cada_bloque() {
+        let cat = Catalog::embedded();
+        let liso = &cat.styles["liso"]; // body requerido; epigraph aparte
+        assert_eq!(cat.resuelve(liso, "body").as_deref(), Some("body"));
+        assert_eq!(cat.resuelve(liso, "quote").as_deref(), Some("body"), "quote → body");
+        assert_eq!(cat.resuelve(liso, "verse").as_deref(), Some("body"), "verse → quote → body");
+        assert_eq!(cat.resuelve(liso, "epigraph").as_deref(), Some("epigraph"), "lo tiene aparte");
+        assert_eq!(cat.resuelve(liso, "title"), None);
+        // un epígrafe solo no cubre el body que liso exige
+        assert_eq!(cat.faltan(liso, &["epigraph"]), vec![vec!["body".to_string()]]);
+        assert!(cat.faltan(liso, &["quote"]).is_empty());
     }
 }

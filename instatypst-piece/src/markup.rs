@@ -54,6 +54,172 @@ const FUNCIONES: &[&str] = &[
     "attribution",
 ];
 
+/// El inverso de `parse`: la lista de bloques escrita como Typst, de modo que
+/// `parse(render(b)) == b`. No todo bloque tiene forma en Typst (el contrato lo dice: la lista con
+/// etiquetas por ítem, `contrast`…, solo se escriben como bloques): en ese caso el error nombra el
+/// bloque (`@N`, 1-based) y por qué. Pasar de bloques a texto es posible mientras todos quepan.
+pub fn render(blocks: &[Block]) -> Result<String, String> {
+    let mut partes: Vec<String> = Vec::new();
+    let mut i = 0;
+    while i < blocks.len() {
+        let n = i + 1;
+        let b = &blocks[i];
+        let no = |why: &str| Err(format!("el bloque {n} (`{}`) no se puede escribir en Typst: {why}", b.kind()));
+        let linea = |t: &str| -> Result<(), String> {
+            if t.contains('\n') {
+                return Err(format!("el bloque {n} (`{}`): el texto tiene un salto de línea", b.kind()));
+            }
+            Ok(())
+        };
+        // Un texto de bloque va tal cual (ya es Typst en línea): no puede partirse en párrafos,
+        // ni empezar con algo que Typst lea como título o lista, ni desequilibrar los corchetes.
+        let texto = |t: &str, entre_corchetes: bool| -> Result<(), String> {
+            if t.trim().is_empty() {
+                return Err(format!("el bloque {n} (`{}`) tiene el texto vacío", b.kind()));
+            }
+            if t.contains("\n\n") || t.lines().any(|l| l.trim().is_empty()) {
+                return Err(format!("el bloque {n} (`{}`): una línea en blanco lo partiría en dos párrafos", b.kind()));
+            }
+            if !entre_corchetes {
+                let c = t.trim_start().chars().next().unwrap_or(' ');
+                if matches!(c, '=' | '-' | '+' | '#' | '/') {
+                    return Err(format!("el bloque {n} (`{}`): empieza con `{c}`, que Typst toma por marcado", b.kind()));
+                }
+            }
+            // Una `@` suelta es una referencia de Typst: se escribe `\@usuario`.
+            let mut previo = ' ';
+            for ch in t.chars() {
+                if ch == '@' && previo != '\\' {
+                    return Err(format!("el bloque {n} (`{}`): una `@` sin escapar; escríbela `\\@`", b.kind()));
+                }
+                previo = ch;
+            }
+            let (mut abre, mut cierra) = (0i32, 0i32);
+            for ch in t.chars() {
+                abre += (ch == '[') as i32;
+                cierra += (ch == ']') as i32;
+            }
+            if abre != cierra {
+                return Err(format!("el bloque {n} (`{}`): los corchetes del texto no están equilibrados", b.kind()));
+            }
+            Ok(())
+        };
+        match b {
+            Block::Title { text } => {
+                linea(text)?;
+                texto(text, true)?;
+                partes.push(format!("= {}", text.trim()));
+            }
+            Block::Subtitle { text } => {
+                linea(text)?;
+                texto(text, true)?;
+                partes.push(format!("== {}", text.trim()));
+            }
+            Block::Body { text } => {
+                texto(text, false)?;
+                partes.push(text.trim().to_string());
+            }
+            Block::Label { text } | Block::Conclusion { text } | Block::Footer { text } | Block::Signature { text } => {
+                texto(text, true)?;
+                partes.push(format!("#{}[{}]", b.kind(), text.trim()));
+            }
+            Block::Epigraph { text, source } => {
+                texto(text, true)?;
+                partes.push(match source {
+                    Some(s) => format!("#epigraph(source: {})[{}]", cadena(s), text.trim()),
+                    None => format!("#epigraph[{}]", text.trim()),
+                });
+            }
+            Block::Quote { text } => {
+                texto(text, true)?;
+                // Una atribución solo de autor, justo después, es el `attribution:` de la cita.
+                let autor = match blocks.get(i + 1) {
+                    Some(Block::Attribution { author: Some(a), role: None, work: None, date: None }) => Some(a),
+                    _ => None,
+                };
+                match autor {
+                    Some(a) => {
+                        partes.push(format!("#quote(attribution: {})[{}]", cadena(a), text.trim()));
+                        i += 1;
+                    }
+                    None => partes.push(format!("#quote[{}]", text.trim())),
+                }
+            }
+            Block::Verse { lines, role } => {
+                if role.is_some() {
+                    return no("el verso con `role` solo se escribe como bloque");
+                }
+                if lines.is_empty() || lines.iter().any(|l| l.trim().is_empty() || l.contains('\n') || l.contains('\\')) {
+                    return no("las líneas del verso no pueden estar vacías ni llevar saltos");
+                }
+                for l in lines {
+                    texto(l, true)?;
+                }
+                partes.push(format!("#verse[{}]", lines.iter().map(|l| l.trim()).collect::<Vec<_>>().join(" \\ ")));
+            }
+            Block::Attribution { author, role, work, date } => {
+                let campos: Vec<String> = [("author", author), ("role", role), ("work", work), ("date", date)]
+                    .into_iter()
+                    .filter_map(|(k, v)| v.as_ref().map(|v| format!("{k}: {}", cadena(v))))
+                    .collect();
+                partes.push(format!("#attribution({})", campos.join(", ")));
+            }
+            Block::List { order, items } => {
+                use crate::model::ListOrder;
+                let marca = match order {
+                    ListOrder::None => "-",
+                    ListOrder::Numbered => "+",
+                    ListOrder::Chronological => return no("el orden `chronological` solo se escribe como bloque"),
+                };
+                let mut lineas = Vec::new();
+                for it in items {
+                    match it {
+                        Item::Text(t) => {
+                            linea(t)?;
+                            texto(t, true)?;
+                            lineas.push(format!("{marca} {}", t.trim()));
+                        }
+                        Item::Full(_) => return no("los ítems con etiqueta o rol solo se escriben como bloque"),
+                    }
+                }
+                if lineas.is_empty() {
+                    return no("la lista está vacía");
+                }
+                // Dos listas seguidas del mismo tipo se leerían como una sola.
+                if let Some(Block::List { order: o2, .. }) = blocks.get(i + 1) {
+                    if o2 == order {
+                        return no("la lista que sigue es del mismo tipo y se leerían como una sola");
+                    }
+                }
+                partes.push(lineas.join("\n"));
+            }
+            Block::Contrast { .. } => return no("`contrast` solo se escribe como bloque"),
+            Block::Number { value, total } => partes.push(match total {
+                Some(t) => format!("#number({value}, total: {t})"),
+                None => format!("#number({value})"),
+            }),
+            Block::Date { day, month } => partes.push(format!("#date(day: {day}, month: {})", cadena(month))),
+        }
+        i += 1;
+    }
+    Ok(partes.join("\n\n"))
+}
+
+/// Una cadena de Typst `"…"`.
+fn cadena(s: &str) -> String {
+    let mut o = String::from("\"");
+    for c in s.chars() {
+        match c {
+            '"' => o.push_str("\\\""),
+            '\\' => o.push_str("\\\\"),
+            '\n' => o.push_str("\\n"),
+            c => o.push(c),
+        }
+    }
+    o.push('"');
+    o
+}
+
 /// Resultado: los bloques que se pudieron derivar y las incidencias. Si hay
 /// incidencias, los bloques no son fiables.
 pub fn parse(src: &str) -> (Vec<Block>, Vec<Issue>) {
@@ -763,5 +929,110 @@ mod tests {
     #[test]
     fn los_errores_de_sintaxis_se_reportan() {
         assert_eq!(falla("#label[sin cerrar")[0].code, "markup_syntax");
+    }
+}
+
+#[cfg(test)]
+mod render_tests {
+    use super::*;
+    use crate::model::{Content, ItemFull, Role, Side, Syntax};
+
+    fn ida_y_vuelta(b: Vec<Block>) -> String {
+        let t = render(&b).unwrap_or_else(|e| panic!("{e}"));
+        let (vuelta, issues) = parse(&t);
+        assert!(issues.is_empty(), "{issues:?}\n{t}");
+        assert_eq!(vuelta, b, "no vuelve igual:\n{t}");
+        t
+    }
+
+    #[test]
+    fn cada_bloque_con_forma_en_typst_vuelve_igual() {
+        let t = ida_y_vuelta(vec![
+            Block::Title { text: "La regla de los *90* minutos".into() },
+            Block::Subtitle { text: "Cómo organizo _mi día_".into() },
+            Block::Label { text: "ENFOQUE".into() },
+            Block::Body { text: "Un párrafo\ncon dos líneas y \\@usuario".into() },
+            Block::Epigraph { text: "Una cita".into(), source: Some("Alguien \"X\"".into()) },
+            Block::Epigraph { text: "Sin fuente".into(), source: None },
+            Block::Quote { text: "La cita".into() },
+            Block::Attribution { author: Some("Autora".into()), role: None, work: None, date: None },
+            Block::Verse { lines: vec!["uno".into(), "dos".into(), "tres".into()], role: None },
+            Block::Attribution { author: Some("Yo".into()), role: Some("pastor".into()), work: Some("Obra".into()), date: Some("2026".into()) },
+            Block::List { order: ListOrder::None, items: vec![Item::Text("a".into()), Item::Text("b".into())] },
+            Block::List { order: ListOrder::Numbered, items: vec![Item::Text("uno".into())] },
+            Block::Conclusion { text: "Fin".into() },
+            Block::Number { value: 3, total: Some(8) },
+            Block::Number { value: 1, total: None },
+            Block::Date { day: 12, month: "NOV".into() },
+            Block::Footer { text: "pie".into() },
+            Block::Signature { text: "\\@yo".into() },
+        ]);
+        assert!(t.contains("#quote(attribution: \"Autora\")[La cita]"), "{t}");
+    }
+
+    #[test]
+    fn lo_que_no_cabe_en_typst_dice_cual_bloque_y_por_que() {
+        let item = Item::Full(ItemFull { text: "x".into(), label: Some("l".into()), role: Some(Role::Affirm) });
+        for (b, frag) in [
+            (vec![Block::Body { text: "ok".into() }, Block::Contrast { left: Side { label: None, title: None, items: vec![Item::Text("a".into())] }, right: Side { label: None, title: None, items: vec![] } }], "bloque 2"),
+            (vec![Block::List { order: ListOrder::None, items: vec![item] }], "etiqueta o rol"),
+            (vec![Block::List { order: ListOrder::Chronological, items: vec![Item::Text("a".into())] }], "chronological"),
+            (vec![Block::Verse { lines: vec!["a".into()], role: Some("r".into()) }], "role"),
+            (vec![Block::Body { text: "uno\n\ndos".into() }], "línea en blanco"),
+            (vec![Block::Body { text: "= no soy título".into() }], "empieza con `=`"),
+            (vec![Block::Label { text: "abre [ y no cierra".into() }], "corchetes"),
+            (vec![Block::Title { text: "dos\nlíneas".into() }], "salto de línea"),
+            (vec![Block::Signature { text: "@yo".into() }], "sin escapar"),
+            (vec![Block::List { order: ListOrder::None, items: vec![Item::Text("a".into())] }, Block::List { order: ListOrder::None, items: vec![Item::Text("b".into())] }], "una sola"),
+        ] {
+            let e = render(&b).unwrap_err();
+            assert!(e.contains(frag), "{e:?} no menciona {frag:?}");
+        }
+    }
+
+    /// Sobre las piezas reales del contrato: lo que se escribe en Typst vuelve igual, y lo que no
+    /// cabe falla con mensaje. Y partiendo de Typst, bloques → Typst → bloques es estable.
+    #[test]
+    fn las_piezas_de_las_fixtures_vuelven_igual_o_dicen_por_que_no() {
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../instatypst-cli/tests/fixtures/contrato");
+        let (mut ok, mut no_cabe, mut desde_typst) = (0, 0, 0);
+        for sub in ["valid", "real", "build"] {
+            let Ok(rd) = std::fs::read_dir(dir.join(sub)) else { continue };
+            for e in rd.flatten() {
+                let ruta = e.path();
+                if ruta.extension().is_none_or(|x| x != "toml") {
+                    continue;
+                }
+                let Ok(doc) = crate::model::parse(&std::fs::read_to_string(&ruta).unwrap(), Syntax::Toml) else { continue };
+                for post in &doc.posts {
+                    match &post.content {
+                        Some(Content::Blocks(b)) if !b.is_empty() => match render(b) {
+                            Ok(t) => {
+                                let (v, issues) = parse(&t);
+                                assert!(issues.is_empty(), "{}: {issues:?}\n{t}", ruta.display());
+                                assert_eq!(&v, b, "{}: no vuelve igual\n{t}", ruta.display());
+                                ok += 1;
+                            }
+                            Err(m) => {
+                                assert!(m.contains("bloque"), "{m}");
+                                no_cabe += 1;
+                            }
+                        },
+                        Some(Content::Markup(m)) => {
+                            let (b, issues) = parse(m);
+                            if !issues.is_empty() {
+                                continue;
+                            }
+                            let t = render(&b).unwrap_or_else(|e| panic!("{}: {e}", ruta.display()));
+                            assert_eq!(parse(&t).0, b, "{}: Typst → bloques → Typst → bloques no es estable", ruta.display());
+                            desde_typst += 1;
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+        assert!(ok + desde_typst >= 3, "pocas piezas comprobadas: {ok} bloques, {desde_typst} desde Typst");
+        eprintln!("render: {ok} piezas de bloques vuelven igual, {no_cabe} no caben en Typst, {desde_typst} partiendo de Typst");
     }
 }
