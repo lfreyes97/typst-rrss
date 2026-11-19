@@ -2,7 +2,7 @@
 # posts.toml — Define tus posts para redes sociales
 # =============================================================================
 # Genera todos:  rrss-cli-rs build
-# Genera uno:    rrss-cli-rs build --only ciencia
+# Genera uno:    rrss-cli-rs build --solo ciencia
 # =============================================================================
 
 # ─── Temas (Paletas de Colores) ────────────────────────────────────────────────

@@ -5,24 +5,14 @@ use std::path::Path;
 use thaimeleon_lib::scheme_builder::{ChromaBuilder, SchemeBuilder, ThemeConfig};
 
 pub fn hex_to_rgb_tuple(hex_color: &str) -> Result<(u8, u8, u8)> {
-    let hex_color = hex_color.trim_start_matches('#');
-
-    if hex_color.len() != 6 {
+    let hex = hex_color.trim_start_matches('#');
+    if hex.len() != 6 || !hex.bytes().all(|b| b.is_ascii_hexdigit()) {
         return Err(anyhow!(
-            "Invalid hex color length: expected 6, got {} ('{}')",
-            hex_color.len(),
-            hex_color
+            "color no válido: {hex_color:?} (se espera #RRGGBB)"
         ));
     }
-
-    let r = u8::from_str_radix(&hex_color[0..2], 16)
-        .map_err(|e| anyhow!("Invalid red component in '{}': {}", hex_color, e))?;
-    let g = u8::from_str_radix(&hex_color[2..4], 16)
-        .map_err(|e| anyhow!("Invalid green component in '{}': {}", hex_color, e))?;
-    let b = u8::from_str_radix(&hex_color[4..6], 16)
-        .map_err(|e| anyhow!("Invalid blue component in '{}': {}", hex_color, e))?;
-
-    Ok((r, g, b))
+    let canal = |i: usize| u8::from_str_radix(&hex[i..i + 2], 16).unwrap_or(0);
+    Ok((canal(0), canal(2), canal(4)))
 }
 
 /// Luminancia relativa WCAG de un `#RRGGBB`.
@@ -68,6 +58,36 @@ fn clamp(val: f32, min: f32, max: f32) -> f32 {
     } else {
         v
     }
+}
+
+/// thaimeleon escribe trazas con `println!` («Clustered colors sucessfully»…).
+/// Mientras corre, stdout apunta a /dev/null: `colors … > tema.typ` solo debe
+/// llevar el resultado.
+fn sin_stdout<T>(f: impl FnOnce() -> T) -> T {
+    #[cfg(unix)]
+    {
+        use std::io::Write;
+        use std::os::fd::AsRawFd;
+        let Ok(nulo) = std::fs::OpenOptions::new().write(true).open("/dev/null") else {
+            return f();
+        };
+        let _ = std::io::stdout().flush();
+        // SAFETY: fd 1 se cambia por /dev/null y se restaura desde su copia.
+        let guardado = unsafe { libc::dup(1) };
+        if guardado < 0 {
+            return f();
+        }
+        unsafe { libc::dup2(nulo.as_raw_fd(), 1) };
+        let r = f();
+        let _ = std::io::stdout().flush();
+        unsafe {
+            libc::dup2(guardado, 1);
+            libc::close(guardado);
+        }
+        r
+    }
+    #[cfg(not(unix))]
+    f()
 }
 
 fn get_default_builder() -> SchemeBuilder {
@@ -161,7 +181,7 @@ pub fn generate_palette(base_hex: &str) -> std::collections::HashMap<String, Str
         ImageRef::new(1, 1, &pixels).expect("Static 1x1 pixels should always work")
     });
 
-    match builder.generate_from_image(image_ref) {
+    match sin_stdout(|| builder.generate_from_image(image_ref)) {
         Ok(scheme) => {
             let mut palette = std::collections::HashMap::new();
             let to_hex = |c: Srgb<u8>| format!("#{:02x}{:02x}{:02x}", c.red, c.green, c.blue);
@@ -242,7 +262,7 @@ pub fn suggest_accent(image_path: &str) -> String {
 
         if let Ok(image_ref) = ImageRef::new(width, height, &pixels) {
             let builder = get_default_builder();
-            if let Ok(scheme) = builder.generate_from_image(image_ref) {
+            if let Ok(scheme) = sin_stdout(|| builder.generate_from_image(image_ref)) {
                 let ac = scheme.fg_accents[0];
                 return format!("#{:02x}{:02x}{:02x}", ac.red, ac.green, ac.blue);
             }

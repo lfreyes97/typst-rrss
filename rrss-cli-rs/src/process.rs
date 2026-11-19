@@ -1,12 +1,14 @@
 use anyhow::{anyhow, Context, Result};
 use std::path::Path;
 use std::process::Command;
-use tracing::{error, info};
+use tracing::info;
 
 /// Safely compile a Typst file using the system's typst binary.
 /// This function prevents command injection by using separate arguments
 /// instead of string interpolation and validates the input paths.
-pub fn compile_typst(input: &Path, output: &Path, ppi: u32, root: &Path) -> Result<()> {
+///
+/// Si compila, devuelve los avisos de Typst (su stderr, vacío si no hubo).
+pub fn compile_typst(input: &Path, output: &Path, ppi: u32, root: &Path) -> Result<String> {
     compile_typst_with(input, output, ppi, root, &[])
 }
 
@@ -17,17 +19,14 @@ pub fn compile_typst_with(
     ppi: u32,
     root: &Path,
     font_paths: &[std::path::PathBuf],
-) -> Result<()> {
+) -> Result<String> {
     // 1. Path validation to prevent traversal outside allowed directories
     validate_path(input)?;
     validate_path(output)?;
 
     // 2. PPI validation to prevent Resource Exhaustion (DoS)
     if !(72..=1200).contains(&ppi) {
-        return Err(anyhow!(
-            "PPI value must be between 72 and 1200, got {}. Prevents DoS.",
-            ppi
-        ));
+        return Err(anyhow!("ppi debe estar entre 72 y 1200, no {ppi}"));
     }
 
     info!(
@@ -49,24 +48,27 @@ pub fn compile_typst_with(
         .arg(input)
         .arg(output)
         .output()
-        .context("Failed to execute typst binary. Is it installed and in your PATH?")?;
+        .context("No se pudo ejecutar `typst`. ¿Está instalado y en el PATH?")?;
 
+    let stderr = String::from_utf8_lossy(&output_result.stderr);
     if !output_result.status.success() {
-        let stderr = String::from_utf8_lossy(&output_result.stderr);
-        error!(
-            "Typst compilation failed for {}:\n{}",
-            input.display(),
-            stderr
-        );
         if stderr.contains("multiple images") {
             return Err(anyhow!(
                 "la pieza ocupa más de una página (el texto se desbordó): baja el tamaño o los márgenes"
             ));
         }
-        return Err(anyhow!("Typst compilation failed: {}", stderr.trim()));
+        return Err(anyhow!("Typst no pudo compilar: {}", stderr.trim()));
     }
 
-    Ok(())
+    Ok(stderr.trim().to_string())
+}
+
+/// Los avisos de Typst, sangrados bajo la pieza a la que pertenecen.
+pub fn mostrar_avisos(avisos: &str, sangria: &str) {
+    for (i, l) in avisos.lines().enumerate() {
+        let marca = if i == 0 { "⚠ " } else { "  " };
+        println!("{sangria}{marca}{l}");
+    }
 }
 
 /// Validates that a path is safe to use.
@@ -80,7 +82,7 @@ pub fn validate_path(path: &Path) -> Result<()> {
                 std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
             if !path_str.starts_with(current_dir.to_string_lossy().as_ref()) {
                 return Err(anyhow!(
-                    "Path traversal attempt detected or suspicious path: {}",
+                    "ruta no permitida (fuera de /home, /tmp y la carpeta actual): {}",
                     path.display()
                 ));
             }
@@ -89,7 +91,7 @@ pub fn validate_path(path: &Path) -> Result<()> {
 
     // Check for null bytes which can be used in some injection attacks
     if path.to_string_lossy().contains('\0') {
-        return Err(anyhow!("Path contains null bytes: {}", path.display()));
+        return Err(anyhow!("la ruta contiene bytes nulos: {}", path.display()));
     }
 
     Ok(())

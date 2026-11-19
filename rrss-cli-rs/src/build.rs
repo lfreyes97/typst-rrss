@@ -16,6 +16,24 @@ pub fn convert_to_webp(png_path: &Path) -> Result<PathBuf> {
     Ok(webp_path)
 }
 
+/// Las carpetas de `fonts` de [defaults] más las de `--font-path`. Typst ignora
+/// en silencio una carpeta que no existe; aquí es un error.
+pub fn fuentes(cfg: &Config, extra: &[PathBuf]) -> Result<Vec<PathBuf>> {
+    let fonts: Vec<PathBuf> = cfg
+        .defaults
+        .fonts
+        .iter()
+        .map(PathBuf::from)
+        .chain(extra.iter().cloned())
+        .collect();
+    for f in &fonts {
+        if !f.is_dir() {
+            bail!("la carpeta de fuentes {} no existe", f.display());
+        }
+    }
+    Ok(fonts)
+}
+
 pub const SALIDA: &str = "output";
 pub const TYP_DIR: &str = "output/typ";
 
@@ -24,27 +42,27 @@ pub const TYP_DIR: &str = "output/typ";
 pub fn run_build(
     cfg: &Config,
     root: &Path,
-    only: &Option<String>,
+    solo: &Option<String>,
     dry_run: bool,
     format: &ImageFormat,
 ) -> Result<()> {
     // Toda la configuración se valida antes de compilar nada, incluso los
-    // posts que `--only` va a saltar: un typo no debe esperar a su turno.
+    // posts que `--solo` va a saltar: un typo no debe esperar a su turno.
     let posts = cfg.resolve_all()?;
     let posts: Vec<&Post> = posts
         .iter()
-        .filter(|p| match only {
+        .filter(|p| match solo {
             Some(o) => &p.name == o,
             None => true,
         })
         .collect();
-    if let Some(o) = only {
+    if let Some(o) = solo {
         if posts.is_empty() {
             bail!("no hay ningún post llamado {o:?}");
         }
     }
 
-    let fonts: Vec<PathBuf> = cfg.defaults.fonts.iter().map(PathBuf::from).collect();
+    let fonts = fuentes(cfg, &[])?;
     let mut fallos = 0;
 
     for post in &posts {
@@ -96,7 +114,8 @@ pub fn construir(
     }
     fs::write(&typ, r.typ)?;
 
-    process::compile_typst_with(&typ, &png, post.ppi, root, fonts)?;
+    let avisos = process::compile_typst_with(&typ, &png, post.ppi, root, fonts)?;
+    process::mostrar_avisos(&avisos, "    ");
     if *format == ImageFormat::Webp {
         println!("    ✓ → {}", convert_to_webp(&png)?.display());
     } else {

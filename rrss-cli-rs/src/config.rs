@@ -289,8 +289,14 @@ fn resolver_formato(f: Option<&FormatoSpec>) -> Result<Option<(u32, u32)>> {
             .map(|(_, d)| *d)
             .ok_or_else(|| {
                 let validos: Vec<_> = FORMATOS.iter().map(|(k, _)| *k).collect();
+                // `formato` es el lienzo; png/webp es el de la imagen.
+                let pista = if matches!(n.as_str(), "png" | "webp") {
+                    " (png/webp se elige con --imagen)"
+                } else {
+                    ""
+                };
                 anyhow!(
-                    "formato desconocido {n:?}; usa {} o [ancho, alto]",
+                    "formato desconocido {n:?}; usa {} o [ancho, alto]{pista}",
                     validos.join(", ")
                 )
             })?,

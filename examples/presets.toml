@@ -2,7 +2,7 @@
 # presets.toml — un post por preset de instatypst, como muestra de la sintaxis
 # =============================================================================
 #   rrss-cli-rs build examples/presets.toml
-#   rrss-cli-rs build examples/presets.toml --only presets/suizo
+#   rrss-cli-rs build examples/presets.toml --solo presets/suizo
 #
 # Cómo se escribe cada valor (el nombre del preset va sin `carteles.`):
 #

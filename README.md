@@ -15,7 +15,7 @@ Lo que aporta encima de `instatypst`:
 
 - [`typst`](https://typst.app) en el `PATH`.
 - `instatypst` instalado como paquete local (`@local/instatypst:0.1.0`). Mira su `README`.
-- Las fuentes de `instatypst`: instálalas en el sistema (sección «Instalar las fuentes en el sistema» de su `README`) o pásalas con `fonts` en `[defaults]` / `--font-path`. `compile` no tiene `--font-path`: usa las del sistema o `TYPST_FONT_PATHS`.
+- Las fuentes de `instatypst`: instálalas en el sistema (sección «Instalar las fuentes en el sistema» de su `README`) o pásalas con `fonts` en `[defaults]` / `--font-path` (una carpeta que no existe es un error). `compile` no tiene `--font-path`: usa las del sistema o `TYPST_FONT_PATHS`.
 - Rust estable, para compilar la CLI.
 
 ```bash
@@ -29,28 +29,45 @@ cargo install --path rrss-cli-rs
 | Comando | Qué hace |
 | :--- | :--- |
 | **`build`** | Genera y compila los posts de un `posts.toml`. |
+| **`init`** | Escribe un punto de partida editable: un `posts.toml` o un `.typ`. |
 | **`full`** | Una pieza desde flags: genera el `.typ` y lo compila. |
 | **`generate`** | Una pieza desde flags: escribe el `.typ`, sin compilarlo. |
 | **`compile`** | Compila `.typ` que ya existen (hechos a mano o con `instatypst`). |
 | **`extract`** | Extrae una paleta de colores de una imagen. |
 | **`colors`** | Genera una paleta armónica desde un color base. |
 
+`rrss-cli-rs <comando> --help` describe cada flag. Los que se repiten significan lo mismo en todos los comandos:
+
+| Flag | Significado |
+| :--- | :--- |
+| `-o`, `--output` | Dónde va la salida: archivo (`init`, `generate`), nombre de la pieza (`full`) o carpeta (`compile`). |
+| `--formato` | Lienzo: `feed-4x5`, `feed-1x1`, `story`, `twitter`, `linkedin` o `ANCHOxALTO`. |
+| `--imagen` | Formato de la imagen: `png` (por defecto) o `webp`. |
+| `--solo` | `build`: compila solo el post con ese `name` (los demás se validan igual). |
+
 ```bash
+# Un posts.toml de arranque (uno o varios presets); con -o *.typ, el .typ de una pieza
+rrss-cli-rs init suizo liso
+rrss-cli-rs init suizo -o pieza.typ
+
 # Todo un posts.toml, o solo uno
 rrss-cli-rs build
-rrss-cli-rs build examples/presets.toml --only presets/suizo
-rrss-cli-rs build --dry-run
+rrss-cli-rs build examples/presets.toml --solo presets/suizo
+rrss-cli-rs build --dry-run --imagen webp
 
 # Una pieza desde flags: PRESET [POS...] y --arg clave=valor
 rrss-cli-rs full suizo "Dios no necesita que lo defendamos." "Él es la precondición." \
     --tema ocean --formato feed-1x1 -o creacion
 
-# Solo el .typ, para revisarlo o editarlo
+# Solo el .typ, para revisarlo o editarlo; luego, compilarlo
 rrss-cli-rs generate liso "Todo es gracia." --tema auto --image assets/bg-ciencia.jpg -o pieza.typ
+rrss-cli-rs compile pieza.typ
 
 rrss-cli-rs extract assets/bg-ciencia.jpg --suggest-accent
-rrss-cli-rs colors "#691322" --format typst
+rrss-cli-rs colors "#691322" --format typst > tema.typ
 ```
+
+`init` escribe solo plantillas que compilan tal cual: conoce los argumentos posicionales de `liso`, `suizo`, `bauhaus`, `epigrafe`, `esquela` y `franjas`. Para otro preset, parte de uno de estos y ajusta `preset`, `pos` y `args` (ejemplos en [`examples/presets.toml`](examples/presets.toml)). Los textos entre `‹…›` son marcadores para reemplazar.
 
 Las imágenes salen en `output/` y los `.typ` generados en `output/typ/`. El `ppi` por defecto es **72**: un lienzo de 1080 pt sale de 1080 px.
 
@@ -116,7 +133,9 @@ Hay un ejemplo con 8 presets en [`examples/presets.toml`](examples/presets.toml)
 - **`typst` se invoca con argumentos separados**, nunca interpolando una línea de shell.
 - **Rutas**: se rechazan `..` y bytes nulos en nombres de post y recursos.
 - **Límites**: `ppi` entre 72 y 1200; lados del lienzo entre 100 y 4320.
-- **Errores**: `build` procesa todos los posts, muestra qué falló y termina con código distinto de 0. Un texto que no cabe se informa como desborde de página.
+- **Errores**: `build` y `compile` procesan todo, muestran qué falló y terminan con código distinto de 0. Un texto que no cabe se informa como desborde de página.
+- **Avisos de Typst** (una fuente que no existe, por ejemplo) salen como `⚠` bajo la pieza aunque compile.
+- **Salida limpia**: stdout lleva solo el resultado; las trazas van a stderr y solo los avisos, salvo que `RUST_LOG` pida más (`RUST_LOG=info`).
 
 Se comprobó que `build` reproduce, píxel a píxel, 88 láminas de los ejemplos de presets de `instatypst`.
 

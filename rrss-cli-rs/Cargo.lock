@@ -1360,6 +1360,7 @@ dependencies = [
  "clap",
  "color-thief",
  "image",
+ "libc",
  "material-colors",
  "palette",
  "quantette",
