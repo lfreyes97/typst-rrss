@@ -51,6 +51,24 @@ pub struct Rendered {
     pub avisos: Vec<String>,
 }
 
+/// La fuente Typst de la pieza `indice` de un documento en memoria (lo que la GUI compila para la
+/// vista previa). Solo se construye esa pieza: las demás se omiten, así que su índice no se mezcla
+/// con el de `Config.posts`. Es la misma cadena que `build`: `a_config` → `resolve` → `render`.
+pub fn render_pieza(doc: &crate::model::Document, indice: usize, cat: &crate::model::Catalog) -> Result<(Rendered, Post)> {
+    if indice >= doc.posts.len() {
+        bail!("la pieza {} no existe", indice + 1);
+    }
+    let omitir: std::collections::HashSet<usize> = (0..doc.posts.len()).filter(|&i| i != indice).collect();
+    let (cfg, fallos) = crate::pieza::a_config_omitiendo(doc, cat, &omitir);
+    if let Some(f) = fallos.into_iter().next() {
+        return Err(f.error);
+    }
+    let raw = cfg.posts.first().ok_or_else(|| anyhow!("la pieza {} no se pudo construir", indice + 1))?;
+    let post = cfg.resolve(raw)?;
+    let rendered = render(&post, &cfg)?;
+    Ok((rendered, post))
+}
+
 pub fn render(post: &Post, cfg: &Config) -> Result<Rendered> {
     if let Some(e) = &post.estilo_propio {
         return render_propio(post, cfg, e);
@@ -462,5 +480,63 @@ mod tests {
             .unwrap();
             assert!(cfg.resolve_all().is_err(), "{n}");
         }
+    }
+}
+
+#[cfg(test)]
+mod tests_pieza {
+    use super::*;
+    use crate::model::{Catalog, Syntax};
+
+    fn fixtures() -> Vec<std::path::PathBuf> {
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../instatypst-cli/tests/fixtures/contrato/valid");
+        std::fs::read_dir(dir).unwrap().flatten().map(|e| e.path()).filter(|p| p.extension().is_some_and(|x| x == "toml")).collect()
+    }
+
+    /// `render_pieza` da, pieza a pieza, la misma fuente que la cadena de `build`; y falla justo
+    /// en las piezas que esa cadena no puede construir (estilos sin `entradas`: la frontera de v1).
+    #[test]
+    fn render_pieza_coincide_con_la_cadena_de_build() {
+        // Las rutas de imagen de las fixtures son relativas a la raíz del repo (como en el CLI).
+        crate::colors::set_root(Some(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("..")));
+        let cat = Catalog::embedded();
+        let (mut iguales, mut fallan) = (0, 0);
+        for ruta in fixtures() {
+            let texto = std::fs::read_to_string(&ruta).unwrap();
+            let doc = crate::model::load_checked(&texto, Syntax::Toml, &cat).unwrap();
+            let (cfg, fallos) = crate::pieza::a_config_parcial(&doc, &cat);
+            for (i, spec) in doc.posts.iter().enumerate() {
+                let nombre = spec.name.clone().unwrap();
+                let referencia = cfg.posts.iter().find(|p| p.name == nombre);
+                match (referencia, render_pieza(&doc, i, &cat)) {
+                    (Some(raw), Ok((r, p))) => {
+                        let esperado = render(&cfg.resolve(raw).unwrap(), &cfg).unwrap().typ;
+                        assert_eq!(r.typ, esperado, "{} pieza {nombre}", ruta.display());
+                        assert_eq!(p.name, nombre);
+                        iguales += 1;
+                    }
+                    (None, Err(_)) => {
+                        assert!(fallos.iter().any(|f| f.indice == i), "{nombre}: falla sin estar en los fallos de la cadena");
+                        fallan += 1;
+                    }
+                    (Some(_), Err(e)) => panic!("{nombre}: la cadena de build la construye y render_pieza no: {e:#}"),
+                    (None, Ok(_)) => panic!("{nombre}: render_pieza la construye y la cadena de build no"),
+                }
+            }
+        }
+        assert!(iguales >= 3, "solo {iguales} piezas comparadas");
+        eprintln!("render_pieza: {iguales} piezas idénticas a build, {fallan} no construibles (como en build)");
+    }
+
+    #[test]
+    fn render_pieza_con_una_pieza_mala_no_afecta_a_las_demas_y_un_indice_roto_es_error() {
+        let cat = Catalog::embedded();
+        let doc = crate::model::parse(
+            "schema = \"instatypst-piece/v1\"\n\n[[post]]\nname = \"a\"\nstyle = \"liso\"\ncontent = [ { type = \"body\", text = \"x\" } ]\n\n[[post]]\nname = \"b\"\nstyle = \"noexiste\"\ncontent = [ { type = \"body\", text = \"x\" } ]\n",
+            Syntax::Toml,
+        )
+        .unwrap();
+        assert!(render_pieza(&doc, 0, &cat).is_ok());
+        assert!(render_pieza(&doc, 5, &cat).is_err());
     }
 }

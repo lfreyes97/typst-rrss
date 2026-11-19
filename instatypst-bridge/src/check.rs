@@ -208,6 +208,21 @@ fn check_piezas(texto: &str, sintaxis: Syntax, r: &mut Report) -> Option<Config>
             return None;
         }
     };
+    check_doc(&doc, r)
+}
+
+/// El informe de un documento que ya está en memoria (la GUI), sin tocar el disco: las mismas
+/// etapas que `check_file` — contrato, firmas y puente, con los avisos de contraste del render.
+/// `nombre` es lo que aparece como `file` en el informe.
+pub fn check_document(doc: &model::Document, nombre: &str) -> Report {
+    let mut r = Report::new(Path::new(nombre));
+    if let Some(cfg) = check_doc(doc, &mut r) {
+        render_todas(&cfg, &mut r);
+    }
+    r.cerrar()
+}
+
+fn check_doc(doc: &model::Document, r: &mut Report) -> Option<Config> {
     r.pieces = doc.posts.len();
     let nombre_de = |path: &str| {
         indice_de(path)
@@ -218,9 +233,9 @@ fn check_piezas(texto: &str, sintaxis: Syntax, r: &mut Report) -> Option<Config>
     let cat = Catalog::embedded();
     let mut malas: HashSet<usize> = HashSet::new();
     let mut del_documento = false;
-    for i in model::validate(&doc)
+    for i in model::validate(doc)
         .into_iter()
-        .chain(model::validate_semantic(&doc, &cat))
+        .chain(model::validate_semantic(doc, &cat))
     {
         match indice_de(&i.path) {
             Some(n) => {
@@ -236,7 +251,7 @@ fn check_piezas(texto: &str, sintaxis: Syntax, r: &mut Report) -> Option<Config>
         return None;
     }
 
-    let (cfg, fallos) = pieza::a_config_omitiendo(&doc, &cat, &malas);
+    let (cfg, fallos) = pieza::a_config_omitiendo(doc, &cat, &malas);
     for f in fallos {
         r.error(
             "build",
@@ -267,5 +282,35 @@ fn render_todas(cfg: &Config, r: &mut Report) {
             }
             Err(e) => r.error("build", "", Some(post.name.clone()), format!("{e:#}")),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests_documento {
+    use super::*;
+
+    /// Desde memoria da el mismo informe que desde el archivo, con los avisos de contraste incluidos.
+    #[test]
+    fn check_document_da_el_mismo_informe_que_check_file() {
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../instatypst-cli/tests/fixtures/contrato");
+        let mut vistos = 0;
+        for sub in ["valid", "invalid"] {
+            for e in std::fs::read_dir(dir.join(sub)).unwrap().flatten() {
+                let ruta = e.path();
+                if ruta.extension().is_none_or(|x| x != "toml") {
+                    continue;
+                }
+                let texto = std::fs::read_to_string(&ruta).unwrap();
+                let Ok(doc) = model::parse(&texto, Syntax::Toml) else { continue };
+                if !pieza::es_de_piezas(&texto, Syntax::Toml) {
+                    continue;
+                }
+                let a = check_file(&ruta);
+                let b = check_document(&doc, &ruta.display().to_string());
+                assert_eq!(a.to_json(), b.to_json(), "{}", ruta.display());
+                vistos += 1;
+            }
+        }
+        assert!(vistos >= 10, "solo {vistos} fixtures comparadas");
     }
 }

@@ -1,7 +1,8 @@
 use anyhow::{anyhow, Result};
 use instatypst_color::{base, roles, Rgb, Roles};
 use std::collections::HashMap;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::sync::RwLock;
 
 pub use instatypst_piece::util::hex_to_rgb_tuple;
 
@@ -57,16 +58,35 @@ pub fn generate_palette(base_hex: &str) -> Result<HashMap<String, String>> {
     Ok(paleta_de_roles(&base::from_base(rgb(base_hex)?).roles))
 }
 
+/// Carpeta contra la que se resuelven las rutas relativas de las imágenes. Sin fijar (el CLI), manda
+/// el directorio de trabajo, que es la raíz del proyecto. La GUI la fija a la carpeta del documento.
+///
+/// Limitación: es una sola raíz por proceso; si algún día hay varios documentos abiertos a la vez,
+/// esto tendrá que pasar a ser un parámetro de `Config`.
+static ROOT: RwLock<Option<PathBuf>> = RwLock::new(None);
+
+pub fn set_root(root: Option<PathBuf>) {
+    *ROOT.write().expect("raíz de imágenes") = root;
+}
+
+fn en_raiz(p: &str) -> PathBuf {
+    let p = Path::new(p);
+    match ROOT.read().expect("raíz de imágenes").as_ref() {
+        Some(r) if p.is_relative() => r.join(p),
+        _ => p.to_path_buf(),
+    }
+}
+
 /// Los colores dominantes de una imagen, del más al menos abundante: `(#rrggbb, fracción)`.
 pub fn extract_from_image(image_path: &str, count: u8) -> Result<Vec<(String, f32)>> {
-    let c = instatypst_color::extract::candidates_from_path(Path::new(image_path), count)
+    let c = instatypst_color::extract::candidates_from_path(&en_raiz(image_path), count)
         .map_err(|e| anyhow!("{e}"))?;
     Ok(c.into_iter().map(|c| (c.rgb.hex(), c.share)).collect())
 }
 
 /// Los roles de una foto, con los avisos del selector (`no_accent`, `contrast_low`).
 pub fn roles_de_imagen(image_path: &str) -> Result<roles::Selection> {
-    roles::from_image(Path::new(image_path)).map_err(|e| anyhow!("{e}"))
+    roles::from_image(&en_raiz(image_path)).map_err(|e| anyhow!("{e}"))
 }
 
 pub fn suggest_accent(image_path: &str) -> Result<String> {
@@ -75,7 +95,7 @@ pub fn suggest_accent(image_path: &str) -> Result<String> {
 
 /// Paleta Material You (esquema oscuro) a partir de una imagen. Falla si no se puede leer.
 pub fn matugen_palette(path: &str) -> Result<HashMap<String, String>> {
-    let sel = instatypst_color::material::from_image(Path::new(path), true)
+    let sel = instatypst_color::material::from_image(&en_raiz(path), true)
         .map_err(|e| anyhow!("no se pudo leer {path:?}: {e}"))?;
     Ok(paleta_de_roles(&sel.roles))
 }
