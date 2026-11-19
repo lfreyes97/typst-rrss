@@ -409,7 +409,7 @@ mod tests {
                 str_lit(c)
             ));
         }
-        let dir = std::env::temp_dir().join(format!("rrss-txt-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("instatypst-txt-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let typ = dir.join("t.typ");
         std::fs::write(&typ, doc).unwrap();

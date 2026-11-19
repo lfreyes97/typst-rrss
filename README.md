@@ -19,7 +19,7 @@ Lo que aporta encima de `instatypst`:
 - Rust estable, para compilar la CLI.
 
 ```bash
-cargo install --path rrss-cli-rs
+cargo install --path instatypst-cli
 ```
 
 ---
@@ -36,7 +36,7 @@ cargo install --path rrss-cli-rs
 | **`extract`** | Extrae una paleta de colores de una imagen. |
 | **`colors`** | Genera una paleta armónica desde un color base. |
 
-`rrss-cli-rs <comando> --help` describe cada flag. Los que se repiten significan lo mismo en todos los comandos:
+`instatypst <comando> --help` describe cada flag. Los que se repiten significan lo mismo en todos los comandos:
 
 | Flag | Significado |
 | :--- | :--- |
@@ -47,24 +47,24 @@ cargo install --path rrss-cli-rs
 
 ```bash
 # Un posts.toml de arranque (uno o varios presets); con -o *.typ, el .typ de una pieza
-rrss-cli-rs init suizo liso
-rrss-cli-rs init suizo -o pieza.typ
+instatypst init suizo liso
+instatypst init suizo -o pieza.typ
 
 # Todo un posts.toml, o solo uno
-rrss-cli-rs build
-rrss-cli-rs build examples/presets.toml --solo presets/suizo
-rrss-cli-rs build --dry-run --imagen webp
+instatypst build
+instatypst build examples/presets.toml --solo presets/suizo
+instatypst build --dry-run --imagen webp
 
 # Una pieza desde flags: PRESET [POS...] y --arg clave=valor
-rrss-cli-rs full suizo "Dios no necesita que lo defendamos." "Él es la precondición." \
+instatypst full suizo "Dios no necesita que lo defendamos." "Él es la precondición." \
     --tema ocean --formato feed-1x1 -o creacion
 
 # Solo el .typ, para revisarlo o editarlo; luego, compilarlo
-rrss-cli-rs generate liso "Todo es gracia." --tema auto --image assets/bg-ciencia.jpg -o pieza.typ
-rrss-cli-rs compile pieza.typ
+instatypst generate liso "Todo es gracia." --tema auto --image assets/bg-ciencia.jpg -o pieza.typ
+instatypst compile pieza.typ
 
-rrss-cli-rs extract assets/bg-ciencia.jpg --suggest-accent
-rrss-cli-rs colors "#691322" --format typst > tema.typ
+instatypst extract assets/bg-ciencia.jpg --suggest-accent
+instatypst colors "#691322" --format typst > tema.typ
 ```
 
 `init` escribe solo plantillas que compilan tal cual: conoce los argumentos posicionales de `liso`, `suizo`, `bauhaus`, `epigrafe`, `esquela` y `franjas`. Para otro preset, parte de uno de estos y ajusta `preset`, `pos` y `args` (ejemplos en [`examples/presets.toml`](examples/presets.toml)). Los textos entre `‹…›` son marcadores para reemplazar.
@@ -236,7 +236,7 @@ equivalente del formato de siempre (`tests/pieza.rs`: `liso`, `suizo`, `epigrafe
 y `esquela`), y la lámina 01 de la campaña, con su logo real, sale idéntica a la hecha a mano.
 
 Las firmas de los estilos vienen de Instatypst (`schema/firmas.json`) y se
-guardan aquí en `rrss-cli-rs/src/firmas.json`. Si cambian allí:
+guardan aquí en `instatypst-cli/src/firmas.json`. Si cambian allí:
 `scripts/exportar-firmas.py` y copiar el resultado.
 
 ---
@@ -257,7 +257,7 @@ Se comprobó que `build` reproduce, píxel a píxel, 88 láminas de los ejemplos
 
 ## Estructura
 
-- **`rrss-cli-rs/`**: la CLI.
+- **`instatypst-cli/`**: la CLI.
   - `config.rs`: parser de `posts.toml` (esquema, herencia, validación).
   - `render.rs`: un post se convierte en el `.typ`.
   - `typst.rs`: valores a literales de Typst, con escapado.

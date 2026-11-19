@@ -2,7 +2,7 @@
 //! documento en las tres sintaxis; los inválidos deben fallar con el código
 //! que declaran en su primera línea (`# expect: <code>`).
 
-use rrss_cli_rs::model::{self, Catalog, Slot, Syntax};
+use instatypst_cli::model::{self, Catalog, Slot, Syntax};
 use std::fs;
 use std::path::PathBuf;
 
@@ -162,11 +162,11 @@ fn typst_y_bloques_son_equivalentes() {
     let a = model::load_checked(typst, Syntax::Toml, &cat).unwrap();
     let b = model::load_checked(bloques, Syntax::Toml, &cat).unwrap();
     let (derivados, _) = match &a.posts[0].content {
-        Some(rrss_cli_rs::model::Content::Markup(m)) => rrss_cli_rs::markup::parse(m),
+        Some(instatypst_cli::model::Content::Markup(m)) => instatypst_cli::markup::parse(m),
         _ => panic!("esperaba contenido Typst"),
     };
     match &b.posts[0].content {
-        Some(rrss_cli_rs::model::Content::Blocks(bs)) => assert_eq!(&derivados, bs),
+        Some(instatypst_cli::model::Content::Blocks(bs)) => assert_eq!(&derivados, bs),
         _ => panic!("esperaba bloques"),
     }
 }

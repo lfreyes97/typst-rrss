@@ -1,9 +1,9 @@
 //! El puente pieza → Config → .typ: que construya, que falle diciendo por qué y,
 //! sobre todo, que dé la misma imagen que el formato de siempre.
 
-use rrss_cli_rs::config::Config;
-use rrss_cli_rs::model::{self, Catalog, Syntax};
-use rrss_cli_rs::{pieza, process, render};
+use instatypst_cli::config::Config;
+use instatypst_cli::model::{self, Catalog, Syntax};
+use instatypst_cli::{pieza, process, render};
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -63,7 +63,7 @@ fn los_fixtures_construibles_se_renderizan() {
 fn las_tres_sintaxis_construyen_lo_mismo() {
     let original = fs::read_to_string(fixture("build/nuevos.toml")).unwrap();
     let doc = model::parse(&original, Syntax::Toml).unwrap();
-    let dir = std::env::temp_dir().join(format!("rrss-sintaxis-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("instatypst-sintaxis-{}", std::process::id()));
     fs::create_dir_all(&dir).unwrap();
 
     let typ_de = |ruta: &Path| -> Vec<String> {
@@ -164,7 +164,7 @@ fn una_pieza_da_la_misma_imagen_que_el_post_de_siempre() {
         eprintln!("paridad omitida: falta typst, el paquete instatypst o las fuentes");
         return;
     };
-    let dir = tmp.join(format!("rrss-paridad-{}", std::process::id()));
+    let dir = tmp.join(format!("instatypst-paridad-{}", std::process::id()));
     fs::create_dir_all(&dir).unwrap();
 
     let viejo = Config::load(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../examples/presets.toml")).unwrap();
@@ -268,7 +268,7 @@ fn la_marca_se_compila_de_verdad() {
         eprintln!("marca omitida: falta typst, el paquete instatypst o las fuentes");
         return;
     };
-    let dir = tmp.join(format!("rrss-marca-{}", std::process::id()));
+    let dir = tmp.join(format!("instatypst-marca-{}", std::process::id()));
     fs::create_dir_all(dir.join("assets")).unwrap();
     fs::copy(fixture("build/marca/logo-demo.svg"), dir.join("assets/logo-demo.svg")).unwrap();
     fs::copy(fixture("build/marca/logo.typ"), dir.join("logo.typ")).unwrap();
@@ -307,7 +307,7 @@ fn la_marca_de_la_campana_da_la_lamina_01_de_siempre() {
         eprintln!("omitida: no está trabajos/campana");
         return;
     }
-    let dir = tmp.join(format!("rrss-campana-{}", std::process::id()));
+    let dir = tmp.join(format!("instatypst-campana-{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(dir.join("trabajos/campana")).unwrap();
     let copiar = |de: &Path, a: &Path| {
@@ -388,7 +388,7 @@ fn liso_con_epigrafe_se_compila_y_cambia_la_imagen() {
         eprintln!("omitida: falta typst, el paquete o las fuentes");
         return;
     };
-    let dir = tmp.join(format!("rrss-epigrafe-{}", std::process::id()));
+    let dir = tmp.join(format!("instatypst-epigrafe-{}", std::process::id()));
     fs::create_dir_all(&dir).unwrap();
     let de = |contenido: &str, nombre: &str| -> Vec<u8> {
         let ruta = dir.join(format!("{nombre}.toml"));
@@ -454,7 +454,7 @@ fn el_estilo_propio_se_compila_de_verdad() {
         eprintln!("omitida: falta typst, el paquete o las fuentes");
         return;
     };
-    let dir = tmp.join(format!("rrss-propio-{}", std::process::id()));
+    let dir = tmp.join(format!("instatypst-propio-{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(dir.join("layouts")).unwrap();
     fs::copy(fixture("build/estilo/mi-estilo.typ"), dir.join("layouts/mi-estilo.typ")).unwrap();
@@ -489,7 +489,7 @@ fn la_disociacion_como_piezas_da_las_laminas_de_siempre() {
         eprintln!("omitida: no está Post/disociacion.typ");
         return;
     }
-    let dir = tmp.join(format!("rrss-disociacion-{}", std::process::id()));
+    let dir = tmp.join(format!("instatypst-disociacion-{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(dir.join("layouts")).unwrap();
     let real = fixture("real/disociacion");

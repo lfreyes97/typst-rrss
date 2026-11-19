@@ -9,7 +9,7 @@
 //!
 //! Ver docs/contrato-v1.md.
 
-use rrss_cli_rs::model::{self, Catalog, Syntax, SCHEMA};
+use instatypst_cli::model::{self, Catalog, Syntax, SCHEMA};
 use std::fs;
 use std::path::PathBuf;
 

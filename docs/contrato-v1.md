@@ -15,11 +15,11 @@ escribirlo (se elige por la extensión) y dan exactamente el mismo documento.
 
 | Qué | Dónde |
 | :--- | :--- |
-| El modelo y su validación estructural | `rrss-cli-rs/src/model.rs` |
-| El contenido escrito en Typst → bloques | `rrss-cli-rs/src/markup.rs` |
-| Las firmas de los estilos (qué bloques acepta cada uno) | Instatypst: `carteles.firmas` → `schema/firmas.json` (copia en `rrss-cli-rs/src/firmas.json`) |
-| La pieza → algo que compila | `rrss-cli-rs/src/pieza.rs` |
-| La forma congelada | `rrss-cli-rs/tests/fixtures/contrato/congelado/` |
+| El modelo y su validación estructural | `instatypst-cli/src/model.rs` |
+| El contenido escrito en Typst → bloques | `instatypst-cli/src/markup.rs` |
+| Las firmas de los estilos (qué bloques acepta cada uno) | Instatypst: `carteles.firmas` → `schema/firmas.json` (copia en `instatypst-cli/src/firmas.json`) |
+| La pieza → algo que compila | `instatypst-cli/src/pieza.rs` |
+| La forma congelada | `instatypst-cli/tests/fixtures/contrato/congelado/` |
 
 ## El documento
 

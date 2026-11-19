@@ -4,16 +4,16 @@ on:
   push:
     branches: [main, rust-cli]
     paths:
-      - "rrss-cli-rs/**"
+      - "instatypst-cli/**"
       - ".github/workflows/ci.yml"
   pull_request:
     paths:
-      - "rrss-cli-rs/**"
+      - "instatypst-cli/**"
       - ".github/workflows/ci.yml"
 
 defaults:
   run:
-    working-directory: rrss-cli-rs
+    working-directory: instatypst-cli
 
 env:
   CARGO_TERM_COLOR: always
@@ -44,7 +44,7 @@ jobs:
           components: clippy
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: rrss-cli-rs
+          workspaces: instatypst-cli
       - run: cargo clippy --all-targets --all-features -- -D warnings
 
   build-and-test:
@@ -55,6 +55,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: rrss-cli-rs
+          workspaces: instatypst-cli
       - run: cargo build --all-targets
       - run: cargo test

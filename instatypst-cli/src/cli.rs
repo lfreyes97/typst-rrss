@@ -6,6 +6,7 @@ use std::path::PathBuf;
 /// La vía principal: `init` escribe un posts.toml de partida y `build` lo compila.
 #[derive(Parser)]
 #[command(
+    name = "instatypst",
     author,
     version,
     about,

@@ -14,6 +14,7 @@ Actualizado el 2026-11-11. La CLI pasó de generar layouts propios (`rrss-pkg`) 
 - Paridad comprobada: 88 láminas de `examples/presets/` de `instatypst` salen idénticas píxel a píxel.
 - Retirados `rrss-pkg`, `content/`, `generate.sh`, `install-pkg.sh`, los `.typ` generados, los informes de auditoría y `tests/` (esquema viejo).
 - Arreglos de UX: trazas a stderr (nivel `warn`, respeta `RUST_LOG`); `compile` termina con ≠ 0 si algo falla; avisos de Typst como `⚠`; carpetas de fuentes comprobadas; `init` solo escribe plantillas validadas de presets conocidos; flags unificados (`-o` = salida, `--solo`, `--imagen`); `extract -f json`; retirados `compile --all` / `--template` y `extract --name`.
+- Renombrada la crate: `rrss-cli-rs` → `instatypst-cli` (binario `instatypst`; el `-rs` distinguía el puerto a Rust del `rrss.py` original, ya fuera del árbol).
 
 ## Pendiente
 
@@ -34,4 +35,3 @@ Actualizado el 2026-11-11. La CLI pasó de generar layouts propios (`rrss-pkg`) 
 
 **Limpieza**
 - `assets/`: 9 archivos sin referencia (`Logo.svg`, `Solid-bg.svg`, `contours.svg`, una foto de 13 MB…). Decidir cuáles se quedan.
-- Renombrar la crate (`rrss-cli-rs` ya no describe lo que hace).

@@ -43,8 +43,8 @@ fn posicionales(preset: &str) -> Result<(&'static str, &'static [&'static str])>
 /// Un `posts.toml` con un `[[post]]` por preset, listo para `build`.
 pub fn toml(presets: &[String]) -> Result<String> {
     let mut out = String::from(
-        "# Punto de partida de rrss-cli-rs. Cambia los textos ‹…› y compila con:\n\
-         #   rrss-cli-rs build <este archivo>\n\n\
+        "# Punto de partida de instatypst. Cambia los textos ‹…› y compila con:\n\
+         #   instatypst build <este archivo>\n\n\
          [defaults]\n\
          # fonts = [\"/ruta/a/Instatypst/Fonts\"]   # si no están en el sistema\n",
     );

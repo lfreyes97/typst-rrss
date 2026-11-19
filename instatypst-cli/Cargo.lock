@@ -703,6 +703,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "instatypst-cli"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "color-thief",
+ "image",
+ "libc",
+ "material-colors",
+ "palette",
+ "quantette",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "thaimeleon_lib",
+ "toml 1.0.0+spec-1.1.0",
+ "tracing",
+ "tracing-subscriber",
+ "typst-syntax",
+ "walkdir",
+]
+
+[[package]]
 name = "interpolate_name"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1422,29 +1445,6 @@ dependencies = [
  "serde",
  "serde_derive",
  "unicode-ident",
-]
-
-[[package]]
-name = "rrss-cli-rs"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "color-thief",
- "image",
- "libc",
- "material-colors",
- "palette",
- "quantette",
- "serde",
- "serde_json",
- "serde_yaml",
- "thaimeleon_lib",
- "toml 1.0.0+spec-1.1.0",
- "tracing",
- "tracing-subscriber",
- "typst-syntax",
- "walkdir",
 ]
 
 [[package]]

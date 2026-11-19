@@ -107,7 +107,7 @@ pub fn render(post: &Post, cfg: &Config) -> Result<Rendered> {
 /// Lo que va antes de la llamada: el comentario, el import de instatypst, lo que ven los
 /// textos con formato (`md`) y las variables de `defs`.
 fn preambulo(post: &Post) -> Result<String> {
-    let mut typ = String::from("// Auto-generado por rrss-cli-rs; no editar.\n");
+    let mut typ = String::from("// Auto-generado por instatypst; no editar.\n");
     typ.push_str("#import \"@local/instatypst:0.1.0\": *\n\n");
     // Lo que ven los textos con formato (`md`): los espacios de nombres de instatypst
     // y, a medida que se declaran, las variables de `defs`.

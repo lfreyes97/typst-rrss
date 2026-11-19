@@ -3,7 +3,7 @@ schema = "instatypst-piece/v1"
 # «La disociación» (Ellul): el carrusel de Post/disociacion.typ, como piezas.
 # El diseño es tu código (layouts/disociacion.typ); el contrato resuelve la paleta,
 # el formato y el n / total.
-#   ./rrss-cli-rs build disociacion.toml
+#   ./instatypst build disociacion.toml
 
 [render]
 fonts = ["/home/home/Documents/Instatypst/Fonts"]

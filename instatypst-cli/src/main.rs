@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use clap::Parser;
-use rrss_cli_rs::{build, cli, colors, config, pieza, process, render, scaffold};
+use instatypst_cli::{build, cli, colors, config, pieza, process, render, scaffold};
 
 use std::collections::BTreeMap;
 use std::fs;
@@ -61,7 +61,7 @@ fn main() -> Result<()> {
             }
             fs::write(output, contenido).context("No se pudo escribir la plantilla")?;
             println!("✓ {} ({})", output.display(), presets.join(", "));
-            println!("Siguiente: rrss-cli-rs {siguiente} {}", output.display());
+            println!("Siguiente: instatypst {siguiente} {}", output.display());
             Ok(())
         }
 
@@ -212,7 +212,7 @@ fn cmd_compile(
 ) -> Result<()> {
     if files.is_empty() {
         anyhow::bail!(
-            "falta qué compilar.\nUso: rrss-cli-rs compile PIEZA.typ [MÁS.typ…] [--ppi N] [-o CARPETA]"
+            "falta qué compilar.\nUso: instatypst compile PIEZA.typ [MÁS.typ…] [--ppi N] [-o CARPETA]"
         );
     }
 
