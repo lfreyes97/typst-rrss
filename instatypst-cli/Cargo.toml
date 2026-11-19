@@ -8,10 +8,9 @@ name = "instatypst"
 path = "src/main.rs"
 
 [dependencies]
+instatypst-color = { path = "../instatypst-color" }
 anyhow = "1.0.101"
-libc = "0.2"
 clap = { version = "4.5.58", features = ["derive"] }
-color-thief = "0.2.2"
 image = "0.25.9"
 palette = { version = "0.7.6", features = ["std"] }
 serde = { version = "1.0.228", features = ["derive"] }
@@ -20,11 +19,7 @@ serde_yaml = "0.9"
 typst-syntax = "=0.15.1"
 toml = { version = "1.0.0", features = ["preserve_order"] }
 walkdir = "2.5.0"
-thaimeleon_lib = { git = "https://codeberg.org/thairanaru/thaimeleon" }
 material-colors = { version = "0.4.2", features = ["image"] }
-quantette = "0.5.1"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
-[dev-dependencies]
-instatypst-color = { path = "../instatypst-color" }

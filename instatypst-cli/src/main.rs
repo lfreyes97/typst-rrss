@@ -156,13 +156,12 @@ fn pieza_desde_flags(p: &cli::PiezaArgs, name: &str) -> Result<(config::Config, 
 // ─── Command handlers ──────────────────────────────────────────────────────────
 
 /// La paleta en orden alfabético, igual en cada ejecución.
-fn paleta(base: &str) -> BTreeMap<String, String> {
-    colors::generate_palette(base).into_iter().collect()
+fn paleta(base: &str) -> Result<BTreeMap<String, String>> {
+    Ok(colors::generate_palette(base)?.into_iter().collect())
 }
 
 fn cmd_colors(base_color: &str, format: &cli::OutputFormat, name: &str) -> Result<()> {
-    colors::hex_to_rgb_tuple(base_color)?;
-    let palette = paleta(base_color);
+    let palette = paleta(base_color)?;
     match format {
         cli::OutputFormat::Json => println!("{}", serde_json::to_string_pretty(&palette)?),
         cli::OutputFormat::Typst => {
@@ -194,28 +193,25 @@ fn cmd_extract(
     let img_str = image.to_str().context("La ruta de la imagen no es UTF-8")?;
 
     if suggest_accent {
-        println!("Acento sugerido: {}", colors::suggest_accent(img_str));
+        println!("Acento sugerido: {}", colors::suggest_accent(img_str)?);
         return Ok(());
     }
 
     let extracted = colors::extract_from_image(img_str, count)
         .with_context(|| format!("no se pudieron extraer colores de {}", image.display()))?;
-    let hex: Vec<String> = extracted
-        .iter()
-        .map(|c| format!("#{:02x}{:02x}{:02x}", c.r, c.g, c.b))
-        .collect();
+    let hex: Vec<String> = extracted.iter().map(|(h, _)| h.clone()).collect();
     match format {
         cli::ExtractFormat::Json => println!("{}", serde_json::to_string_pretty(&hex)?),
         cli::ExtractFormat::Palette => {
             let base = hex.first().context("la imagen no tiene colores")?;
             println!("Paleta desde {}:", base);
-            for (k, v) in paleta(base) {
+            for (k, v) in paleta(base)? {
                 println!("{}: {}", k, v);
             }
         }
         cli::ExtractFormat::Table => {
-            for (i, h) in hex.iter().enumerate() {
-                println!("{}: {}", i + 1, h);
+            for (i, (h, share)) in extracted.iter().enumerate() {
+                println!("{}: {} {:>3.0}%", i + 1, h, share * 100.0);
             }
         }
     }

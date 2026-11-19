@@ -1,8 +1,7 @@
 use anyhow::{anyhow, Result};
-use palette::{FromColor, Hsl, OklabHue, Srgb};
-use quantette::ImageRef;
+use instatypst_color::{base, roles, Rgb, Roles};
+use std::collections::HashMap;
 use std::path::Path;
-use thaimeleon_lib::scheme_builder::{ChromaBuilder, SchemeBuilder, ThemeConfig};
 
 pub fn hex_to_rgb_tuple(hex_color: &str) -> Result<(u8, u8, u8)> {
     let hex = hex_color.trim_start_matches('#');
@@ -35,271 +34,52 @@ pub fn contrast_ratio(a: &str, b: &str) -> Result<f64> {
     Ok((la.max(lb) + 0.05) / (la.min(lb) + 0.05))
 }
 
-pub fn hex_to_hsl(hex_color: &str) -> Result<(f32, f32, f32)> {
-    let (r, g, b) = hex_to_rgb_tuple(hex_color)?;
-    let srgb = Srgb::new(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
-    let hsl = Hsl::from_color(srgb);
-    Ok((hsl.hue.into_degrees(), hsl.saturation, hsl.lightness))
+fn rgb(h: &str) -> Result<Rgb> {
+    Rgb::parse(h).map_err(|e| anyhow!("color no válido: {h:?} ({e})"))
 }
 
-pub fn hsl_to_hex(h: f32, s: f32, l: f32) -> String {
-    let hsl = Hsl::new(h, s, l);
-    let srgb = Srgb::from_color(hsl);
-    let r = (srgb.red * 255.0).round() as u8;
-    let g = (srgb.green * 255.0).round() as u8;
-    let b = (srgb.blue * 255.0).round() as u8;
-    format!("#{:02x}{:02x}{:02x}", r, g, b)
-}
-
-fn clamp(val: f32, min: f32, max: f32) -> f32 {
-    let v = if val < min { min } else { val };
-    if v > max {
-        max
-    } else {
-        v
-    }
-}
-
-/// thaimeleon escribe trazas con `println!` («Clustered colors sucessfully»…).
-/// Mientras corre, stdout apunta a /dev/null: `colors … > tema.typ` solo debe
-/// llevar el resultado.
-fn sin_stdout<T>(f: impl FnOnce() -> T) -> T {
-    #[cfg(unix)]
-    {
-        use std::io::Write;
-        use std::os::fd::AsRawFd;
-        let Ok(nulo) = std::fs::OpenOptions::new().write(true).open("/dev/null") else {
-            return f();
-        };
-        let _ = std::io::stdout().flush();
-        // SAFETY: fd 1 se cambia por /dev/null y se restaura desde su copia.
-        let guardado = unsafe { libc::dup(1) };
-        if guardado < 0 {
-            return f();
-        }
-        unsafe { libc::dup2(nulo.as_raw_fd(), 1) };
-        let r = f();
-        let _ = std::io::stdout().flush();
-        unsafe {
-            libc::dup2(guardado, 1);
-            libc::close(guardado);
-        }
-        r
-    }
-    #[cfg(not(unix))]
-    f()
-}
-
-fn get_default_builder() -> SchemeBuilder {
-    SchemeBuilder {
-        k_means_count: 255,
-        light_theme_threshold: 0.55,
-        run_in_parallel: false,
-        light: ThemeConfig {
-            base_lightness_minimum: 0.964,
-            base_lightness_maximum: 0.964,
-            surface_distance: 0.0225,
-            set_2_dps_contrast: 7.5,
-            set_2_lightness_correction: 0.01,
-            set_3_dps_contrast: 40.0,
-            set_4_dps_contrast: 65.0,
-            set_5_dps_contrast: 80.0,
-            neutral_chroma_blend: 1.0,
-            bg_neutral_chroma_builder: ChromaBuilder {
-                chroma_intercept: 0.67,
-                lightness_to_chroma_slope: -0.667,
-                low_point_chroma_intercept: 0.644,
-                hue_low_point: OklabHue::from_degrees(230.0),
-            },
-            fg_neutral_chroma_builder: ChromaBuilder {
-                chroma_intercept: 0.05,
-                lightness_to_chroma_slope: 0.0,
-                low_point_chroma_intercept: 0.03,
-                hue_low_point: OklabHue::from_degrees(90.0),
-            },
-            prefered_hue_angle: 50.0,
-            minimum_hue_angle: 45.0,
-            chroma_weight_priority: 0.015,
-            penalty_weight_priority: 2.0,
-            maximum_accent_hue_center_translation: 0.005,
-            high_contrast_fg_accent_radius_baseline: 0.02,
-            fg_accent_radius_baseline: 0.09,
-            rg_accent_radius_baseline: 0.065,
-            bg_accent_radius_baseline: 0.0175,
-            red_chroma_minimum: 0.12,
-            orange_chroma_minimum: 0.08,
-            yellow_chroma_minimum: 0.08,
-            green_chroma_minimum: 0.07,
-        },
-        dark: ThemeConfig {
-            base_lightness_minimum: 0.1,
-            base_lightness_maximum: 0.185,
-            surface_distance: 0.06,
-            set_2_dps_contrast: 7.5,
-            set_2_lightness_correction: 0.01,
-            set_3_dps_contrast: 30.0,
-            set_4_dps_contrast: 72.5,
-            set_5_dps_contrast: 82.5,
-            neutral_chroma_blend: 1.0,
-            bg_neutral_chroma_builder: ChromaBuilder {
-                chroma_intercept: 0.07,
-                lightness_to_chroma_slope: 0.0833,
-                low_point_chroma_intercept: 0.025,
-                hue_low_point: OklabHue::from_degrees(270.0),
-            },
-            fg_neutral_chroma_builder: ChromaBuilder {
-                chroma_intercept: 0.02,
-                lightness_to_chroma_slope: 0.0,
-                low_point_chroma_intercept: 0.01,
-                hue_low_point: OklabHue::from_degrees(90.0),
-            },
-            prefered_hue_angle: 50.0,
-            minimum_hue_angle: 45.0,
-            chroma_weight_priority: 0.015,
-            penalty_weight_priority: 2.0,
-            maximum_accent_hue_center_translation: 0.005,
-            high_contrast_fg_accent_radius_baseline: 0.035,
-            fg_accent_radius_baseline: 0.08,
-            rg_accent_radius_baseline: 0.07,
-            bg_accent_radius_baseline: 0.06,
-            red_chroma_minimum: 0.12,
-            orange_chroma_minimum: 0.08,
-            yellow_chroma_minimum: 0.08,
-            green_chroma_minimum: 0.07,
-        },
-    }
-}
-
-pub fn generate_palette(base_hex: &str) -> std::collections::HashMap<String, String> {
-    let (r, g, b) = hex_to_rgb_tuple(base_hex).unwrap_or((74, 63, 107));
-    let builder = get_default_builder();
-
-    // Crear una imagen 1x1 para generar desde un solo color usando el API de imagen
-    let pixels = [Srgb::new(r, g, b)];
-    let image_ref = ImageRef::new(1, 1, &pixels).unwrap_or_else(|_| {
-        // Safe fallback if ImageRef fails
-        ImageRef::new(1, 1, &pixels).expect("Static 1x1 pixels should always work")
-    });
-
-    match sin_stdout(|| builder.generate_from_image(image_ref)) {
-        Ok(scheme) => {
-            let mut palette = std::collections::HashMap::new();
-            let to_hex = |c: Srgb<u8>| format!("#{:02x}{:02x}{:02x}", c.red, c.green, c.blue);
-
-            palette.insert("bg".to_string(), to_hex(scheme.base));
-            palette.insert("surface".to_string(), to_hex(scheme.base_high));
-            palette.insert("muted".to_string(), to_hex(scheme.muted));
-            palette.insert("text".to_string(), to_hex(scheme.text));
-            palette.insert("primary".to_string(), to_hex(scheme.fg_accents[0]));
-            palette.insert("highlight".to_string(), to_hex(scheme.fg_accents[1]));
-            palette.insert("accent".to_string(), to_hex(scheme.fg_accents[2]));
-            palette.insert("secondary".to_string(), to_hex(scheme.fg_accents[3]));
-            palette
-        }
-        Err(_) => {
-            // Fallback al sistema HSL original
-            let (h, s, l) = hex_to_hsl(base_hex).unwrap_or((250.0, 0.25, 0.33));
-            let mut palette = std::collections::HashMap::new();
-            palette.insert(
-                "bg".to_string(),
-                hsl_to_hex(h, clamp(s * 0.3, 0.0, 1.0), clamp(l * 0.12, 0.0, 0.1)),
-            );
-            palette.insert(
-                "surface".to_string(),
-                hsl_to_hex(h, clamp(s * 0.35, 0.0, 1.0), clamp(l * 0.18, 0.0, 0.15)),
-            );
-            palette.insert("primary".to_string(), hsl_to_hex(h, s, l));
-            palette.insert(
-                "secondary".to_string(),
-                hsl_to_hex(
-                    (h + 30.0) % 360.0,
-                    clamp(s * 0.7, 0.0, 1.0),
-                    clamp(l * 0.55, 0.0, 1.0),
-                ),
-            );
-            palette.insert(
-                "accent".to_string(),
-                hsl_to_hex(
-                    (h + 180.0) % 360.0,
-                    clamp(s * 0.5, 0.0, 1.0),
-                    clamp(l * 0.4, 0.0, 1.0),
-                ),
-            );
-            palette.insert(
-                "text".to_string(),
-                hsl_to_hex(h, clamp(s * 0.1, 0.0, 1.0), clamp(0.95, 0.0, 1.0)),
-            );
-            palette.insert(
-                "muted".to_string(),
-                hsl_to_hex(h, clamp(s * 0.15, 0.0, 1.0), clamp(0.6, 0.0, 1.0)),
-            );
-            palette.insert(
-                "highlight".to_string(),
-                hsl_to_hex(
-                    (h + 60.0) % 360.0,
-                    clamp(s * 0.8, 0.0, 1.0),
-                    clamp(l * 0.7, 0.0, 1.0),
-                ),
-            );
-            palette
-        }
-    }
-}
-
-pub fn extract_from_image(image_path: &str, count: u8) -> Result<Vec<color_thief::Color>> {
-    let img = image::open(Path::new(image_path))?;
-    let img = img.to_rgba8();
-    let pixels = img.as_raw();
-    let palette = color_thief::get_palette(pixels, color_thief::ColorFormat::Rgba, 10, count)?;
-    Ok(palette)
-}
-
-pub fn suggest_accent(image_path: &str) -> String {
-    if let Ok(img) = image::open(Path::new(image_path)) {
-        let img = img.to_rgb8();
-        let (width, height) = img.dimensions();
-        let pixels: Vec<Srgb<u8>> = img.pixels().map(|p| Srgb::new(p[0], p[1], p[2])).collect();
-
-        if let Ok(image_ref) = ImageRef::new(width, height, &pixels) {
-            let builder = get_default_builder();
-            if let Ok(scheme) = sin_stdout(|| builder.generate_from_image(image_ref)) {
-                let ac = scheme.fg_accents[0];
-                return format!("#{:02x}{:02x}{:02x}", ac.red, ac.green, ac.blue);
-            }
-        }
-    }
-
-    let colors = match extract_from_image(image_path, 12) {
-        Ok(c) => c,
-        Err(_) => return "#4a3f6b".to_string(),
+/// Los roles como el mapa de siempre de la CLI (`bg`, `text`, `primary`…). Los acentos de más
+/// salen de girar el tono del principal: `highlight` +60°, `secondary` +30° y `accent` +180°.
+pub fn paleta_de_roles(r: &Roles) -> HashMap<String, String> {
+    let mezcla = |t: f32| {
+        let (a, b) = (r.background.0, r.text.0);
+        Rgb([0, 1, 2].map(|i| (a[i] as f32 * (1.0 - t) + b[i] as f32 * t).round() as u8))
     };
-
-    if colors.is_empty() {
-        return "#4a3f6b".to_string();
+    let mut m = HashMap::new();
+    for (k, c) in [
+        ("bg", r.background),
+        ("surface", mezcla(0.08)),
+        ("muted", r.muted),
+        ("text", r.text),
+        ("primary", r.accent),
+        ("highlight", base::rotate_hue(r.accent, 60.0)),
+        ("secondary", base::rotate_hue(r.accent, 30.0)),
+        ("accent", base::rotate_hue(r.accent, 180.0)),
+    ] {
+        m.insert(k.to_string(), c.hex());
     }
+    m
+}
 
-    let mut scored: Vec<(f32, String)> = Vec::new();
-    for c in &colors {
-        let hex = format!("#{:02x}{:02x}{:02x}", c.r, c.g, c.b);
-        let (_, s, l) = match hex_to_hsl(&hex) {
-            Ok(vals) => vals,
-            Err(_) => continue,
-        };
-        if !(0.08..=0.92).contains(&l) || s < 0.05 {
-            continue;
-        }
-        let lum_score = 1.0 - (l - 0.4).abs() * 2.0;
-        let score = s * 0.6 + lum_score * 0.3;
-        scored.push((score, hex));
-    }
+/// La paleta de un solo color de marca (`palette.base`, `colors`).
+pub fn generate_palette(base_hex: &str) -> Result<HashMap<String, String>> {
+    Ok(paleta_de_roles(&base::from_base(rgb(base_hex)?).roles))
+}
 
-    if scored.is_empty() {
-        let c = &colors[0];
-        return format!("#{:02x}{:02x}{:02x}", c.r, c.g, c.b);
-    }
+/// Los colores dominantes de una imagen, del más al menos abundante: `(#rrggbb, fracción)`.
+pub fn extract_from_image(image_path: &str, count: u8) -> Result<Vec<(String, f32)>> {
+    let c = instatypst_color::extract::candidates_from_path(Path::new(image_path), count)
+        .map_err(|e| anyhow!("{e}"))?;
+    Ok(c.into_iter().map(|c| (c.rgb.hex(), c.share)).collect())
+}
 
-    scored.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
-    scored[0].1.clone()
+/// Los roles de una foto, con los avisos del selector (`no_accent`, `contrast_low`).
+pub fn roles_de_imagen(image_path: &str) -> Result<roles::Selection> {
+    roles::from_image(Path::new(image_path)).map_err(|e| anyhow!("{e}"))
+}
+
+pub fn suggest_accent(image_path: &str) -> Result<String> {
+    Ok(roles_de_imagen(image_path)?.roles.accent.hex())
 }
 
 /// Paleta Material You (esquema oscuro) a partir de una imagen. Falla si no se puede leer.
@@ -349,5 +129,34 @@ mod contraste_tests {
         let a = contrast_ratio("#691322", "#f5f5f5").unwrap();
         assert_eq!(a, contrast_ratio("#f5f5f5", "#691322").unwrap());
         assert!(contrast_ratio("rojo", "#fff").is_err());
+    }
+}
+
+#[cfg(test)]
+mod paleta_tests {
+    use super::*;
+
+    #[test]
+    fn la_paleta_de_un_color_tiene_las_ocho_claves_y_es_legible() {
+        let p = generate_palette("#691322").unwrap();
+        for k in [
+            "bg",
+            "surface",
+            "muted",
+            "text",
+            "primary",
+            "highlight",
+            "secondary",
+            "accent",
+        ] {
+            assert!(p.contains_key(k), "falta {k}");
+        }
+        assert!(contrast_ratio(&p["text"], &p["bg"]).unwrap() >= 4.5);
+        assert!(contrast_ratio(&p["primary"], &p["bg"]).unwrap() >= 3.0);
+    }
+
+    #[test]
+    fn un_color_invalido_es_un_error() {
+        assert!(generate_palette("rojo").is_err());
     }
 }

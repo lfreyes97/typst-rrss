@@ -267,12 +267,15 @@ fn resolver_tema(post: &Post, cfg: &Config, avisos: &mut Vec<String>) -> Result<
                 .as_deref()
                 .ok_or_else(|| anyhow!("tema {nombre:?} necesita `image`"))?;
             if nombre == "auto" {
-                let c = colors::extract_from_image(img, 8)
+                // los roles de la foto (fondo, texto y acento elegidos por Oklab y contraste)
+                let sel = colors::roles_de_imagen(img)
                     .with_context(|| format!("extrayendo colores de {img:?}"))?;
-                let base = c
-                    .first()
-                    .ok_or_else(|| anyhow!("la imagen no tiene colores"))?;
-                colors::generate_palette(&format!("#{:02x}{:02x}{:02x}", base.r, base.g, base.b))
+                for w in &sel.warnings {
+                    if w.code != "contrast_low" {
+                        avisos.push(w.message.clone());
+                    }
+                }
+                colors::paleta_de_roles(&sel.roles)
             } else {
                 colors::matugen_palette(img)?
             }

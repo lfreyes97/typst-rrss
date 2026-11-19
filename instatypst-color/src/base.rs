@@ -17,6 +17,13 @@ fn de_oklch(l: f32, c: f32, h: palette::OklabHue<f32>) -> Rgb {
     Rgb::from_oklab(Oklab::from_color(Oklch::new(l, c, h)))
 }
 
+/// El mismo color con el tono girado `grados` en Oklch (luminosidad y chroma intactos).
+pub fn rotate_hue(c: Rgb, grados: f32) -> Rgb {
+    let mut lch = Oklch::from_color(c.oklab());
+    lch.hue = palette::OklabHue::from_degrees(lch.hue.into_degrees() + grados);
+    Rgb::from_oklab(Oklab::from_color(lch))
+}
+
 /// Los roles de una pieza cuyo color de marca es `base`.
 pub fn from_base(base: Rgb) -> Selection {
     let lch = Oklch::from_color(base.oklab());
@@ -122,6 +129,15 @@ mod tests {
     fn un_base_que_ya_contrasta_no_se_toca() {
         let base = rgb("#3f6fd0");
         assert_eq!(from_base(base).roles.accent, base);
+    }
+
+    #[test]
+    fn girar_el_tono_conserva_la_luminosidad() {
+        let c = rgb("#3f6fd0");
+        let g = rotate_hue(c, 180.0);
+        assert!((c.oklab().l - g.oklab().l).abs() < 0.03);
+        assert_ne!(c, g);
+        assert_eq!(rotate_hue(c, 360.0).hex(), c.hex());
     }
 
     #[test]
