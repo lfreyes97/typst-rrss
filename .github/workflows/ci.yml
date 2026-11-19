@@ -4,16 +4,16 @@ on:
   push:
     branches: [main, rust-cli]
     paths:
-      - "instatypst-cli/**"
+      - "instatypst-*/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
       - ".github/workflows/ci.yml"
   pull_request:
     paths:
-      - "instatypst-cli/**"
+      - "instatypst-*/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
       - ".github/workflows/ci.yml"
-
-defaults:
-  run:
-    working-directory: instatypst-cli
 
 env:
   CARGO_TERM_COLOR: always
@@ -43,9 +43,7 @@ jobs:
         with:
           components: clippy
       - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: instatypst-cli
-      - run: cargo clippy --all-targets --all-features -- -D warnings
+      - run: cargo clippy --workspace --all-targets --all-features -- -D warnings
 
   build-and-test:
     name: Build & test
@@ -54,7 +52,5 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: instatypst-cli
-      - run: cargo build --all-targets
-      - run: cargo test
+      - run: cargo build --workspace --all-targets
+      - run: cargo test --workspace

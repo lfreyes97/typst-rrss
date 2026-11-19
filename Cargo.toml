@@ -1,0 +1,17 @@
+[workspace]
+resolver = "2"
+members = ["instatypst-cli", "instatypst-color"]
+
+# Los perfiles solo valen en la raíz del workspace.
+[profile.dev]
+opt-level = 0
+debug = 0
+split-debuginfo = "unpacked"
+panic = "abort"
+incremental = true
+
+[profile.release]
+lto = "thin"
+codegen-units = 16
+panic = "abort"
+strip = true

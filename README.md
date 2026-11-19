@@ -290,12 +290,21 @@ Se comprobó que `build` reproduce, píxel a píxel, 88 láminas de los ejemplos
 
 ## Estructura
 
-- **`instatypst-cli/`**: la CLI.
+El repositorio es un workspace de Cargo (`cargo test --workspace`).
+
+- **`instatypst-cli/`**: la CLI (binario `instatypst`).
+  - `model.rs`, `markup.rs`: el contrato de piezas y el contenido en Typst.
+  - `pieza.rs`: el puente de una pieza al `Config` que compila `build`.
+  - `check.rs`: `instatypst check`.
   - `config.rs`: parser de `posts.toml` (esquema, herencia, validación).
   - `render.rs`: un post se convierte en el `.typ`.
   - `typst.rs`: valores a literales de Typst, con escapado.
-  - `colors.rs`, `themes.rs`: extracción de paletas y contraste.
+  - `colors.rs`, `themes.rs`: extracción de paletas y contraste (**en transición**: pasan a `instatypst-color`).
   - `build.rs`, `process.rs`: compilación.
+- **`instatypst-color/`**: los colores que el scaffold de Typst no puede dar: extraer los
+  colores de una imagen (`quantette`, k-means en Oklab), elegir con ellos los cinco roles del
+  contrato (`roles`), medir contraste (`contrast`) y un catálogo pequeño de esquemas (`schemes`).
+  No conoce el contrato: devuelve `Roles`, y quien lo usa hace el pegamento a su `palette`.
 - **`examples/`**: `posts.toml` de muestra.
 - **`assets/`**: imágenes de ejemplo.
 

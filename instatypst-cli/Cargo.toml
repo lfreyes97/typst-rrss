@@ -26,15 +26,5 @@ quantette = "0.5.1"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
-[profile.dev]
-opt-level = 0
-debug = 0
-split-debuginfo = "unpacked"
-panic = "abort"
-incremental = true
-
-[profile.release]
-lto = "thin"
-codegen-units = 16
-panic = "abort"
-strip = true
+[dev-dependencies]
+instatypst-color = { path = "../instatypst-color" }

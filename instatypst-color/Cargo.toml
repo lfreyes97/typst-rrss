@@ -1,0 +1,16 @@
+[package]
+name = "instatypst-color"
+version = "0.1.0"
+edition = "2021"
+description = "Colores para Instatypst: extracción desde imágenes, los roles del contrato, contraste y esquemas"
+license = "MIT"
+
+[features]
+default = ["image"]
+# Extraer colores de una imagen (k-means en Oklab).
+image = ["dep:image", "dep:quantette"]
+
+[dependencies]
+palette = "0.7"
+image = { version = "0.25", optional = true }
+quantette = { version = "0.6", optional = true }

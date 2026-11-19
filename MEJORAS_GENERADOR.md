@@ -1,9 +1,10 @@
 # Estado del rework (`rework-instatypst`)
 
-Actualizado el 2026-11-11. La CLI pasó de generar layouts propios (`rrss-pkg`) a ser un compilador de presets de `instatypst`. El detalle de uso está en el `README`.
+Actualizado el 2026-11-18. La CLI pasó de generar layouts propios (`rrss-pkg`) a ser un compilador de presets de `instatypst`. El detalle de uso está en el `README`.
 
 ## Hecho
 
+- Workspace de Cargo con el crate nuevo `instatypst-color` (21 tests): `hex`, `contrast`, `schemes` (los 16 de `themes.rs`, comprobados contra él), `roles` (el selector, con sus dos arreglos) y `extract` (k-means en Oklab).
 - Escapado único de todo lo que llega al `.typ` (`typst.rs`), verificado contra `typst` real.
 - Parser de `posts.toml` estricto (`config.rs`): campos desconocidos = error, herencia con `defaults`, `por_preset` y `defs`.
 - `render.rs`: un post → llamada a `carteles.<preset>`; sin `formato` manda el del preset.
@@ -19,6 +20,7 @@ Actualizado el 2026-11-11. La CLI pasó de generar layouts propios (`rrss-pkg`) 
 ## Pendiente
 
 **Funcionalidad**
+- **Migrar el CLI a `instatypst-color`** (ya existe, con hex, contraste, esquemas, selector de roles y extracción): quitar `color-thief`, `thaimeleon_lib` (AGPL v3, dependencia de git) y `libc` (el truco de `dup2`), sustituir `generate_palette` por `material-colors`, y borrar `colors.rs` y `themes.rs`. Cambia la semántica de `tema = "auto"`: los roles saldrán de la foto, no de un esquema construido desde un color. Pendiente: `from_base` y `material` en el crate (verificar la API de `material-colors` 0.5).
 - Contraste contra la **foto** de fondo (hoy solo se compara con la paleta; `atardecer` salió casi ilegible sin aviso).
 - `build --solo-typ`: generar los `.typ` de un TOML sin compilar (`--dry-run` solo imprime).
 - `compile` no tiene `--font-path`.
