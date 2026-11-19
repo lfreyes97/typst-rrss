@@ -1,0 +1,7 @@
+# expect: brand_logo
+[brand]
+logo = { typst = "logo.typ", fn = "mi logo" }
+[[post]]
+name = "a"
+style = "liso"
+content = "x"

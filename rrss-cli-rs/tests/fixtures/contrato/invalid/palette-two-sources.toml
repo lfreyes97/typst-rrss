@@ -1,0 +1,6 @@
+# expect: palette_source_conflict
+[[post]]
+name = "a"
+style = "plain"
+palette = { base = "ocean", from_image = "x.jpg" }
+content = "x"

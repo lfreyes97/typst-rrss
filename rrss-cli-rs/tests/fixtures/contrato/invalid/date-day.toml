@@ -1,0 +1,8 @@
+# expect: date_invalid
+[[post]]
+name = "a"
+style = "liso"
+[[post.content]]
+type = "date"
+day = 40
+month = "NOV"

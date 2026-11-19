@@ -1,0 +1,13 @@
+# expect: block_unsupported
+[[post]]
+name = "a"
+style = "liso"
+[[post.content]]
+type = "body"
+text = "x"
+[[post.content]]
+type = "contrast"
+[post.content.left]
+items = ["a"]
+[post.content.right]
+items = ["b"]

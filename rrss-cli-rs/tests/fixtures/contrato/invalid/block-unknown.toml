@@ -1,0 +1,7 @@
+# expect: parse
+[[post]]
+name = "a"
+style = "plain"
+[[post.content]]
+type = "remate"
+text = "x"

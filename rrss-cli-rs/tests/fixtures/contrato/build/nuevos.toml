@@ -1,0 +1,59 @@
+schema = "instatypst-piece/v1"
+
+# Los cuatro presets que reescriben el prototipo social, desde una pieza.
+
+[[post]]
+name  = "nuevos/contraste"
+style = "contraste"
+[[post.content]]
+type = "title"
+text = "Ley y evangelio"
+[[post.content]]
+type = "contrast"
+[post.content.left]
+label = "La ley"
+title = "Muestra el pecado"
+items = ["Dice lo que Dios exige", "Cierra toda boca"]
+[post.content.right]
+label = "El evangelio"
+title = "Da al Salvador"
+items = ["Anuncia lo que Dios ha hecho", { text = "Abre la boca para alabar", role = "affirm" }]
+[[post.content]]
+type   = "attribution"
+author = "B. B. Warfield"
+work   = "La imputación"
+
+[[post]]
+name  = "nuevos/evento"
+style = "evento"
+content = '''
+#label[Conferencia]
+#date(day: 14, month: "nov")
+= Conferencia de otoño
+Sábado · 9:00 a. m. · Salón principal
+#footer[Reserva tu lugar →]
+#signature[\@iglesiaraah]
+'''
+
+[[post]]
+name  = "nuevos/consejo"
+style = "consejo"
+content = '''
+#label[Consejo 3]
+#number(3)
+= Ora antes de decidir
+Antes de pedir consejo a los demás, preséntale tu necesidad a Dios.
+#signature[\@iglesiaraah]
+'''
+
+[[post]]
+name  = "nuevos/lamina"
+style = "lamina"
+format = "story"
+content = '''
+#number(3, total: 8)
+= Porque nos enseña a vivir
+Toda la Escritura es útil para enseñar, redargüir, corregir e instruir en justicia.
+#footer[Desliza →]
+#signature[\@iglesiaraah]
+'''

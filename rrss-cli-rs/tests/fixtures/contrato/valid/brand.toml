@@ -1,0 +1,32 @@
+schema = "instatypst-piece/v1"
+
+# La marca de la serie: un handle, un SVG o una función de Typst.
+[brand]
+logo = { image = "assets/Logo.svg" }
+size = 0.04
+
+[[post]]
+name  = "serie/1"
+style = "liso"
+content = "Con la marca de la serie."
+
+[[post]]
+name  = "serie/2"
+style = "liso"
+brand = false
+content = "Sin marca."
+
+[[post]]
+name  = "serie/3"
+style = "suizo"
+brand = { logo = { text = "@iglesiaraah" } }
+content = '''
+= Con una marca propia
+#conclusion[Texto.]
+'''
+
+[[post]]
+name  = "serie/4"
+style = "liso"
+brand = { logo = { typst = "logo.typ", fn = "logo" } }
+content = "Con una función de Typst."

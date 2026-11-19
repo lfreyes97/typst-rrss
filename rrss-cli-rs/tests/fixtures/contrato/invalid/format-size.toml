@@ -1,0 +1,6 @@
+# expect: format_size
+[[post]]
+name = "a"
+style = "plain"
+format = { width = 50, height = 900 }
+content = "x"

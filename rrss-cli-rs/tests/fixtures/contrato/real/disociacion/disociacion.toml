@@ -1,0 +1,146 @@
+schema = "instatypst-piece/v1"
+
+# «La disociación» (Ellul): el carrusel de Post/disociacion.typ, como piezas.
+# El diseño es tu código (layouts/disociacion.typ); el contrato resuelve la paleta,
+# el formato y el n / total.
+#   ./rrss-cli-rs build disociacion.toml
+
+[render]
+fonts = ["/home/home/Documents/Instatypst/Fonts"]
+
+[defaults]
+format = "portrait"
+
+# los tres fondos de la serie, como roles
+[palettes.oscuro]
+background = "#14110f"
+text       = "#f3ece2"
+accent     = "#c8442b"
+[palettes.crema]
+background = "#f3ece2"
+text       = "#14110f"
+accent     = "#c8442b"
+[palettes.ascua]
+background = "#c8442b"
+text       = "#f3ece2"
+accent     = "#f3ece2"
+
+# ── 1 · portada ───────────────────────────────────────────────
+[[post]]
+name    = "dis/01"
+style   = { file = "layouts/disociacion.typ", fn = "portada" }
+palette = "oscuro"
+[[post.content]]
+type = "label"
+text = "JACQUES ELLUL · PROPAGANDA, 4.3"
+[[post.content]]
+type = "title"
+text = "La política\nno tiene\n*nada que ver*\ncon la realidad."
+[[post.content]]
+type = "quote"
+text = "“Lo que el hombre piensa carece de todo efecto.”"
+
+# ── 2 ─────────────────────────────────────────────────────────
+[[post]]
+name    = "dis/02"
+style   = { file = "layouts/disociacion.typ", fn = "desarrollo" }
+palette = "oscuro"
+content = '''
+#label[La disociación]
+= Se separan pensamiento y acción
+#quote(attribution: "Ellul, Propaganda, 4.3")[“Hoy en día, el hombre *actúa sin pensar*, y a su vez su pensamiento *ya no puede traducirse en acción*.”]
+El pensamiento se ha convertido en un ejercicio superfluo, sin referencia a la realidad: puramente interno, sin fuerza vinculante, más o menos un juego. Es el dominio de la literatura.
+'''
+
+# ── 3 ─────────────────────────────────────────────────────────
+[[post]]
+name    = "dis/03"
+style   = { file = "layouts/disociacion.typ", fn = "desarrollo" }
+palette = "ascua"
+content = '''
+#label[El alcance]
+= Vale para todo pensamiento
+#quote[“No necesita pensar para actuar; su acción está *determinada por las técnicas* que emplea y por las condiciones sociológicas.”]
+No solo el «intelectual»: el del trabajo, el de la política, el de la vida familiar. Actúa sin quererlo realmente, sin reflexionar nunca sobre el sentido o la razón de sus actos.
+'''
+
+# ── 4 · filas ─────────────────────────────────────────────────
+[[post]]
+name    = "dis/04"
+style   = { file = "layouts/disociacion.typ", fn = "filas" }
+palette = "crema"
+[[post.content]]
+type = "label"
+text = "Factor 1 · el trabajo"
+[[post.content]]
+type = "title"
+text = "Quien piensa no actúa"
+[[post.content]]
+type = "list"
+items = [
+  { label = "Piensan", text = "Establecen los horarios o fijan las normas. *Nunca actúan*." },
+  { label = "Actúan", text = "Siguen reglas, pautas y planes impuestos desde fuera. No deben reflexionar sobre sus actos; de todos modos, no pueden, dada la velocidad con que trabajan." },
+]
+[[post.content]]
+type = "quote"
+text = "“El ideal moderno parece ser una reducción de la acción a un *automatismo completo*.”"
+[[post.content]]
+type = "body"
+text = "Una disociación que dura *ocho horas al día* y que afecta a todo el resto de su comportamiento."
+
+# ── 5 ─────────────────────────────────────────────────────────
+[[post]]
+name    = "dis/05"
+style   = { file = "layouts/disociacion.typ", fn = "desarrollo" }
+palette = "oscuro"
+content = '''
+#label[Factor 2 · la propaganda]
+= Pensar estorba
+#quote[“Según la propaganda, es *inútil, incluso perjudicial*, que el hombre piense.”]
+La propaganda busca la acción, la adhesión y la participación con el menor pensamiento posible. Pensar le impide actuar con la rectitud y la simplicidad requeridas: la acción debe surgir del inconsciente, liberar tensión y convertirse en reflejo.
+'''
+
+# ── 6 · central ───────────────────────────────────────────────
+[[post]]
+name    = "dis/06"
+style   = { file = "layouts/disociacion.typ", fn = "central" }
+palette = "ascua"
+content = '''
+#label[La idea central]
+= La política no pasa por el pensamiento
+#quote[“Esto presupone que el pensamiento se desenvuelve en un plano enteramente irreal, que *nunca interviene en las decisiones políticas*. Y así es, en efecto.”]
+'''
+
+# ── 7 ─────────────────────────────────────────────────────────
+[[post]]
+name    = "dis/07"
+style   = { file = "layouts/disociacion.typ", fn = "central" }
+palette = "crema"
+content = '''
+#label[Sin efecto]
+= Lo que se piensa no se aplica
+#quote[“Ningún pensamiento político mínimamente coherente o preciso puede llegar a aplicarse. Lo que el hombre piensa *carece de todo efecto*, o debe permanecer sin expresarse.”]
+'''
+
+# ── 8 ─────────────────────────────────────────────────────────
+[[post]]
+name    = "dis/08"
+style   = { file = "layouts/disociacion.typ", fn = "central" }
+palette = "oscuro"
+content = '''
+#label[La condición]
+= Así se organiza la política moderna
+#quote(attribution: "Ellul, Propaganda, 4.3")[“Esta es la *condición básica* de la organización política del mundo moderno, y la propaganda es el instrumento para lograr este efecto.”]
+'''
+
+# ── 9 ─────────────────────────────────────────────────────────
+[[post]]
+name    = "dis/09"
+style   = { file = "layouts/disociacion.typ", fn = "desarrollo" }
+palette = "ascua"
+content = '''
+#label[El lenguaje]
+= E incluso las palabras dejan de significar
+#quote[“…el lenguaje, instrumento de la mente, se convierte en *«puro sonido»*, un símbolo que evoca directamente sentimientos y reflejos.”]
+Es una de las disociaciones más graves que causa la propaganda.
+'''

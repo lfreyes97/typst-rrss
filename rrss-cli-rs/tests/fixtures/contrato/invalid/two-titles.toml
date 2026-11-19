@@ -1,0 +1,10 @@
+# expect: block_duplicate
+[[post]]
+name = "a"
+style = "swiss"
+[[post.content]]
+type = "title"
+text = "uno"
+[[post.content]]
+type = "title"
+text = "dos"

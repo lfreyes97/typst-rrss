@@ -1,0 +1,5 @@
+# expect: name_invalid
+[[post]]
+name = "../fuera"
+style = "plain"
+content = "x"

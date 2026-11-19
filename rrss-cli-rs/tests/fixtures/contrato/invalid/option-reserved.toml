@@ -1,0 +1,8 @@
+# expect: option_reserved
+[[post]]
+name = "a"
+style = "liso"
+options = { formato = "x" }
+[[post.content]]
+type = "body"
+text = "x"

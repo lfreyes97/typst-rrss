@@ -1,0 +1,179 @@
+schema = "instatypst-piece/v1"
+
+[defaults]
+format  = "portrait"
+palette = "ocean"
+
+[render]
+ppi   = 72
+image = "png"
+fonts = ["/home/home/Documents/Instatypst/Fonts"]
+
+# liso: un fondo y un texto que llena la caja
+[[post]]
+name    = "presets/liso"
+style   = "liso"
+palette = { background = "#1d4ed8", text = "#ffffff" }
+typography = { body = { family = "Baskervville", weight = 400 } }
+options = { alinear = "center", peso = 400 }
+[[post.content]]
+type = "body"
+text = "Estamos asistiendo al lecho de muerte de una palabra."
+[[post.content]]
+type = "attribution"
+author = "B. B. Warfield"
+
+# suizo: título + conclusión sobre retícula
+[[post]]
+name    = "presets/suizo"
+style   = "suizo"
+format  = "square"
+palette = { base = "ocean", accent = "#1d4ed8" }
+[[post.content]]
+type = "label"
+text = "DEL ENSAYO"
+[[post.content]]
+type = "subtitle"
+text = "¿Qué es el calvinismo?"
+[[post.content]]
+type = "title"
+text = "El calvinismo es simplemente la religión en su"
+[[post.content]]
+type = "conclusion"
+text = "PUREZA."
+[[post.content]]
+type = "attribution"
+author = "B. B. WARFIELD"
+date   = "1851 – 1921"
+
+# epigrafe: cita breve; `variant` es su estilo (pergamino)
+[[post]]
+name    = "presets/epigrafe"
+style   = "epigrafe"
+variant = "pergamino"
+[[post.content]]
+type = "epigraph"
+text = "«Cuando un pueblo ha de perecer en sus pecados,\nen la Iglesia comienza la lepra del alma.»"
+[[post.content]]
+type   = "attribution"
+author = "Willem Bilderdijk"
+work   = "_Oprakeling_"
+
+# esquela: aviso de imprenta; las opciones llevan el nombre nativo del preset
+[[post]]
+name    = "presets/esquela"
+style   = "esquela"
+options = { orla = "celosia", vineta = "trebol", "vineta-pie" = "cruz" }
+[[post.content]]
+type = "title"
+text = "Expiación"
+[[post.content]]
+type = "subtitle"
+text = "Estamos asistiendo al lecho\nde muerte de una palabra."
+[[post.content]]
+type = "body"
+text = "Y es triste presenciar la muerte\nde cualquier cosa valiosa."
+[[post.content]]
+type   = "attribution"
+author = "B. B. Warfield"
+work   = "«Redentor» y «redención»"
+
+# capitulo-orlado: un numeral propio
+[[post]]
+name   = "presets/capitulo-orlado"
+style  = "capitulo-orlado"
+format = "square"
+options = { orla = "completa" }
+[[post.content]]
+type  = "number"
+value = 3
+[[post.content]]
+type = "title"
+text = "La gracia soberana"
+
+# liso acepta `body`, y un verso es una cita, que es un cuerpo: pasa sin declararlo
+[[post]]
+name  = "presets/liso-verso"
+style = "liso"
+[[post.content]]
+type  = "verse"
+lines = ["Todo es gracia,", "todo es don,", "todo es Dios."]
+
+# epigrafe pide epigraph|quote|body; un verso sirve
+[[post]]
+name  = "presets/epigrafe-verso"
+style = "epigrafe"
+[[post.content]]
+type  = "verse"
+lines = ["Soli Deo", "gloria"]
+
+# contraste: dos lados enfrentados (rótulo por lado, roles por ítem)
+[[post]]
+name   = "presets/contraste"
+style  = "contraste"
+format = "portrait"
+[[post.content]]
+type = "title"
+text = "Ley y evangelio"
+[[post.content]]
+type = "contrast"
+[post.content.left]
+label = "La ley"
+title = "Muestra el pecado"
+items = ["Dice lo que Dios exige", "Cierra toda boca"]
+[post.content.right]
+label = "El evangelio"
+title = "Da al Salvador"
+items = ["Anuncia lo que Dios ha hecho", { text = "Abre la boca para alabar", role = "affirm" }]
+[[post.content]]
+type   = "attribution"
+author = "B. B. Warfield"
+work   = "La imputación"
+
+# evento: la fecha como protagonista; en Typst se escribe con #date
+[[post]]
+name  = "presets/evento"
+style = "evento"
+content = '''
+#label[Conferencia]
+#date(day: 14, month: "nov")
+= Conferencia de otoño
+Sábado · 9:00 a. m. · Salón principal
+#footer[Reserva tu lugar →]
+#signature[\@iglesiaraah]
+'''
+
+# consejo: un numeral gigante y una idea; en Typst con #number
+[[post]]
+name  = "presets/consejo"
+style = "consejo"
+content = '''
+#label[Consejo 3]
+#number(3)
+= Ora antes de decidir
+Antes de pedir consejo a los demás, preséntale tu necesidad a Dios.
+#signature[\@iglesiaraah]
+'''
+
+# lamina: una página de una serie; en Typst, con #number(3, total: 8)
+[[post]]
+name  = "presets/lamina"
+style = "lamina"
+content = '''
+#number(3, total: 8)
+= Porque nos enseña a vivir
+Toda la Escritura es útil para enseñar, redargüir, corregir e instruir en justicia.
+#signature[\@iglesiaraah]
+'''
+
+# liso con epígrafe: una cita breve arriba, con su fuente; el texto, aparte
+[[post]]
+name  = "presets/liso-epigrafe"
+style = "liso"
+[[post.content]]
+type   = "epigraph"
+text   = "«Por gracia sois salvos por medio de la fe.»"
+source = "Efesios 2:8"
+[[post.content]]
+type = "body"
+text = "Todo es gracia."

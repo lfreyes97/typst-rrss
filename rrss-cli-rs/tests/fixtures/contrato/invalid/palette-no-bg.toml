@@ -1,0 +1,6 @@
+# expect: palette_incomplete
+[[post]]
+name = "a"
+style = "plain"
+palette = { text = "#ffffff" }
+content = "x"

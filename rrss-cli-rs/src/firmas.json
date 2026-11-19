@@ -1,0 +1,1268 @@
+{
+  "schema": "instatypst-firmas/v1",
+  "contract": "instatypst-piece/v1",
+  "blocks": [
+    "title",
+    "subtitle",
+    "label",
+    "body",
+    "quote",
+    "epigraph",
+    "verse",
+    "conclusion",
+    "attribution",
+    "list",
+    "contrast",
+    "signature",
+    "footer",
+    "number",
+    "date"
+  ],
+  "block_parents": {
+    "verse": "quote",
+    "epigraph": "quote",
+    "quote": "body"
+  },
+  "styles": {
+    "liso": {
+      "pos": [
+        "texto"
+      ],
+      "formato": [
+        1080,
+        1350
+      ],
+      "tema": null,
+      "archivo": "carteles.typ",
+      "uso": "Un párrafo o frase sobre fondo liso",
+      "campo": {
+        "texto": "texto",
+        "autor": "autor",
+        "marca": "marca"
+      },
+      "compuesto": false,
+      "bloques": {
+        "requeridos": [
+          "body"
+        ],
+        "opcionales": [
+          "epigraph",
+          "attribution",
+          "signature"
+        ]
+      },
+      "entradas": {
+        "body": "texto",
+        "epigraph": {
+          "text": "epigrafe",
+          "source": "epigrafe-fuente"
+        },
+        "attribution": {
+          "author": "autor"
+        },
+        "signature": "marca"
+      },
+      "marca-funcion": true,
+      "options": [
+        "formato",
+        "autor",
+        "marca",
+        "fondo",
+        "tinta",
+        "fuente",
+        "peso",
+        "cuerpo",
+        "cuerpo-max",
+        "alinear",
+        "margen",
+        "desgaste",
+        "epigrafe",
+        "epigrafe-fuente",
+        "cuerpo-epigrafe"
+      ]
+    },
+    "suizo": {
+      "pos": [
+        "frase",
+        "remate"
+      ],
+      "formato": [
+        1080,
+        1350
+      ],
+      "tema": "suizo",
+      "archivo": "carteles.typ",
+      "uso": "Frase + remate, estilo editorial sobre retícula",
+      "campo": {
+        "texto": "frase",
+        "remate": "remate",
+        "autor": "autor",
+        "fondo": "papel"
+      },
+      "compuesto": false,
+      "bloques": {
+        "requeridos": [
+          "title",
+          "conclusion"
+        ],
+        "opcionales": [
+          "label",
+          "subtitle",
+          "attribution",
+          "signature"
+        ]
+      },
+      "entradas": {
+        "title": "frase",
+        "conclusion": "remate",
+        "label": "etiqueta",
+        "subtitle": "planteo",
+        "attribution": {
+          "author": "autor",
+          "date": "fechas"
+        },
+        "signature": "marca"
+      },
+      "marca-funcion": true,
+      "options": [
+        "formato",
+        "autor",
+        "fechas",
+        "etiqueta",
+        "planteo",
+        "marca",
+        "tema",
+        "papel",
+        "tinta",
+        "acento",
+        "linea",
+        "gris",
+        "fuente",
+        "fuente-rotulos",
+        "fuente-remate",
+        "cuerpo-frase",
+        "columnas",
+        "margen",
+        "medianil",
+        "aire",
+        "flecha",
+        "frase-y",
+        "flecha-hasta"
+      ]
+    },
+    "demostracion": {
+      "pos": [
+        "grupos"
+      ],
+      "formato": [
+        1080,
+        1080
+      ],
+      "tema": "demostracion",
+      "archivo": "carteles.typ",
+      "uso": "La cita como demostración numerada, en pizarra",
+      "campo": {
+        "texto": "grupos",
+        "autor": "autor",
+        "obra": "obra"
+      },
+      "compuesto": true,
+      "bloques": {
+        "requeridos": [
+          "list"
+        ],
+        "opcionales": [
+          "attribution",
+          "signature"
+        ]
+      },
+      "options": [
+        "formato",
+        "autor",
+        "obra",
+        "marca",
+        "tema",
+        "fondo",
+        "claro",
+        "texto",
+        "apagado",
+        "acento",
+        "fuente",
+        "fuente-mono",
+        "cuerpo-lectura",
+        "cuerpo-max",
+        "margen",
+        "aire-raya",
+        "cuadricula",
+        "encabezado",
+        "inicio"
+      ]
+    },
+    "bauhaus": {
+      "pos": [
+        "frase",
+        "remate"
+      ],
+      "formato": [
+        1080,
+        1350
+      ],
+      "tema": "bauhaus",
+      "archivo": "carteles/bauhaus.typ",
+      "uso": "Portada geométrica",
+      "campo": {
+        "texto": "frase",
+        "remate": "remate",
+        "autor": "autor",
+        "etiqueta": "etiqueta"
+      },
+      "compuesto": false,
+      "bloques": {
+        "requeridos": [
+          "title",
+          "conclusion"
+        ],
+        "opcionales": [
+          "label",
+          "subtitle",
+          "attribution",
+          "signature"
+        ]
+      },
+      "entradas": {
+        "title": "frase",
+        "conclusion": "remate",
+        "label": "etiqueta",
+        "subtitle": "planteo",
+        "attribution": {
+          "author": "autor",
+          "date": "fechas"
+        },
+        "signature": "marca"
+      },
+      "marca-funcion": true,
+      "options": [
+        "formato",
+        "autor",
+        "fechas",
+        "etiqueta",
+        "planteo",
+        "marca",
+        "tema",
+        "fondo",
+        "tinta",
+        "suave",
+        "acento",
+        "amarillo",
+        "azul",
+        "fuente",
+        "cuerpo-frase",
+        "minusculas",
+        "textura"
+      ]
+    },
+    "mosaico": {
+      "pos": [],
+      "formato": [
+        1080,
+        1350
+      ],
+      "tema": "mosaico",
+      "archivo": "carteles/mosaico.typ",
+      "uso": "Portada geométrica de teselas (todo por nombre)",
+      "campo": {
+        "texto": "frase",
+        "remate": "remate",
+        "autor": "autor",
+        "obra": "obra"
+      },
+      "compuesto": false,
+      "bloques": {
+        "requeridos": [],
+        "opcionales": [
+          "title",
+          "conclusion",
+          "label",
+          "attribution",
+          "signature"
+        ]
+      },
+      "options": [
+        "autor",
+        "obra",
+        "marca",
+        "formato",
+        "variante",
+        "tema",
+        "fondo",
+        "tinta",
+        "suave",
+        "acento",
+        "hondo",
+        "fuente",
+        "grosor",
+        "frase",
+        "etiqueta",
+        "remate",
+        "cuerpo",
+        "fuente-texto",
+        "minimo",
+        "guias",
+        "area",
+        "ancla",
+        "arte"
+      ]
+    },
+    "teselas": {
+      "pos": [
+        "frase"
+      ],
+      "formato": [
+        1080,
+        1350
+      ],
+      "tema": "teselas",
+      "archivo": "carteles/teselas.typ",
+      "uso": "Portada geométrica de mosaico regular",
+      "campo": {
+        "texto": "frase",
+        "remate": "remate",
+        "autor": "autor"
+      },
+      "compuesto": false,
+      "bloques": {
+        "requeridos": [
+          "title"
+        ],
+        "opcionales": [
+          "conclusion",
+          "label",
+          "attribution",
+          "signature"
+        ]
+      },
+      "options": [
+        "remate",
+        "etiqueta",
+        "autor",
+        "marca",
+        "formato",
+        "bloque",
+        "tema",
+        "fondo",
+        "tinta",
+        "suave",
+        "acento",
+        "hondo",
+        "claro",
+        "fuente",
+        "cuerpo"
+      ]
+    },
+    "hojas": {
+      "pos": [
+        "titulo"
+      ],
+      "formato": [
+        1080,
+        1350
+      ],
+      "tema": "hojas",
+      "archivo": "carteles/hojas.typ",
+      "uso": "Portada geométrica de hojas",
+      "campo": {
+        "titulo": "titulo",
+        "texto": "frase",
+        "pie": "pie"
+      },
+      "compuesto": false,
+      "bloques": {
+        "requeridos": [
+          "title"
+        ],
+        "opcionales": [
+          "subtitle",
+          "label",
+          "body",
+          "footer",
+          "signature"
+        ]
+      },
+      "options": [
+        "frase",
+        "composicion",
+        "rotulo",
+        "pie",
+        "etiqueta",
+        "nota",
+        "marca",
+        "formato",
+        "tema",
+        "fondo",
+        "tinta",
+        "suave",
+        "acento",
+        "hondo",
+        "fuente",
+        "fuente-texto",
+        "peso",
+        "cuerpo",
+        "lado",
+        "r-anillo",
+        "r-hueco",
+        "guias"
+      ]
+    },
+    "franjas": {
+      "pos": [
+        "cita"
+      ],
+      "formato": [
+        1080,
+        1080
+      ],
+      "tema": "franjas",
+      "archivo": "carteles/franjas.typ",
+      "uso": "Cita con cabecera de marca, título e ilustración bajo un velo",
+      "campo": {
+        "texto": "cita",
+        "titulo": "titulo",
+        "imagen": "imagen",
+        "pie": "pie"
+      },
+      "compuesto": false,
+      "bloques": {
+        "requeridos": [
+          [
+            "quote",
+            "body"
+          ]
+        ],
+        "opcionales": [
+          "title",
+          "footer",
+          "signature"
+        ]
+      },
+      "options": [
+        "titulo",
+        "imagen",
+        "marca",
+        "pie",
+        "formato",
+        "tema",
+        "fondo",
+        "tinta",
+        "suave",
+        "acento",
+        "tira",
+        "velo",
+        "texto-hasta",
+        "fuente",
+        "peso",
+        "estiramiento",
+        "fuente-titulo",
+        "cuerpo-max",
+        "cuerpo-titulo",
+        "cuerpo-pie",
+        "cabecera",
+        "pie-alto",
+        "pie-aire",
+        "regla",
+        "margen",
+        "margen-texto"
+      ]
+    },
+    "epigrafe": {
+      "pos": [
+        "cita"
+      ],
+      "formato": [
+        1080,
+        1350
+      ],
+      "tema": "auto",
+      "archivo": "carteles/epigrafe.typ",
+      "uso": "Epígrafe con quince estilos",
+      "campo": {
+        "texto": "cita",
+        "autor": "autor",
+        "obra": "obra"
+      },
+      "compuesto": false,
+      "bloques": {
+        "requeridos": [
+          [
+            "epigraph",
+            "quote",
+            "body"
+          ]
+        ],
+        "opcionales": [
+          "attribution",
+          "signature"
+        ]
+      },
+      "entradas": {
+        "body": "cita",
+        "attribution": {
+          "author": "autor",
+          "work": "obra"
+        },
+        "signature": "marca",
+        "variante": "estilo"
+      },
+      "options": [
+        "autor",
+        "obra",
+        "estilo",
+        "formato",
+        "tema",
+        "marca",
+        "guias"
+      ]
+    },
+    "cita-social": {
+      "pos": [
+        "cita",
+        "nombre"
+      ],
+      "formato": [
+        1080,
+        1350
+      ],
+      "tema": "cita-social",
+      "archivo": "carteles/cita-social.typ",
+      "uso": "Cita con aspecto de publicación, mensaje o editorial",
+      "campo": {
+        "texto": "cita",
+        "autor": "nombre"
+      },
+      "compuesto": false,
+      "bloques": {
+        "requeridos": [
+          [
+            "quote",
+            "body"
+          ],
+          "attribution"
+        ],
+        "opcionales": [
+          "signature"
+        ]
+      },
+      "options": [
+        "iniciales",
+        "foto",
+        "atribucion",
+        "variante",
+        "comilla",
+        "nota-izq",
+        "nota-der",
+        "formato",
+        "tema",
+        "fondo",
+        "tarjeta",
+        "tinta",
+        "suave",
+        "acento",
+        "linea",
+        "marca",
+        "fuente",
+        "cuerpo",
+        "minimo",
+        "area",
+        "ancla",
+        "estilo",
+        "usuario",
+        "fecha",
+        "verificado",
+        "metricas",
+        "contexto",
+        "respuesta"
+      ]
+    },
+    "escalera": {
+      "pos": [
+        "peldanos",
+        "climax"
+      ],
+      "formato": [
+        1080,
+        1920
+      ],
+      "tema": "escalera",
+      "archivo": "escalera.typ",
+      "uso": "La frase baja en peldaños hasta un clímax",
+      "campo": {
+        "texto": "peldanos",
+        "remate": "climax",
+        "autor": "autor",
+        "obra": "obra"
+      },
+      "compuesto": true,
+      "bloques": {
+        "requeridos": [
+          "list",
+          "conclusion"
+        ],
+        "opcionales": [
+          "footer",
+          "attribution",
+          "signature"
+        ]
+      },
+      "options": [
+        "coda",
+        "formato",
+        "autor",
+        "obra",
+        "marca",
+        "tema",
+        "fondo",
+        "tinta",
+        "suave",
+        "acento",
+        "fuente",
+        "cuerpo",
+        "cuerpo-climax",
+        "cuerpo-coda",
+        "alinear",
+        "paso",
+        "margen",
+        "cabecera-y",
+        "climax-y",
+        "curvas",
+        "cumbre",
+        "anillos",
+        "indice",
+        "decorado"
+      ]
+    },
+    "gozne": {
+      "pos": [
+        "cita",
+        "centro",
+        "hojas"
+      ],
+      "formato": [
+        1600,
+        900
+      ],
+      "tema": "gozne",
+      "archivo": "gozne.typ",
+      "uso": "Cita con llamadas y diagrama radial",
+      "campo": {
+        "texto": "cita",
+        "autor": "autor",
+        "obra": "obra"
+      },
+      "compuesto": true,
+      "bloques": {
+        "requeridos": [
+          [
+            "quote",
+            "body"
+          ],
+          "title",
+          "list"
+        ],
+        "opcionales": [
+          "attribution",
+          "signature"
+        ]
+      },
+      "options": [
+        "formato",
+        "autor",
+        "obra",
+        "marca",
+        "tema",
+        "papel",
+        "tinta",
+        "gris",
+        "acento",
+        "claro",
+        "fuente",
+        "fuente-cita",
+        "angulos",
+        "diagrama",
+        "rotulos"
+      ]
+    },
+    "linea-tiempo": {
+      "pos": [
+        "estaciones"
+      ],
+      "formato": [
+        1080,
+        1350
+      ],
+      "tema": "linea-tiempo",
+      "archivo": "linea-tiempo.typ",
+      "uso": "Estaciones sobre una línea vertical",
+      "campo": {
+        "texto": "estaciones",
+        "remate": "remate",
+        "autor": "autor"
+      },
+      "compuesto": true,
+      "bloques": {
+        "requeridos": [
+          "list"
+        ],
+        "opcionales": [
+          "footer",
+          "attribution",
+          "signature"
+        ]
+      },
+      "options": [
+        "origen",
+        "fin",
+        "remate",
+        "formato",
+        "autor",
+        "obra",
+        "marca",
+        "tema",
+        "fondo",
+        "tinta",
+        "acento",
+        "suave",
+        "fuente",
+        "fuente-rotulos",
+        "cuerpo",
+        "cuerpo-remate",
+        "textura",
+        "y"
+      ]
+    },
+    "esquela": {
+      "pos": [
+        "nombre"
+      ],
+      "formato": [
+        1080,
+        1350
+      ],
+      "tema": "esquela",
+      "archivo": "esquela.typ",
+      "uso": "Aviso fúnebre de imprenta",
+      "campo": {
+        "titulo": "nombre",
+        "texto": "anuncio",
+        "autor": "autor",
+        "obra": "obra"
+      },
+      "compuesto": false,
+      "bloques": {
+        "requeridos": [
+          "title"
+        ],
+        "opcionales": [
+          "subtitle",
+          "body",
+          "attribution",
+          "signature"
+        ]
+      },
+      "entradas": {
+        "title": "nombre",
+        "subtitle": "anuncio",
+        "body": "duelo",
+        "attribution": {
+          "author": "autor",
+          "work": "obra"
+        },
+        "signature": "marca"
+      },
+      "marca-funcion": true,
+      "options": [
+        "anuncio",
+        "duelo",
+        "formato",
+        "autor",
+        "obra",
+        "marca",
+        "tema",
+        "papel",
+        "luto",
+        "sepia",
+        "orla",
+        "interior",
+        "simbolo",
+        "vineta",
+        "vineta-pie",
+        "fuente",
+        "fuente-nombre",
+        "fuente-sc",
+        "cuerpo",
+        "cuerpo-nombre",
+        "textura"
+      ]
+    },
+    "folio": {
+      "pos": [
+        "texto"
+      ],
+      "formato": [
+        1080,
+        1080
+      ],
+      "tema": "folio",
+      "archivo": "folio.typ",
+      "uso": "Folio con capitular rubricada y glosa",
+      "campo": {
+        "texto": "texto",
+        "glosa": "glosa",
+        "autor": "autor"
+      },
+      "compuesto": false,
+      "bloques": {
+        "requeridos": [
+          "body"
+        ],
+        "opcionales": [
+          "label",
+          "attribution",
+          "signature"
+        ]
+      },
+      "options": [
+        "glosa",
+        "referencia",
+        "formato",
+        "autor",
+        "marca",
+        "tinta",
+        "rubrica",
+        "tema",
+        "pergamino",
+        "fuente",
+        "fuente-sc",
+        "cabecera",
+        "relleno",
+        "cuerpo",
+        "glosa-y",
+        "capitular",
+        "textura"
+      ]
+    },
+    "plano": {
+      "pos": [
+        "texto"
+      ],
+      "formato": [
+        1080,
+        1350
+      ],
+      "tema": null,
+      "archivo": "plano.typ",
+      "uso": "Grid blueprint con cota y cajetín",
+      "campo": {
+        "texto": "texto",
+        "autor": "autor",
+        "obra": "obra",
+        "fondo": "fondo"
+      },
+      "compuesto": false,
+      "bloques": {
+        "requeridos": [
+          "body"
+        ],
+        "opcionales": [
+          "conclusion",
+          "attribution",
+          "signature"
+        ]
+      },
+      "options": [
+        "formato",
+        "autor",
+        "obra",
+        "marca",
+        "fondo",
+        "linea",
+        "acento",
+        "destacar",
+        "paso",
+        "maestra",
+        "cota",
+        "cajetin",
+        "escala",
+        "hoja",
+        "marcas",
+        "fuente",
+        "fuente-mono",
+        "peso",
+        "cuerpo",
+        "cuerpo-max",
+        "margen"
+      ]
+    },
+    "cita-orlada": {
+      "pos": [
+        "texto"
+      ],
+      "formato": [
+        1080,
+        1080
+      ],
+      "tema": "vino",
+      "archivo": "orlas.typ",
+      "uso": "Cita dentro de una orla tipográfica",
+      "campo": {
+        "texto": "texto",
+        "autor": "autor",
+        "obra": "obra"
+      },
+      "compuesto": false,
+      "bloques": {
+        "requeridos": [
+          [
+            "quote",
+            "body"
+          ]
+        ],
+        "opcionales": [
+          "label",
+          "attribution",
+          "signature"
+        ]
+      },
+      "options": [
+        "encabezado",
+        "autor",
+        "fuente",
+        "obra",
+        "formato",
+        "tema",
+        "firma",
+        "tamano",
+        "orla",
+        "cadena"
+      ]
+    },
+    "contraste": {
+      "pos": [
+        "izquierda",
+        "derecha"
+      ],
+      "formato": [
+        1080,
+        1350
+      ],
+      "tema": "contraste",
+      "archivo": "contraste.typ",
+      "uso": "Dos lados enfrentados (antes/después, ley/evangelio) en paneles tintados",
+      "campo": {
+        "titulo": "titulo",
+        "autor": "autor",
+        "obra": "obra"
+      },
+      "compuesto": true,
+      "bloques": {
+        "requeridos": [
+          "contrast"
+        ],
+        "opcionales": [
+          "title",
+          "attribution",
+          "signature"
+        ]
+      },
+      "entradas": {
+        "contrast": {
+          "left": "izquierda",
+          "right": "derecha"
+        },
+        "title": "titulo",
+        "attribution": {
+          "author": "autor",
+          "work": "obra"
+        },
+        "signature": "marca"
+      },
+      "marca-funcion": true,
+      "options": [
+        "titulo",
+        "medallon",
+        "formato",
+        "autor",
+        "obra",
+        "marca",
+        "tema",
+        "fondo",
+        "tinta",
+        "suave",
+        "acento",
+        "afirma",
+        "niega",
+        "fuente",
+        "fuente-rotulos",
+        "cuerpo",
+        "cuerpo-titulo",
+        "cuerpo-titular",
+        "disposicion",
+        "margen"
+      ]
+    },
+    "evento": {
+      "pos": [
+        "dia",
+        "mes",
+        "titulo"
+      ],
+      "formato": [
+        1080,
+        1350
+      ],
+      "tema": "evento",
+      "archivo": "evento.typ",
+      "uso": "La fecha como protagonista, con título, detalle y llamada a la acción",
+      "campo": {
+        "titulo": "titulo"
+      },
+      "compuesto": false,
+      "bloques": {
+        "requeridos": [
+          "date",
+          "title"
+        ],
+        "opcionales": [
+          "label",
+          "body",
+          "footer",
+          "signature"
+        ]
+      },
+      "entradas": {
+        "date": {
+          "day": "dia",
+          "month": "mes"
+        },
+        "title": "titulo",
+        "label": "etiqueta",
+        "body": "detalle",
+        "footer": "llamada",
+        "signature": "marca"
+      },
+      "marca-funcion": true,
+      "options": [
+        "detalle",
+        "etiqueta",
+        "llamada",
+        "formato",
+        "marca",
+        "tema",
+        "fondo",
+        "tinta",
+        "suave",
+        "acento",
+        "fuente",
+        "fuente-rotulos",
+        "cuerpo-titulo",
+        "cuerpo-detalle",
+        "margen"
+      ]
+    },
+    "consejo": {
+      "pos": [
+        "numero",
+        "titulo"
+      ],
+      "formato": [
+        1080,
+        1350
+      ],
+      "tema": "consejo",
+      "archivo": "consejo.typ",
+      "uso": "Un color sólido y un numeral gigante: un consejo, un paso, una razón",
+      "campo": {
+        "titulo": "titulo",
+        "texto": "texto"
+      },
+      "compuesto": false,
+      "bloques": {
+        "requeridos": [
+          "number",
+          "title"
+        ],
+        "opcionales": [
+          "label",
+          "body",
+          "signature"
+        ]
+      },
+      "entradas": {
+        "number": {
+          "value": "numero"
+        },
+        "title": "titulo",
+        "label": "etiqueta",
+        "body": "texto",
+        "signature": "marca"
+      },
+      "marca-funcion": true,
+      "options": [
+        "texto",
+        "etiqueta",
+        "marca",
+        "formato",
+        "tema",
+        "fondo",
+        "tinta",
+        "suave",
+        "sombra",
+        "fuente",
+        "cuerpo-titulo",
+        "cuerpo-texto",
+        "margen"
+      ]
+    },
+    "lamina": {
+      "pos": [
+        "numero",
+        "total",
+        "titulo"
+      ],
+      "formato": [
+        1080,
+        1350
+      ],
+      "tema": "lamina",
+      "archivo": "lamina.typ",
+      "uso": "Una página de una serie numerada: progreso segmentado, «3 / 8», título y texto",
+      "campo": {
+        "titulo": "titulo",
+        "texto": "texto"
+      },
+      "compuesto": false,
+      "bloques": {
+        "requeridos": [
+          "number",
+          "title"
+        ],
+        "opcionales": [
+          "body",
+          "footer",
+          "signature"
+        ]
+      },
+      "entradas": {
+        "number": {
+          "value": "numero",
+          "total": "total"
+        },
+        "title": "titulo",
+        "body": "texto",
+        "footer": "siguiente",
+        "signature": "marca"
+      },
+      "marca-funcion": true,
+      "options": [
+        "texto",
+        "marca",
+        "siguiente",
+        "formato",
+        "tema",
+        "fondo",
+        "tinta",
+        "suave",
+        "acento",
+        "fuente",
+        "fuente-rotulos",
+        "cuerpo-titulo",
+        "cuerpo-texto",
+        "margen"
+      ]
+    },
+    "capitulo-orlado": {
+      "pos": [
+        "numero",
+        "titulo"
+      ],
+      "formato": [
+        1080,
+        1080
+      ],
+      "tema": "vino",
+      "archivo": "orlas.typ",
+      "uso": "Cabecera de capítulo dentro de una orla",
+      "campo": {
+        "titulo": "titulo",
+        "autor": "autor",
+        "obra": "obra"
+      },
+      "compuesto": false,
+      "bloques": {
+        "requeridos": [
+          "number",
+          "title"
+        ],
+        "opcionales": [
+          "subtitle",
+          "label",
+          "attribution",
+          "signature"
+        ]
+      },
+      "options": [
+        "subtitulo",
+        "llamada",
+        "rotulo",
+        "obra",
+        "autor",
+        "formato",
+        "tema",
+        "firma",
+        "orla",
+        "cadena"
+      ]
+    },
+    "pregunta-orlada": {
+      "pos": [
+        "texto"
+      ],
+      "formato": [
+        1080,
+        1080
+      ],
+      "tema": "papel",
+      "archivo": "orlas.typ",
+      "uso": "Pregunta para la reflexión dentro de una orla",
+      "campo": {
+        "texto": "texto",
+        "pista": "pista",
+        "obra": "obra"
+      },
+      "compuesto": false,
+      "bloques": {
+        "requeridos": [
+          [
+            "body",
+            "quote"
+          ]
+        ],
+        "opcionales": [
+          "label",
+          "footer",
+          "attribution",
+          "signature"
+        ]
+      },
+      "options": [
+        "encabezado",
+        "fuente",
+        "obra",
+        "pista",
+        "formato",
+        "tema",
+        "firma",
+        "orla",
+        "cadena"
+      ]
+    }
+  }
+}

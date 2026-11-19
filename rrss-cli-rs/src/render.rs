@@ -52,6 +52,9 @@ pub struct Rendered {
 }
 
 pub fn render(post: &Post, cfg: &Config) -> Result<Rendered> {
+    if let Some(e) = &post.estilo_propio {
+        return render_propio(post, cfg, e);
+    }
     let mut avisos = Vec::new();
     let mut partes: Vec<String> = Vec::new();
 
@@ -92,6 +95,18 @@ pub fn render(post: &Post, cfg: &Config) -> Result<Rendered> {
         partes.push(args);
     }
 
+    let mut typ = preambulo(post)?;
+    typ.push_str(&format!("#{}(\n", post.preset));
+    for p in partes {
+        typ.push_str(&format!("  {p},\n"));
+    }
+    typ.push_str(")\n");
+    Ok(Rendered { typ, avisos })
+}
+
+/// Lo que va antes de la llamada: el comentario, el import de instatypst, lo que ven los
+/// textos con formato (`md`) y las variables de `defs`.
+fn preambulo(post: &Post) -> Result<String> {
     let mut typ = String::from("// Auto-generado por rrss-cli-rs; no editar.\n");
     typ.push_str("#import \"@local/instatypst:0.1.0\": *\n\n");
     // Lo que ven los textos con formato (`md`): los espacios de nombres de instatypst
@@ -112,11 +127,49 @@ pub fn render(post: &Post, cfg: &Config) -> Result<Rendered> {
         typ.push_str(&format!("#let _alcance = _alcance + ({k}: {k})\n"));
     }
     typ.push('\n');
-    typ.push_str(&format!("#{}(\n", post.preset));
-    for p in partes {
-        typ.push_str(&format!("  {p},\n"));
+    Ok(typ)
+}
+
+/// Un estilo propio: se importa la función del autor y se le pasa la pieza ya resuelta,
+/// como un diccionario. El formato y la paleta se resuelven aquí, igual que para un preset.
+fn render_propio(post: &Post, cfg: &Config, e: &crate::config::EstiloPropio) -> Result<Rendered> {
+    use toml::Value;
+    let mut avisos = Vec::new();
+    let mut pieza = e.pieza.clone();
+
+    pieza.insert(
+        "format".into(),
+        match post.formato {
+            Some((w, h)) => Value::Array(vec![Value::Integer(i64::from(w)), Value::Integer(i64::from(h))]),
+            None => crate::pieza::ninguno(),
+        },
+    );
+    pieza.insert("palette".into(), crate::pieza::ninguno());
+    match resolver_tema(post, cfg, &mut avisos)? {
+        None => {}
+        Some(Tema::Roles(r)) => {
+            let color = |h: &str| {
+                let mut t = toml::Table::new();
+                t.insert("color".into(), Value::String(h.to_string()));
+                Value::Table(t)
+            };
+            let mut p = toml::Table::new();
+            p.insert("background".into(), color(r.hex(Rol::Fondo)));
+            p.insert("text".into(), color(r.hex(Rol::Tinta)));
+            p.insert("muted".into(), color(r.hex(Rol::Suave)));
+            p.insert("accent".into(), color(r.hex(Rol::Acento)));
+            p.insert("line".into(), color(r.hex(Rol::Linea)));
+            pieza.insert("palette".into(), Value::Table(p));
+        }
+        Some(Tema::Nombre(n)) => bail!(
+            "un estilo propio necesita una paleta que la CLI resuelva (del documento, de la CLI o de una imagen); \
+             {n:?} es un tema de Instatypst y solo el preset sabe leerlo"
+        ),
     }
-    typ.push_str(")\n");
+
+    let mut typ = preambulo(post)?;
+    typ.push_str(&format!("#import {}: {}\n\n", str_lit(&crate::typst::asset_path(&e.archivo)?), e.funcion));
+    typ.push_str(&format!("#{}({})\n", e.funcion, value_lit(&Value::Table(pieza)).context("pieza")?));
     Ok(Rendered { typ, avisos })
 }
 

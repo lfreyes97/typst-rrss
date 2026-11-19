@@ -1,0 +1,6 @@
+# expect: brand_logo
+[[post]]
+name = "a"
+style = "liso"
+brand = { logo = {} }
+content = "x"

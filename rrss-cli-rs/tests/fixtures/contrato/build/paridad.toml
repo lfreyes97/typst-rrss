@@ -1,0 +1,70 @@
+schema = "instatypst-piece/v1"
+[render]
+fonts = ["/home/home/Documents/Instatypst/Fonts"]
+
+[[post]]
+name   = "presets/liso"
+style  = "liso"
+format = "portrait"
+palette = { background = "#1d4ed8", text = "#ffffff" }
+typography = { body = { family = "Baskervville", weight = 400 } }
+options = { alinear = { kw = "center" } }
+[[post.content]]
+type = "body"
+text = "Estamos asistiendo al lecho de muerte de una palabra."
+[[post.content]]
+type = "attribution"
+author = "B. B. Warfield"
+
+[[post]]
+name   = "presets/suizo"
+style  = "suizo"
+format = "square"
+options = { acento = { color = "#1d4ed8" } }
+[[post.content]]
+type = "label"
+text = "DEL ENSAYO"
+[[post.content]]
+type = "subtitle"
+text = "¿Qué es el calvinismo?"
+[[post.content]]
+type = "title"
+text = "El calvinismo es simplemente la religión en su"
+[[post.content]]
+type = "conclusion"
+text = "PUREZA."
+[[post.content]]
+type = "attribution"
+author = "B. B. WARFIELD"
+date   = "1851 – 1921"
+
+[[post]]
+name    = "presets/epigrafe"
+style   = "epigrafe"
+variant = "pergamino"
+[[post.content]]
+type = "epigraph"
+text = "«Cuando un pueblo ha de perecer en sus pecados,\nen la Iglesia comienza la lepra del alma.»"
+[[post.content]]
+type   = "attribution"
+author = "Willem Bilderdijk"
+work   = "_Oprakeling_"
+
+[[post]]
+name    = "presets/esquela"
+style   = "esquela"
+format  = "portrait"
+options = { orla = "celosia", vineta = "trebol", "vineta-pie" = "cruz" }
+[[post.content]]
+type = "title"
+text = "Expiación"
+[[post.content]]
+type = "subtitle"
+text = "Estamos asistiendo al lecho\nde muerte de una palabra."
+[[post.content]]
+type = "body"
+text = "Y es triste presenciar la muerte\nde cualquier cosa valiosa."
+[[post.content]]
+type   = "attribution"
+author = "B. B. Warfield"
+work   = "«Redentor» y «redención»"

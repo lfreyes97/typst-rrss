@@ -1,0 +1,7 @@
+# expect: brand_image
+[brand]
+logo = { image = "assets/logo.gif" }
+[[post]]
+name = "a"
+style = "liso"
+content = "x"

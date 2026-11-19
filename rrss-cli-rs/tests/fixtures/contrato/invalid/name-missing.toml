@@ -1,0 +1,4 @@
+# expect: name_missing
+[[post]]
+style = "plain"
+content = "x"

@@ -1,0 +1,49 @@
+schema = "instatypst-piece/v1"
+
+[palettes.marca]
+background = "#14213d"
+text       = "#f4efe3"
+accent     = "#e63946"
+good       = "#2a9d8f"
+bad        = "#e63946"
+
+[[post]]
+name    = "typst/suizo"
+style   = "suizo"
+palette = "marca"
+content = '''
+#label[DEL ENSAYO]
+= El calvinismo es simplemente la religión en su
+== ¿Qué es el calvinismo?
+#conclusion[PUREZA.]
+#attribution(author: "B. B. Warfield", date: "1851 – 1921")
+'''
+
+[[post]]
+name    = "typst/custom-style"
+style   = { file = "layouts/mi-layout.typ", fn = "mi-layout" }
+format  = { width = 1600, height = 900 }
+palette = { from_image = "assets/bg-ciencia.jpg" }
+background = { type = "image", src = "assets/bg-ciencia.jpg" }
+content = "Todo es gracia."
+
+[[post]]
+name   = "blocks/lista-con-roles"
+style  = "demostracion"
+format = "story"
+[[post.content]]
+type  = "list"
+items = [
+  { text = "La ley muestra el pecado", role = "affirm" },
+  { text = "pero no salva", role = "deny" },
+  "y el evangelio, al Salvador",
+]
+
+# liso con un verso y una arroba escapada, en sintaxis Typst
+[[post]]
+name  = "typst/liso-verso"
+style = "liso"
+content = '''
+#verse[Todo es gracia, \ todo es don.]
+#signature[\@iglesiaraah]
+'''

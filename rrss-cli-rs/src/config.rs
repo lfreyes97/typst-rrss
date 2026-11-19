@@ -71,6 +71,16 @@ pub struct Defaults {
     pub defs: toml::Table,
 }
 
+/// Un estilo propio: una función de Typst tuya que recibe la pieza ya resuelta.
+/// `pieza` es esa pieza, sin formato ni paleta (los resuelve `render`).
+#[derive(Debug, Clone)]
+pub struct EstiloPropio {
+    /// Ruta del archivo de Typst, relativa a la raíz del proyecto.
+    pub archivo: String,
+    pub funcion: String,
+    pub pieza: toml::Table,
+}
+
 #[derive(Debug, Deserialize, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct RawPost {
@@ -91,6 +101,9 @@ pub struct RawPost {
     /// Variables de este post; pisan las de `[defaults.defs]` con el mismo nombre.
     #[serde(default)]
     pub defs: toml::Table,
+    /// Solo lo rellena el adaptador de piezas; no se lee del TOML.
+    #[serde(skip)]
+    pub estilo_propio: Option<EstiloPropio>,
 }
 
 /// Un post con la herencia aplicada y todo validado.
@@ -107,6 +120,8 @@ pub struct Post {
     pub pos: Vec<toml::Value>,
     pub args: toml::Table,
     pub defs: toml::Table,
+    /// `Some`: no es un preset de Instatypst sino una función del autor (ver `EstiloPropio`).
+    pub estilo_propio: Option<EstiloPropio>,
 }
 
 impl Config {
@@ -144,6 +159,7 @@ impl Config {
                 .collect(),
             args,
             defs: toml::Table::new(),
+            estilo_propio: None,
         };
         self.resolve(&raw)
     }
@@ -168,12 +184,16 @@ impl Config {
         let d = &self.defaults;
         validar_nombre(&raw.name)?;
 
-        let preset = raw
-            .preset
-            .as_ref()
-            .or(d.preset.as_ref())
-            .ok_or_else(|| anyhow!("falta `preset` (ni el post ni [defaults] lo definen)"))?;
-        let preset = normalizar_preset(preset)?;
+        let preset = if let Some(e) = &raw.estilo_propio {
+            format!("{}::{}", e.archivo, e.funcion)
+        } else {
+            let p = raw
+                .preset
+                .as_ref()
+                .or(d.preset.as_ref())
+                .ok_or_else(|| anyhow!("falta `preset` (ni el post ni [defaults] lo definen)"))?;
+            normalizar_preset(p)?
+        };
 
         let formato = resolver_formato(raw.formato.as_ref().or(d.formato.as_ref()))?;
 
@@ -221,6 +241,7 @@ impl Config {
             pos: raw.pos.clone(),
             args,
             defs,
+            estilo_propio: raw.estilo_propio.clone(),
         })
     }
 }

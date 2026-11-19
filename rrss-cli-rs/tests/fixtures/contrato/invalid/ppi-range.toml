@@ -1,0 +1,7 @@
+# expect: ppi_range
+[render]
+ppi = 5000
+[[post]]
+name = "a"
+style = "plain"
+content = "x"

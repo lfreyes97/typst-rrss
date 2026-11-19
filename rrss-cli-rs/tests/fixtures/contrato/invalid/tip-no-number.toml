@@ -1,0 +1,7 @@
+# expect: block_missing
+[[post]]
+name = "a"
+style = "consejo"
+[[post.content]]
+type = "title"
+text = "sin número"

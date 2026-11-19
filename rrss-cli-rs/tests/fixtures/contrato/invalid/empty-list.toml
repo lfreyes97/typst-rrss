@@ -1,0 +1,7 @@
+# expect: list_empty
+[[post]]
+name = "a"
+style = "plain"
+[[post.content]]
+type = "list"
+items = []

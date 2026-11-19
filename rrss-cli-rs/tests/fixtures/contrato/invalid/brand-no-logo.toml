@@ -1,0 +1,7 @@
+# expect: parse
+[brand]
+size = 0.03
+[[post]]
+name = "a"
+style = "liso"
+content = "x"

@@ -1,0 +1,7 @@
+# expect: style_unknown
+[[post]]
+name = "a"
+style = "swiss"
+[[post.content]]
+type = "body"
+text = "x"

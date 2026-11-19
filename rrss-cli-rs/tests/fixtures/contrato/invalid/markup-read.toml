@@ -1,0 +1,7 @@
+# expect: markup_function
+[[post]]
+name = "a"
+style = "liso"
+content = '''
+#read("/etc/passwd")
+'''

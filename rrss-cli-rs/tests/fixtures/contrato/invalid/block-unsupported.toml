@@ -1,0 +1,10 @@
+# expect: block_unsupported
+[[post]]
+name = "a"
+style = "liso"
+[[post.content]]
+type = "body"
+text = "x"
+[[post.content]]
+type = "title"
+text = "liso no tiene titulo"

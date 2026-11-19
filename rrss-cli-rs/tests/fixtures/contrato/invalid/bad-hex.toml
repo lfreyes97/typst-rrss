@@ -1,0 +1,6 @@
+# expect: color_invalid
+[[post]]
+name = "a"
+style = "plain"
+palette = { background = "#12345", text = "#ffffff" }
+content = "x"

@@ -127,6 +127,120 @@ Hay un ejemplo con 8 presets en [`examples/presets.toml`](examples/presets.toml)
 
 ---
 
+## Piezas (`instatypst-piece/v1`)
+
+> El contrato está **congelado** (v1): ver [`docs/contrato-v1.md`](docs/contrato-v1.md), que lo
+> describe entero, con su frontera (qué hay, qué el puente aún no traduce y qué no existe).
+
+Además del `posts.toml` de siempre, `build` lee **piezas**: en vez de los
+parámetros de cada preset, describes *qué* quieres (formato, paleta, fondo,
+contenido) y el estilo decide cómo dibujarlo. Cambiar de preset es cambiar
+una línea; el contenido se reutiliza. Sirve el mismo documento en TOML, JSON o
+YAML (por la extensión). `build` distingue uno de otro por `schema` o por `style`.
+
+```toml
+schema = "instatypst-piece/v1"
+
+[[post]]
+name    = "ciencia"
+style   = "suizo"              # el preset del catálogo, con su nombre de siempre
+format  = "square"             # square · portrait · story · landscape · a4 · a5
+palette = "ocean"              # nombre | { background, text, muted, accent } | { base = "ocean", accent = "#…" }
+content = '''
+#label[DEL ENSAYO]
+= El calvinismo es simplemente la religión en su
+#conclusion[PUREZA.]
+#attribution(author: "B. B. WARFIELD", date: "1851 – 1921")
+'''
+```
+
+El contenido se escribe en Typst (solo se admite una lista cerrada: títulos
+`=` / `==`, párrafos, `_énfasis_`, y las funciones `#label`, `#conclusion`,
+`#footer`, `#signature`, `#epigraph`, `#quote`, `#verse`, `#number`, `#date`,
+`#attribution`; nada de código) o como lista de bloques `[[post.content]]`: es
+equivalente. Un `@usuario` se escribe `\@usuario`.
+El **rótulo** (`#label[…]`) es el texto corto que marca un quiebre, el inicio de un arco
+interno o una idea enfatizada («EL ORDEN», «I · ¿Qué es una nación?»); puede aparecer varias
+veces en una pieza y en cualquier punto del flujo. Un estilo de catálogo que tiene un solo
+lugar para él (como `suizo`) rechaza el segundo, diciéndolo; un estilo propio recibe todos. Cada estilo declara qué
+bloques acepta; lo que no entiende es un error, con la ruta exacta
+(`post[2].content[1]`) y el motivo.
+
+`options` lleva los parámetros propios del preset con su nombre nativo, y las
+tablas de siempre para valores con unidad (`{ kw = "center" }`, `{ len = "96pt" }`,
+`{ color = "#691322" }`).
+
+**Epígrafe.** Un epígrafe es un elemento que cualquier cartel puede llevar, no un cartel
+aparte; `liso` es el natural. Se escribe `#epigraph(source: "Efesios 2:8")[«…»]` (o el
+bloque `epigraph` con `source`): sale arriba, más chico y en cursiva, y el texto
+principal se centra en lo que queda. Un estilo que no lo tiene aparte lo dibuja como su
+cuerpo (y rechaza la `source`, que no tendría dónde ir). Un epígrafe solo, sin texto
+principal, no es una pieza válida de `liso`.
+
+**Marca.** La marca de la serie (`[brand]`) puede ser un texto, una imagen o una
+función tuya de Typst, y el preset la dibuja con **su propia tinta**, así que el mismo
+logo sale blanco sobre fondo oscuro y negro sobre claro. Pesa lo mismo, respecto del
+lienzo, en cualquier formato (por omisión, el alto es 1/30 de √(ancho × alto)).
+
+```toml
+[brand]
+logo = { text  = "@iglesiaraah" }                 # un handle
+logo = { image = "assets/Logo.svg" }              # SVG con currentColor (se recolorea) o PNG/JPG
+logo = { typst = "logo.typ", fn = "logo" }        # tu función (color, lienzo) → contenido
+size = 0.04                                       # opcional; no aplica a una función
+```
+
+Una pieza puede cambiarla (`brand = { logo = … }`) o quitarla (`brand = false`), y una
+firma de texto escrita en la pieza (`#signature[…]`) manda sobre la marca de la serie.
+`brand.typst` y `style.file` son código tuyo, de confianza: el contenido sigue siendo la
+lista cerrada. Un estilo que aún no acepta una marca con color (hoy, `epigrafe`) falla
+diciéndolo; se resuelve con `brand = false` en esa pieza.
+
+**Estilo propio.** Si el diseño es tuyo (andamio, no un preset), `style = { file, fn }`
+importa tu función y le pasa **la pieza ya resuelta** como un diccionario: formato en px,
+paleta en sus roles (`background`, `text`, `muted`, `accent`, `line`), los bloques con su tipo
+real, `options`, `brand` (una función) y la posición en la serie (`index`, `total`, que cuenta
+el orden de las piezas del documento). Tu función dibuja todo lo demás.
+
+```toml
+[[post]]
+name    = "derecho-01"
+style   = { file = "layouts/derecho.typ", fn = "desarrollo" }
+palette = { background = "#691322", text = "#f3ece2", accent = "#e3b98a" }
+content = '''
+= ¿Tenemos derecho a ser cristianos?
+'''
+```
+
+```typst
+#import "@local/instatypst:0.1.0": *          // trae `estilo`, con ayudas
+#let desarrollo(pieza) = {
+  let (w, h) = estilo.formato(pieza)
+  let c = estilo.paleta(pieza)
+  page(width: w, height: h, fill: c.background, text(fill: c.text, estilo.texto(pieza, "title")))
+}
+```
+
+La paleta debe ser una que la CLI resuelva (del documento, de la CLI o `from_image`): un
+nombre de tema de Instatypst solo lo sabe leer un preset. Es código tuyo, de confianza.
+
+**Estilos que ya se construyen desde una pieza:** `liso`, `suizo`, `bauhaus`,
+`epigrafe`, `esquela`, `contraste`, `evento`, `consejo` y `lamina`. Los demás
+(del catálogo de 23) fallan con un mensaje claro hasta que su firma declare las
+`entradas`. Tampoco se traducen aún: los bloques `list`, los fondos que no son
+sólidos o imagen, `typography.heading`, los roles `line`/`good`/`bad` de la paleta,
+`palette.file`.
+
+Se comprobó que una pieza da, píxel a píxel, la misma imagen que el post
+equivalente del formato de siempre (`tests/pieza.rs`: `liso`, `suizo`, `epigrafe`
+y `esquela`), y la lámina 01 de la campaña, con su logo real, sale idéntica a la hecha a mano.
+
+Las firmas de los estilos vienen de Instatypst (`schema/firmas.json`) y se
+guardan aquí en `rrss-cli-rs/src/firmas.json`. Si cambian allí:
+`scripts/exportar-firmas.py` y copiar el resultado.
+
+---
+
 ## Robustez
 
 - **Escapado**: cualquier texto pasa por un único módulo (`typst.rs`) que lo escapa para Typst; verificado con casos hostiles contra el propio `typst`.

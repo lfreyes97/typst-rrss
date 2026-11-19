@@ -1,0 +1,7 @@
+# expect: name_in_defaults
+[defaults]
+name = "x"
+[[post]]
+name = "a"
+style = "plain"
+content = "x"

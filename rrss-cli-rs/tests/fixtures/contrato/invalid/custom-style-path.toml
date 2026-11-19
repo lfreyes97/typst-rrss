@@ -1,0 +1,5 @@
+# expect: style_file
+[[post]]
+name = "a"
+style = { file = '../fuera/x.typ', fn = 'f' }
+content = "x"

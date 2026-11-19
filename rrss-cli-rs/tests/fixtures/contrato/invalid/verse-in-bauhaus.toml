@@ -1,0 +1,13 @@
+# expect: block_unsupported
+[[post]]
+name = "a"
+style = "bauhaus"
+[[post.content]]
+type = "title"
+text = "Todo es"
+[[post.content]]
+type = "conclusion"
+text = "GRACIA."
+[[post.content]]
+type = "verse"
+lines = ["no", "hay", "donde"]

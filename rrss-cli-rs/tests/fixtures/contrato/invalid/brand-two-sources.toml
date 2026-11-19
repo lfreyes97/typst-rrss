@@ -1,0 +1,7 @@
+# expect: brand_logo
+[brand]
+logo = { text = "x", image = "a.svg" }
+[[post]]
+name = "a"
+style = "liso"
+content = "x"

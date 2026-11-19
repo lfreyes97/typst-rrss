@@ -1,0 +1,6 @@
+# expect: parse
+[[post]]
+name = "a"
+style = "plain"
+palette = { background = "#000000", tinta = "#ffffff" }
+content = "x"

@@ -1,0 +1,9 @@
+# expect: name_duplicate
+[[post]]
+name = "a"
+style = "plain"
+content = "x"
+[[post]]
+name = "a"
+style = "plain"
+content = "x"

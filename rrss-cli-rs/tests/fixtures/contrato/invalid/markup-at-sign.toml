@@ -1,0 +1,7 @@
+# expect: markup_forbidden
+[[post]]
+name = "a"
+style = "liso"
+content = '''
+Sígueme en @usuario
+'''

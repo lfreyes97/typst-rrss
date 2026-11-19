@@ -1,0 +1,9 @@
+# expect: block_duplicate
+[[post]]
+name = "a"
+style = "suizo"
+content = '''
+= Uno
+= Dos
+#conclusion[x]
+'''

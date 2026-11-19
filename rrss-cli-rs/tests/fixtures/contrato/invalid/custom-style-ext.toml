@@ -1,0 +1,5 @@
+# expect: style_file
+[[post]]
+name = "a"
+style = { file = 'layouts/x.txt', fn = 'f' }
+content = "x"

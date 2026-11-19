@@ -1,0 +1,6 @@
+# expect: schema_version
+schema = "instatypst-piece/v9"
+[[post]]
+name = "a"
+style = "plain"
+content = "x"

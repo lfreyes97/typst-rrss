@@ -1,0 +1,5 @@
+# expect: parse
+[[post]]
+name = "a"
+style = { file = 'layouts/x.typ' }
+content = "x"

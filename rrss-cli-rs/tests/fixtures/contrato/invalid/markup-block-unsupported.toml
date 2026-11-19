@@ -1,0 +1,8 @@
+# expect: block_unsupported
+[[post]]
+name = "a"
+style = "liso"
+content = '''
+= liso no tiene título
+Un cuerpo.
+'''

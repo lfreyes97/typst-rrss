@@ -1,0 +1,8 @@
+# expect: block_missing
+[defaults]
+style = "suizo"
+[[post]]
+name = "a"
+[[post.content]]
+type = "title"
+text = "hereda el estilo"

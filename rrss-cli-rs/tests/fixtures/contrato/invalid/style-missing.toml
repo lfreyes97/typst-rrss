@@ -1,0 +1,4 @@
+# expect: style_missing
+[[post]]
+name = "a"
+content = "x"

@@ -1,0 +1,8 @@
+# expect: option_unknown
+[[post]]
+name = "a"
+style = "liso"
+options = { orla = "completa" }
+[[post.content]]
+type = "body"
+text = "x"

@@ -1,0 +1,309 @@
+{
+  "schema": "instatypst-piece/v1",
+  "defaults": {
+    "name": null,
+    "style": null,
+    "variant": null,
+    "format": "portrait",
+    "palette": "marca",
+    "background": null,
+    "typography": {
+      "heading": "Jost",
+      "body": {
+        "family": "EB Garamond 12",
+        "weight": 500
+      }
+    },
+    "brand": null,
+    "content": null
+  },
+  "render": {
+    "ppi": 144,
+    "image": "webp",
+    "fonts": [
+      "Fonts"
+    ]
+  },
+  "brand": {
+    "logo": {
+      "text": null,
+      "image": "assets/Logo.svg",
+      "typst": null,
+      "fn": null
+    },
+    "size": 0.04
+  },
+  "palettes": {
+    "marca": {
+      "base": null,
+      "from_image": null,
+      "file": null,
+      "background": "#102030",
+      "text": "#f0f0f0",
+      "muted": "#8090a0",
+      "accent": "#e94560",
+      "line": "#506070",
+      "good": "#2a9d8f",
+      "bad": "#e63946"
+    }
+  },
+  "post": [
+    {
+      "name": "bloques",
+      "style": "suizo",
+      "variant": "pergamino",
+      "format": "square",
+      "palette": {
+        "base": "ocean",
+        "from_image": null,
+        "file": null,
+        "background": null,
+        "text": null,
+        "muted": null,
+        "accent": "#1d4ed8",
+        "line": null,
+        "good": null,
+        "bad": null
+      },
+      "background": {
+        "type": "solid"
+      },
+      "typography": null,
+      "brand": false,
+      "options": {
+        "acento": {
+          "color": "#1d4ed8"
+        },
+        "guias": true,
+        "peso": 700
+      },
+      "content": [
+        {
+          "type": "label",
+          "text": "uno"
+        },
+        {
+          "type": "label",
+          "text": "dos (el rótulo se repite)"
+        },
+        {
+          "type": "title",
+          "text": "Un título"
+        },
+        {
+          "type": "subtitle",
+          "text": "Un subtítulo"
+        },
+        {
+          "type": "body",
+          "text": "Un cuerpo."
+        },
+        {
+          "type": "quote",
+          "text": "Una cita."
+        },
+        {
+          "type": "epigraph",
+          "text": "Un epígrafe.",
+          "source": "su fuente"
+        },
+        {
+          "type": "verse",
+          "lines": [
+            "un verso,",
+            "dos líneas."
+          ],
+          "role": "notice"
+        },
+        {
+          "type": "conclusion",
+          "text": "Una conclusión."
+        },
+        {
+          "type": "attribution",
+          "author": "Un autor",
+          "role": "su cargo",
+          "work": "Una obra",
+          "date": "1900"
+        },
+        {
+          "type": "list",
+          "order": "chronological",
+          "items": [
+            "un ítem",
+            {
+              "text": "otro",
+              "label": "su etiqueta",
+              "role": "affirm"
+            },
+            {
+              "text": "y otro",
+              "label": null,
+              "role": "deny"
+            },
+            {
+              "text": "neutro",
+              "label": null,
+              "role": "neutral"
+            }
+          ]
+        },
+        {
+          "type": "contrast",
+          "left": {
+            "label": "antes",
+            "title": "Cargas",
+            "items": [
+              "uno",
+              {
+                "text": "dos",
+                "label": null,
+                "role": "deny"
+              }
+            ]
+          },
+          "right": {
+            "label": "después",
+            "title": "Alivio",
+            "items": [
+              "uno",
+              {
+                "text": "dos",
+                "label": null,
+                "role": "affirm"
+              }
+            ]
+          }
+        },
+        {
+          "type": "signature",
+          "text": "@marca"
+        },
+        {
+          "type": "footer",
+          "text": "Un pie."
+        },
+        {
+          "type": "number",
+          "value": 3,
+          "total": 8
+        },
+        {
+          "type": "date",
+          "day": 14,
+          "month": "nov"
+        }
+      ]
+    },
+    {
+      "name": "propio",
+      "style": {
+        "file": "layouts/mi-estilo.typ",
+        "fn": "mi-estilo"
+      },
+      "variant": null,
+      "format": {
+        "width": 1600,
+        "height": 900
+      },
+      "palette": {
+        "base": null,
+        "from_image": "assets/foto.jpg",
+        "file": null,
+        "background": null,
+        "text": null,
+        "muted": null,
+        "accent": null,
+        "line": null,
+        "good": null,
+        "bad": null
+      },
+      "background": {
+        "type": "image",
+        "src": "assets/foto.jpg"
+      },
+      "typography": null,
+      "brand": {
+        "logo": {
+          "text": null,
+          "image": null,
+          "typst": "logo.typ",
+          "fn": "logo"
+        },
+        "size": null
+      },
+      "content": "#label[Rótulo]\n= Un título\n== Un subtítulo\nUn párrafo con _énfasis_ y *negrita*.\n- uno\n- dos\n#epigraph(source: \"Fuente\")[Un epígrafe.]\n#attribution(author: \"Autor\", date: \"1900\")\n#number(2, total: 5)\n"
+    },
+    {
+      "name": "rejilla",
+      "style": "liso",
+      "variant": null,
+      "format": null,
+      "palette": {
+        "base": null,
+        "from_image": null,
+        "file": "palettes/marca.toml",
+        "background": null,
+        "text": null,
+        "muted": null,
+        "accent": null,
+        "line": null,
+        "good": null,
+        "bad": null
+      },
+      "background": {
+        "type": "grid"
+      },
+      "typography": null,
+      "brand": {
+        "logo": {
+          "text": "@iglesiaraah",
+          "image": null,
+          "typst": null,
+          "fn": null
+        },
+        "size": null
+      },
+      "content": "x"
+    },
+    {
+      "name": "rayas",
+      "style": "liso",
+      "variant": null,
+      "format": null,
+      "palette": null,
+      "background": {
+        "type": "rules"
+      },
+      "typography": null,
+      "brand": null,
+      "content": "x"
+    },
+    {
+      "name": "papel",
+      "style": "liso",
+      "variant": null,
+      "format": null,
+      "palette": null,
+      "background": {
+        "type": "paper"
+      },
+      "typography": null,
+      "brand": null,
+      "content": "x"
+    },
+    {
+      "name": "curvas",
+      "style": "liso",
+      "variant": null,
+      "format": null,
+      "palette": null,
+      "background": {
+        "type": "contours"
+      },
+      "typography": null,
+      "brand": null,
+      "content": "x"
+    }
+  ]
+}

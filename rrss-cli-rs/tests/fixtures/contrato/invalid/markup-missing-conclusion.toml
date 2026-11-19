@@ -1,0 +1,7 @@
+# expect: block_missing
+[[post]]
+name = "a"
+style = "suizo"
+content = '''
+= Solo título
+'''

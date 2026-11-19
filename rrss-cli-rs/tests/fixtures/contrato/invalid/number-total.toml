@@ -1,0 +1,11 @@
+# expect: number_total
+[[post]]
+name = "a"
+style = "capitulo-orlado"
+[[post.content]]
+type = "number"
+value = 9
+total = 3
+[[post.content]]
+type = "title"
+text = "x"

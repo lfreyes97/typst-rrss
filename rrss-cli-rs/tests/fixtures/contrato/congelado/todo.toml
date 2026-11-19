@@ -1,0 +1,149 @@
+# El contrato instatypst-piece/v1 CONGELADO: un documento que usa todos los campos,
+# todos los ejes y todos los bloques. Si cambia la forma del contrato, la prueba
+# `tests/congelado.rs` falla; ver docs/contrato-v1.md.
+schema = "instatypst-piece/v1"
+
+[render]
+ppi   = 144
+image = "webp"
+fonts = ["Fonts"]
+
+[brand]
+logo = { image = "assets/Logo.svg" }
+size = 0.04
+
+[palettes.marca]
+background = "#102030"
+text       = "#f0f0f0"
+muted      = "#8090a0"
+accent     = "#e94560"
+line       = "#506070"
+good       = "#2a9d8f"
+bad        = "#e63946"
+
+[defaults]
+format     = "portrait"
+palette    = "marca"
+typography = { heading = "Jost", body = { family = "EB Garamond 12", weight = 500 } }
+
+# ── Un estilo del catálogo, con todos los bloques ─────────────
+[[post]]
+name    = "bloques"
+style   = "suizo"
+variant = "pergamino"
+format  = "square"
+palette = { base = "ocean", accent = "#1d4ed8" }
+background = { type = "solid" }
+brand   = false
+options = { acento = { color = "#1d4ed8" }, peso = 700, guias = true }
+
+[[post.content]]
+type = "label"
+text = "uno"
+[[post.content]]
+type = "label"
+text = "dos (el rótulo se repite)"
+[[post.content]]
+type = "title"
+text = "Un título"
+[[post.content]]
+type = "subtitle"
+text = "Un subtítulo"
+[[post.content]]
+type = "body"
+text = "Un cuerpo."
+[[post.content]]
+type = "quote"
+text = "Una cita."
+[[post.content]]
+type   = "epigraph"
+text   = "Un epígrafe."
+source = "su fuente"
+[[post.content]]
+type  = "verse"
+lines = ["un verso,", "dos líneas."]
+role  = "notice"
+[[post.content]]
+type = "conclusion"
+text = "Una conclusión."
+[[post.content]]
+type   = "attribution"
+author = "Un autor"
+role   = "su cargo"
+work   = "Una obra"
+date   = "1900"
+[[post.content]]
+type  = "list"
+order = "chronological"
+items = ["un ítem", { text = "otro", label = "su etiqueta", role = "affirm" }, { text = "y otro", role = "deny" }, { text = "neutro", role = "neutral" }]
+[[post.content]]
+type = "contrast"
+[post.content.left]
+label = "antes"
+title = "Cargas"
+items = ["uno", { text = "dos", role = "deny" }]
+[post.content.right]
+label = "después"
+title = "Alivio"
+items = ["uno", { text = "dos", role = "affirm" }]
+[[post.content]]
+type = "signature"
+text = "@marca"
+[[post.content]]
+type = "footer"
+text = "Un pie."
+[[post.content]]
+type  = "number"
+value = 3
+total = 8
+[[post.content]]
+type  = "date"
+day   = 14
+month = "nov"
+
+# ── Un estilo propio, contenido en Typst, formato libre ───────
+[[post]]
+name    = "propio"
+style   = { file = "layouts/mi-estilo.typ", fn = "mi-estilo" }
+format  = { width = 1600, height = 900 }
+palette = { from_image = "assets/foto.jpg" }
+background = { type = "image", src = "assets/foto.jpg" }
+brand   = { logo = { typst = "logo.typ", fn = "logo" } }
+content = '''
+#label[Rótulo]
+= Un título
+== Un subtítulo
+Un párrafo con _énfasis_ y *negrita*.
+- uno
+- dos
+#epigraph(source: "Fuente")[Un epígrafe.]
+#attribution(author: "Autor", date: "1900")
+#number(2, total: 5)
+'''
+
+# ── Los demás fondos y fuentes de paleta ──────────────────────
+[[post]]
+name       = "rejilla"
+style      = "liso"
+palette    = { file = "palettes/marca.toml" }
+background = { type = "grid" }
+brand      = { logo = { text = "@iglesiaraah" } }
+content    = "x"
+
+[[post]]
+name       = "rayas"
+style      = "liso"
+background = { type = "rules" }
+content    = "x"
+
+[[post]]
+name       = "papel"
+style      = "liso"
+background = { type = "paper" }
+content    = "x"
+
+[[post]]
+name       = "curvas"
+style      = "liso"
+background = { type = "contours" }
+content    = "x"

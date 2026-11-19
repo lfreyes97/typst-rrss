@@ -1,0 +1,7 @@
+# expect: text_empty
+[[post]]
+name = "a"
+style = "plain"
+[[post.content]]
+type = "title"
+text = "  "

@@ -1,0 +1,8 @@
+# expect: brand_size
+[brand]
+logo = { typst = "logo.typ", fn = "logo" }
+size = 0.03
+[[post]]
+name = "a"
+style = "liso"
+content = "x"

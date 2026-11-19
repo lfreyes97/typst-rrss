@@ -1,0 +1,21 @@
+schema = "instatypst-piece/v1"
+
+# Un estilo propio: tu función recibe la pieza ya resuelta.
+[[post]]
+name   = "propio/1"
+style  = { file = "layouts/mi-estilo.typ", fn = "mi-estilo" }
+format = "portrait"
+palette = { background = "#691322", text = "#f3ece2" }
+options = { tema = "granates" }
+content = '''
+= ¿Tenemos derecho a ser cristianos?
+Parte 1
+'''
+
+[[post]]
+name  = "propio/2"
+style = { file = "layouts/mi-estilo.typ", fn = "mi-estilo" }
+palette = "ocean"
+[[post.content]]
+type = "title"
+text = "Ser cristiano: ¿un derecho o un deber?"

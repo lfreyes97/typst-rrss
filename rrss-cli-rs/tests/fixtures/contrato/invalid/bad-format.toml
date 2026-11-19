@@ -1,0 +1,6 @@
+# expect: parse
+[[post]]
+name = "a"
+style = "plain"
+format = "feed-4x5"
+content = "x"

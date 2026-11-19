@@ -1,0 +1,16 @@
+# expect: block_repeated
+[[post]]
+name = "a"
+style = "suizo"
+[[post.content]]
+type = "label"
+text = "uno"
+[[post.content]]
+type = "label"
+text = "dos"
+[[post.content]]
+type = "title"
+text = "T"
+[[post.content]]
+type = "conclusion"
+text = "C"

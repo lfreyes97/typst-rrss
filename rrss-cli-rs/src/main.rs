@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use clap::Parser;
-use rrss_cli_rs::{build, cli, colors, config, process, render, scaffold};
+use rrss_cli_rs::{build, cli, colors, config, pieza, process, render, scaffold};
 
 use std::collections::BTreeMap;
 use std::fs;
@@ -27,7 +27,8 @@ fn main() -> Result<()> {
             dry_run,
             imagen,
         } => {
-            let cfg = config::Config::load(config_file)?;
+            // un documento de piezas (instatypst-piece/v1) o el posts.toml de siempre
+            let cfg = pieza::cargar(config_file)?;
             build::run_build(&cfg, &root, solo, *dry_run, imagen)
         }
 
