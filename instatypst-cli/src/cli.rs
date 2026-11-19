@@ -44,6 +44,16 @@ pub enum Commands {
         imagen: ImageFormat,
     },
 
+    /// Valida un documento sin compilar y cuenta todas las incidencias (para editores, GUI y CI)
+    Check {
+        /// Documento de piezas (.toml, .json o .yaml) o posts.toml que se valida
+        #[arg(default_value = "posts.toml")]
+        file: PathBuf,
+        /// Salida legible por máquina (JSON, `instatypst-check/v1`) en vez de texto
+        #[arg(long)]
+        json: bool,
+    },
+
     /// Escribe un punto de partida editable: un posts.toml o un .typ
     Init {
         /// Presets de instatypst (por defecto, `liso`). Un .typ admite uno solo

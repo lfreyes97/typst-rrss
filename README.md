@@ -29,6 +29,7 @@ cargo install --path instatypst-cli
 | Comando | Qué hace |
 | :--- | :--- |
 | **`build`** | Genera y compila los posts de un `posts.toml`. |
+| **`check`** | Valida un documento **sin compilar** y cuenta todas las incidencias (`--json` para editores, GUI y CI). |
 | **`init`** | Escribe un punto de partida editable: un `posts.toml` o un `.typ`. |
 | **`full`** | Una pieza desde flags: genera el `.typ` y lo compila. |
 | **`generate`** | Una pieza desde flags: escribe el `.typ`, sin compilarlo. |
@@ -126,6 +127,38 @@ Un `str` y un contenido **no son lo mismo** para un preset: si una pieza no sale
 Hay un ejemplo con 8 presets en [`examples/presets.toml`](examples/presets.toml).
 
 ---
+
+## Validar sin compilar: `check`
+
+```bash
+instatypst check piezas.toml            # texto: una línea por incidencia y un resumen
+instatypst check piezas.toml --json     # lo mismo, legible por otro programa
+```
+
+Pasa por las etapas de `build` sin lanzar `typst`: el contrato, el puente a los presets y el
+render a Typst (de donde salen los avisos de contraste). Devuelve **todas** las incidencias, no
+solo la primera, y un error en una pieza no esconde los de las otras; solo un error del documento
+entero (`schema`, `palettes`, `defaults`…) detiene la comprobación del puente. Sale con **0** si no
+hay errores (los avisos no cuentan) y con **1** si los hay; `stdout` lleva solo el informe.
+
+```json
+{
+  "schema": "instatypst-check/v1",
+  "file": "piezas.toml",
+  "kind": "pieces",              // "pieces" (documento de piezas) o "posts" (posts.toml de siempre)
+  "ok": false,
+  "pieces": 3,
+  "findings": [
+    { "severity": "error",       // "error" | "warning"
+      "code": "block_missing",   // los 40 del contrato, más read, config, build y contrast_low
+      "path": "post[0].content", // el campo; vacío si es del documento entero
+      "piece": "uno",            // la pieza, si se sabe
+      "message": "`suizo` necesita conclusion" }
+  ]
+}
+```
+
+La forma del informe tiene su propia versión (`instatypst-check/v1`), independiente del contrato.
 
 ## Piezas (`instatypst-piece/v1`)
 

@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use clap::Parser;
-use instatypst_cli::{build, cli, colors, config, pieza, process, render, scaffold};
+use instatypst_cli::{build, check, cli, colors, config, pieza, process, render, scaffold};
 
 use std::collections::BTreeMap;
 use std::fs;
@@ -30,6 +30,22 @@ fn main() -> Result<()> {
             // un documento de piezas (instatypst-piece/v1) o el posts.toml de siempre
             let cfg = pieza::cargar(config_file)?;
             build::run_build(&cfg, &root, solo, *dry_run, imagen)
+        }
+
+        cli::Commands::Check { file, json } => {
+            // stdout lleva solo el informe; el código de salida dice si hay errores (1) o no (0).
+            let informe = check::check_file(file);
+            let salida = if *json { informe.to_json() } else { informe.to_text() };
+            {
+                use std::io::Write;
+                let mut out = std::io::stdout().lock();
+                out.write_all(salida.as_bytes())?;
+                out.flush()?;
+            }
+            if !informe.ok {
+                std::process::exit(1);
+            }
+            Ok(())
         }
 
         cli::Commands::Init {

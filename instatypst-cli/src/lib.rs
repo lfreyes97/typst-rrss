@@ -1,4 +1,5 @@
 pub mod build;
+pub mod check;
 pub mod cli;
 pub mod colors;
 pub mod config;

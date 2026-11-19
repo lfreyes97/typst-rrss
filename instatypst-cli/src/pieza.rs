@@ -77,7 +77,26 @@ pub fn cargar(path: &Path) -> Result<Config> {
 
 // ── Documento → Config ──────────────────────────────────────
 
-pub fn a_config(doc: &Document, cat: &Catalog) -> Result<Config> {
+/// Una pieza que el puente no pudo construir: su posición, su nombre y por qué.
+pub struct Fallo {
+    pub indice: usize,
+    pub nombre: String,
+    pub error: anyhow::Error,
+}
+
+/// Como `a_config`, pero sin detenerse en la primera pieza que falla: devuelve el `Config`
+/// con las que sí se construyeron y todos los fallos. Es lo que necesita `check`.
+pub fn a_config_parcial(doc: &Document, cat: &Catalog) -> (Config, Vec<Fallo>) {
+    a_config_omitiendo(doc, cat, &std::collections::HashSet::new())
+}
+
+/// Lo mismo, saltando las piezas `omitir` (las que ya tienen errores del contrato: el puente da
+/// por buena una pieza validada).
+pub fn a_config_omitiendo(
+    doc: &Document,
+    cat: &Catalog,
+    omitir: &std::collections::HashSet<usize>,
+) -> (Config, Vec<Fallo>) {
     let mut defaults = Defaults::default();
     if let Some(r) = &doc.render {
         defaults.ppi = r.ppi;
@@ -87,18 +106,34 @@ pub fn a_config(doc: &Document, cat: &Catalog) -> Result<Config> {
     let mut paletas = themes::predefined::get_theme_palettes(None);
 
     let mut posts = Vec::new();
+    let mut fallos = Vec::new();
     for i in 0..doc.posts.len() {
+        if omitir.contains(&i) {
+            continue;
+        }
         let p = doc.merged(i);
         let nombre = p.name.clone().unwrap_or_default();
-        posts.push(
-            a_post(&p, i, doc, cat, &mut paletas).with_context(|| format!("pieza {nombre:?}"))?,
-        );
+        match a_post(&p, i, doc, cat, &mut paletas) {
+            Ok(post) => posts.push(post),
+            Err(error) => fallos.push(Fallo { indice: i, nombre, error }),
+        }
     }
-    Ok(Config {
-        defaults,
-        themes: Some(paletas),
-        posts,
-    })
+    (
+        Config {
+            defaults,
+            themes: Some(paletas),
+            posts,
+        },
+        fallos,
+    )
+}
+
+pub fn a_config(doc: &Document, cat: &Catalog) -> Result<Config> {
+    let (config, fallos) = a_config_parcial(doc, cat);
+    match fallos.into_iter().next() {
+        Some(f) => Err(f.error.context(format!("pieza {:?}", f.nombre))),
+        None => Ok(config),
+    }
 }
 
 fn a_post(
