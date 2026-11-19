@@ -9,12 +9,14 @@
 mod diagnostics;
 mod export;
 mod fonts;
+mod geometry;
 mod sync;
 mod world;
 
 pub use diagnostics::{Diagnostic, Severity, count};
 pub use export::{ExportFormat, export_pages, parse_pages, pixmap_to_rgba, render_page};
 pub use fonts::Engine;
+pub use geometry::{page_boxes, BoxInfo, BoxKind};
 pub use sync::{SyncEntry, line_for_pos, page_for_line};
 pub use typst_layout::PagedDocument;
 pub use world::EngineWorld;
