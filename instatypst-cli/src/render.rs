@@ -140,7 +140,10 @@ fn render_propio(post: &Post, cfg: &Config, e: &crate::config::EstiloPropio) -> 
     pieza.insert(
         "format".into(),
         match post.formato {
-            Some((w, h)) => Value::Array(vec![Value::Integer(i64::from(w)), Value::Integer(i64::from(h))]),
+            Some((w, h)) => Value::Array(vec![
+                Value::Integer(i64::from(w)),
+                Value::Integer(i64::from(h)),
+            ]),
             None => crate::pieza::ninguno(),
         },
     );
@@ -168,8 +171,16 @@ fn render_propio(post: &Post, cfg: &Config, e: &crate::config::EstiloPropio) -> 
     }
 
     let mut typ = preambulo(post)?;
-    typ.push_str(&format!("#import {}: {}\n\n", str_lit(&crate::typst::asset_path(&e.archivo)?), e.funcion));
-    typ.push_str(&format!("#{}({})\n", e.funcion, value_lit(&Value::Table(pieza)).context("pieza")?));
+    typ.push_str(&format!(
+        "#import {}: {}\n\n",
+        str_lit(&crate::typst::asset_path(&e.archivo)?),
+        e.funcion
+    ));
+    typ.push_str(&format!(
+        "#{}({})\n",
+        e.funcion,
+        value_lit(&Value::Table(pieza)).context("pieza")?
+    ));
     Ok(Rendered { typ, avisos })
 }
 

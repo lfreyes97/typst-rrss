@@ -35,7 +35,11 @@ fn main() -> Result<()> {
         cli::Commands::Check { file, json } => {
             // stdout lleva solo el informe; el código de salida dice si hay errores (1) o no (0).
             let informe = check::check_file(file);
-            let salida = if *json { informe.to_json() } else { informe.to_text() };
+            let salida = if *json {
+                informe.to_json()
+            } else {
+                informe.to_text()
+            };
             {
                 use std::io::Write;
                 let mut out = std::io::stdout().lock();

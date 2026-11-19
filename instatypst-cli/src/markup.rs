@@ -99,7 +99,11 @@ impl<'a> Conv<'a> {
 
     fn error(&mut self, off: usize, code: &'static str, message: String) {
         let path = self.pos(off);
-        self.issues.push(Issue { path, code, message });
+        self.issues.push(Issue {
+            path,
+            code,
+            message,
+        });
     }
 
     fn errores_de_sintaxis(&mut self, n: &LinkedNode) {
@@ -164,9 +168,10 @@ impl<'a> Conv<'a> {
                 self.cerrar_parrafo();
                 self.llamada(n);
             }
-            SyntaxKind::TermItem => {
-                self.prohibido(n, "una lista de términos (`/ término: …`; aún no tiene bloque)")
-            }
+            SyntaxKind::TermItem => self.prohibido(
+                n,
+                "una lista de términos (`/ término: …`; aún no tiene bloque)",
+            ),
             otro => self.prohibido(n, &format!("`{otro:?}`")),
         }
     }
@@ -220,7 +225,9 @@ impl<'a> Conv<'a> {
     // ── títulos y listas ────────────────────────────────────
 
     fn titulo(&mut self, n: &LinkedNode) {
-        let Some(h) = n.cast::<ast::Heading>() else { return };
+        let Some(h) = n.cast::<ast::Heading>() else {
+            return;
+        };
         let nivel = h.depth().get();
         let Some(texto) = self.cuerpo(n) else { return };
         self.lista_abierta = false;
@@ -262,7 +269,9 @@ impl<'a> Conv<'a> {
     fn llamada(&mut self, n: &LinkedNode) {
         self.lista_abierta = false;
         let n = &n.clone();
-        let Some(f) = n.cast::<ast::FuncCall>() else { return };
+        let Some(f) = n.cast::<ast::FuncCall>() else {
+            return;
+        };
         let nombre = match f.callee() {
             ast::Expr::Ident(i) => i.get().to_string(),
             _ => {
@@ -276,14 +285,22 @@ impl<'a> Conv<'a> {
                 "markup_function",
                 format!(
                     "#{nombre} no está permitida; las funciones válidas: {}",
-                    FUNCIONES.iter().map(|f| format!("#{f}")).collect::<Vec<_>>().join(", ")
+                    FUNCIONES
+                        .iter()
+                        .map(|f| format!("#{f}"))
+                        .collect::<Vec<_>>()
+                        .join(", ")
                 ),
             );
             return;
         }
 
         let Some(args) = n.children().find(|h| h.kind() == SyntaxKind::Args) else {
-            self.error(n.offset().saturating_sub(1), "markup_args", format!("#{nombre} necesita argumentos"));
+            self.error(
+                n.offset().saturating_sub(1),
+                "markup_args",
+                format!("#{nombre} necesita argumentos"),
+            );
             return;
         };
 
@@ -298,11 +315,13 @@ impl<'a> Conv<'a> {
                         .find(|x| x.kind() == SyntaxKind::Ident)
                         .map(|x| x.get().leaf_text().to_string())
                         .unwrap_or_default();
-                    if let Some(v) = h.children().last() {
+                    if let Some(v) = h.children().next_back() {
                         con_nombre.push((clave, v));
                     }
                 }
-                SyntaxKind::Str | SyntaxKind::Int | SyntaxKind::ContentBlock => posicionales.push(h),
+                SyntaxKind::Str | SyntaxKind::Int | SyntaxKind::ContentBlock => {
+                    posicionales.push(h)
+                }
                 SyntaxKind::LeftParen
                 | SyntaxKind::RightParen
                 | SyntaxKind::Comma
@@ -340,7 +359,8 @@ impl<'a> Conv<'a> {
         let atribucion = nom.iter().find(|(k, _)| k == "attribution");
         for (k, v) in nom {
             // `quote` lleva su atribución; `epigraph`, su fuente (de quién es el epígrafe)
-            let permitido = (nombre == "quote" && k == "attribution") || (nombre == "epigraph" && k == "source");
+            let permitido = (nombre == "quote" && k == "attribution")
+                || (nombre == "epigraph" && k == "source");
             if !permitido {
                 self.error(
                     v.offset(),
@@ -351,11 +371,18 @@ impl<'a> Conv<'a> {
         }
 
         if nombre == "verse" {
-            let Some(lineas) = self.lineas(arg) else { return };
-            self.blocks.push(Block::Verse { lines: lineas, role: None });
+            let Some(lineas) = self.lineas(arg) else {
+                return;
+            };
+            self.blocks.push(Block::Verse {
+                lines: lineas,
+                role: None,
+            });
             return;
         }
-        let Some(texto) = self.texto_de(arg) else { return };
+        let Some(texto) = self.texto_de(arg) else {
+            return;
+        };
         let fuente = nom
             .iter()
             .find(|(k, _)| k == "source")
@@ -365,7 +392,10 @@ impl<'a> Conv<'a> {
             "conclusion" => Block::Conclusion { text: texto },
             "footer" => Block::Footer { text: texto },
             "signature" => Block::Signature { text: texto },
-            "epigraph" => Block::Epigraph { text: texto, source: fuente },
+            "epigraph" => Block::Epigraph {
+                text: texto,
+                source: fuente,
+            },
             _ => Block::Quote { text: texto },
         };
         self.blocks.push(bloque);
@@ -384,17 +414,29 @@ impl<'a> Conv<'a> {
     fn numero(&mut self, n: &LinkedNode, pos: &[LinkedNode], nom: &[(String, LinkedNode)]) {
         let inicio = n.offset().saturating_sub(1);
         if pos.len() != 1 || pos[0].kind() != SyntaxKind::Int {
-            self.error(inicio, "markup_args", "#number lleva un entero: `#number(3)` o `#number(3, total: 8)`".into());
+            self.error(
+                inicio,
+                "markup_args",
+                "#number lleva un entero: `#number(3)` o `#number(3, total: 8)`".into(),
+            );
             return;
         }
         let Ok(value) = pos[0].get().leaf_text().parse::<u32>() else {
-            self.error(pos[0].offset(), "markup_args", "#number necesita un entero no negativo".into());
+            self.error(
+                pos[0].offset(),
+                "markup_args",
+                "#number necesita un entero no negativo".into(),
+            );
             return;
         };
         let mut total = None;
         for (k, v) in nom {
             if k != "total" {
-                self.error(v.offset(), "markup_args", format!("#number no tiene el argumento `{k}`; usa total"));
+                self.error(
+                    v.offset(),
+                    "markup_args",
+                    format!("#number no tiene el argumento `{k}`; usa total"),
+                );
             } else if v.kind() == SyntaxKind::Int {
                 total = v.get().leaf_text().parse::<u32>().ok();
             } else {
@@ -407,21 +449,39 @@ impl<'a> Conv<'a> {
     fn fecha(&mut self, n: &LinkedNode, pos: &[LinkedNode], nom: &[(String, LinkedNode)]) {
         let inicio = n.offset().saturating_sub(1);
         if !pos.is_empty() {
-            self.error(inicio, "markup_args", "#date solo lleva argumentos con nombre: day, month".into());
+            self.error(
+                inicio,
+                "markup_args",
+                "#date solo lleva argumentos con nombre: day, month".into(),
+            );
             return;
         }
         let (mut day, mut month) = (None, None);
         for (k, v) in nom {
             match k.as_str() {
-                "day" if v.kind() == SyntaxKind::Int => day = v.get().leaf_text().parse::<u8>().ok(),
-                "day" => self.error(v.offset(), "markup_args", "`day` es un entero de 1 a 31".into()),
+                "day" if v.kind() == SyntaxKind::Int => {
+                    day = v.get().leaf_text().parse::<u8>().ok()
+                }
+                "day" => self.error(
+                    v.offset(),
+                    "markup_args",
+                    "`day` es un entero de 1 a 31".into(),
+                ),
                 "month" => month = self.texto_de(v),
-                otro => self.error(v.offset(), "markup_args", format!("#date no tiene el argumento `{otro}`; usa day y month")),
+                otro => self.error(
+                    v.offset(),
+                    "markup_args",
+                    format!("#date no tiene el argumento `{otro}`; usa day y month"),
+                ),
             }
         }
         match (day, month) {
             (Some(day), Some(month)) => self.blocks.push(Block::Date { day, month }),
-            _ => self.error(inicio, "markup_args", "#date necesita day y month: `#date(day: 12, month: \"NOV\")`".into()),
+            _ => self.error(
+                inicio,
+                "markup_args",
+                "#date necesita day y month: `#date(day: 12, month: \"NOV\")`".into(),
+            ),
         }
     }
 
@@ -457,7 +517,12 @@ impl<'a> Conv<'a> {
             );
             return;
         }
-        self.blocks.push(Block::Attribution { author, role, work, date });
+        self.blocks.push(Block::Attribution {
+            author,
+            role,
+            work,
+            date,
+        });
     }
 
     /// Una cadena `"x"` o un contenido `[x]`, como texto.
@@ -493,7 +558,9 @@ impl<'a> Conv<'a> {
         for h in markup.children() {
             let r = h.range();
             match h.kind() {
-                SyntaxKind::Linebreak | SyntaxKind::Parbreak => cortar(&mut actual, self.src, &mut lineas),
+                SyntaxKind::Linebreak | SyntaxKind::Parbreak => {
+                    cortar(&mut actual, self.src, &mut lineas)
+                }
                 SyntaxKind::Space if self.src[r.clone()].contains('\n') => {
                     cortar(&mut actual, self.src, &mut lineas)
                 }
@@ -534,7 +601,9 @@ mod tests {
             vec![
                 Block::Title { text: "Uno".into() },
                 Block::Subtitle { text: "Dos".into() },
-                Block::Body { text: "Texto con _énfasis_.".into() },
+                Block::Body {
+                    text: "Texto con _énfasis_.".into()
+                },
             ]
         );
     }
@@ -567,17 +636,40 @@ mod tests {
                 date: Some("1851".into())
             }
         );
-        assert_eq!(b[1], Block::Number { value: 3, total: None });
+        assert_eq!(
+            b[1],
+            Block::Number {
+                value: 3,
+                total: None
+            }
+        );
         let c = ok("#number(3, total: 8)\n#date(day: 12, month: \"NOV\")\n#attribution(author: \"Ana\", role: \"Pastora\")");
-        assert_eq!(c[0], Block::Number { value: 3, total: Some(8) });
-        assert_eq!(c[1], Block::Date { day: 12, month: "NOV".into() });
+        assert_eq!(
+            c[0],
+            Block::Number {
+                value: 3,
+                total: Some(8)
+            }
+        );
+        assert_eq!(
+            c[1],
+            Block::Date {
+                day: 12,
+                month: "NOV".into()
+            }
+        );
         assert!(matches!(&c[2], Block::Attribution { role: Some(r), .. } if r == "Pastora"));
     }
 
     #[test]
     fn cita_con_atribucion_da_dos_bloques() {
         let b = ok("#quote(attribution: [Warfield])[Todo es gracia.]");
-        assert_eq!(b[0], Block::Quote { text: "Todo es gracia.".into() });
+        assert_eq!(
+            b[0],
+            Block::Quote {
+                text: "Todo es gracia.".into()
+            }
+        );
         assert!(matches!(&b[1], Block::Attribution { author: Some(a), .. } if a == "Warfield"));
     }
 
@@ -587,7 +679,11 @@ mod tests {
         assert_eq!(
             b[0],
             Block::Verse {
-                lines: vec!["Todo es gracia,".into(), "todo es don,".into(), "todo es Dios.".into()],
+                lines: vec![
+                    "Todo es gracia,".into(),
+                    "todo es don,".into(),
+                    "todo es Dios.".into()
+                ],
                 role: None
             }
         );
@@ -598,7 +694,9 @@ mod tests {
         let b = ok("- a\n- b\n+ uno\n+ dos\n");
         assert_eq!(b.len(), 2);
         assert!(matches!(&b[0], Block::List { order: ListOrder::None, items } if items.len() == 2));
-        assert!(matches!(&b[1], Block::List { order: ListOrder::Numbered, items } if items.len() == 2));
+        assert!(
+            matches!(&b[1], Block::List { order: ListOrder::Numbered, items } if items.len() == 2)
+        );
     }
 
     // ── lo que debe rechazar ────────────────────────────────
@@ -635,7 +733,14 @@ mod tests {
 
     #[test]
     fn rechaza_lo_que_no_es_texto() {
-        for src in ["$x^2$", "`codigo`", "https://x.org", "@ref", "<etiqueta>", "/ Ley: x"] {
+        for src in [
+            "$x^2$",
+            "`codigo`",
+            "https://x.org",
+            "@ref",
+            "<etiqueta>",
+            "/ Ley: x",
+        ] {
             falla(src);
         }
     }

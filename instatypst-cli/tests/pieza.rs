@@ -44,7 +44,9 @@ fn distingue_piezas_del_posts_toml_de_siempre() {
 fn los_fixtures_construibles_se_renderizan() {
     for archivo in ["build/paridad.toml", "build/nuevos.toml"] {
         let cfg = pieza::cargar(&fixture(archivo)).unwrap_or_else(|e| panic!("{archivo}: {e:#}"));
-        let posts = cfg.resolve_all().unwrap_or_else(|e| panic!("{archivo}: {e:#}"));
+        let posts = cfg
+            .resolve_all()
+            .unwrap_or_else(|e| panic!("{archivo}: {e:#}"));
         assert!(!posts.is_empty());
         for p in &posts {
             let r = render::render(p, &cfg).unwrap_or_else(|e| panic!("{}: {e:#}", p.name));
@@ -75,10 +77,18 @@ fn las_tres_sintaxis_construyen_lo_mismo() {
             .collect()
     };
     let base = typ_de(&fixture("build/nuevos.toml"));
-    for (ext, s) in [("json", Syntax::Json), ("yaml", Syntax::Yaml), ("toml", Syntax::Toml)] {
+    for (ext, s) in [
+        ("json", Syntax::Json),
+        ("yaml", Syntax::Yaml),
+        ("toml", Syntax::Toml),
+    ] {
         let ruta = dir.join(format!("p.{ext}"));
         fs::write(&ruta, model::write(&doc, s).unwrap()).unwrap();
-        assert_eq!(base, typ_de(&ruta), "el .typ difiere si el documento es {ext}");
+        assert_eq!(
+            base,
+            typ_de(&ruta),
+            "el .typ difiere si el documento es {ext}"
+        );
     }
     let _ = fs::remove_dir_all(&dir);
 }
@@ -102,13 +112,17 @@ fn un_estilo_sin_entradas_lo_dice() {
 
 #[test]
 fn un_rol_de_paleta_que_no_pasa_lo_dice() {
-    let e = error_de(&format!("{BASE}style='liso'\npalette={{ background='#000000', good='#00ff00' }}\ncontent='x'"));
+    let e = error_de(&format!(
+        "{BASE}style='liso'\npalette={{ background='#000000', good='#00ff00' }}\ncontent='x'"
+    ));
     assert!(e.contains("good"), "{e}");
 }
 
 #[test]
 fn un_fondo_sin_traduccion_lo_dice() {
-    let e = error_de(&format!("{BASE}style='liso'\nbackground={{ type='grid' }}\ncontent='x'"));
+    let e = error_de(&format!(
+        "{BASE}style='liso'\nbackground={{ type='grid' }}\ncontent='x'"
+    ));
     assert!(e.contains("fondo"), "{e}");
 }
 
@@ -121,10 +135,15 @@ fn un_campo_sin_destino_en_el_preset_lo_dice() {
 
 #[test]
 fn la_tipografia_se_traduce_o_se_rechaza() {
-    let ok = construir(&format!("{BASE}style='liso'\ntypography={{ body={{ family='Jost', weight=500 }} }}\ncontent='x'")).unwrap();
+    let ok = construir(&format!(
+        "{BASE}style='liso'\ntypography={{ body={{ family='Jost', weight=500 }} }}\ncontent='x'"
+    ))
+    .unwrap();
     assert_eq!(ok.posts[0].args["fuente"].as_str(), Some("Jost"));
     assert_eq!(ok.posts[0].args["peso"].as_integer(), Some(500));
-    let e = error_de(&format!("{BASE}style='liso'\ntypography={{ heading={{ family='Jost' }} }}\ncontent='x'"));
+    let e = error_de(&format!(
+        "{BASE}style='liso'\ntypography={{ heading={{ family='Jost' }} }}\ncontent='x'"
+    ));
     assert!(e.contains("heading"), "{e}");
 }
 
@@ -138,22 +157,34 @@ fn las_paletas_del_documento_no_borran_las_de_fabrica() {
 // ── Paridad: la misma imagen que el formato de siempre ──────
 
 fn entorno_para_compilar() -> Option<(PathBuf, Vec<PathBuf>)> {
-    std::process::Command::new("typst").arg("--version").output().ok()?;
+    std::process::Command::new("typst")
+        .arg("--version")
+        .output()
+        .ok()?;
     let home = std::env::var("HOME").ok()?;
-    if !Path::new(&home).join(".local/share/typst/packages/local/instatypst").exists() {
+    if !Path::new(&home)
+        .join(".local/share/typst/packages/local/instatypst")
+        .exists()
+    {
         return None;
     }
     let fuentes = PathBuf::from("/home/home/Documents/Instatypst/Fonts");
-    fuentes.is_dir().then(|| (std::env::temp_dir(), vec![fuentes]))
+    fuentes
+        .is_dir()
+        .then(|| (std::env::temp_dir(), vec![fuentes]))
 }
 
 fn imagen(cfg: &Config, nombre: &str, dir: &Path, etiqueta: &str, fuentes: &[PathBuf]) -> Vec<u8> {
     let posts = cfg.resolve_all().unwrap();
-    let p = posts.iter().find(|p| p.name == nombre).unwrap_or_else(|| panic!("no hay {nombre}"));
+    let p = posts
+        .iter()
+        .find(|p| p.name == nombre)
+        .unwrap_or_else(|| panic!("no hay {nombre}"));
     let typ = dir.join(format!("{etiqueta}.typ"));
     let png = dir.join(format!("{etiqueta}.png"));
     fs::write(&typ, render::render(p, cfg).unwrap().typ).unwrap();
-    process::compile_typst_with(&typ, &png, 72, dir, fuentes).unwrap_or_else(|e| panic!("{nombre}: {e:#}"));
+    process::compile_typst_with(&typ, &png, 72, dir, fuentes)
+        .unwrap_or_else(|e| panic!("{nombre}: {e:#}"));
     fs::read(&png).unwrap()
 }
 
@@ -167,13 +198,23 @@ fn una_pieza_da_la_misma_imagen_que_el_post_de_siempre() {
     let dir = tmp.join(format!("instatypst-paridad-{}", std::process::id()));
     fs::create_dir_all(&dir).unwrap();
 
-    let viejo = Config::load(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../examples/presets.toml")).unwrap();
+    let viejo =
+        Config::load(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../examples/presets.toml"))
+            .unwrap();
     let nuevo = pieza::cargar(&fixture("build/paridad.toml")).unwrap();
-    for n in ["presets/liso", "presets/suizo", "presets/epigrafe", "presets/esquela"] {
+    for n in [
+        "presets/liso",
+        "presets/suizo",
+        "presets/epigrafe",
+        "presets/esquela",
+    ] {
         let seguro = n.replace('/', "-");
         let a = imagen(&viejo, n, &dir, &format!("viejo-{seguro}"), &fuentes);
         let b = imagen(&nuevo, n, &dir, &format!("nuevo-{seguro}"), &fuentes);
-        assert!(a == b, "{n}: la pieza nueva no da la misma imagen que el post de siempre");
+        assert!(
+            a == b,
+            "{n}: la pieza nueva no da la misma imagen que el post de siempre"
+        );
     }
     let _ = fs::remove_dir_all(&dir);
 }
@@ -197,14 +238,24 @@ fn liso_con(brand: &str, extra: &str) -> String {
 #[test]
 fn la_marca_de_texto_se_traduce_a_una_funcion() {
     let cfg = construir(&liso_con("[brand]\nlogo={ text='@iglesiaraah' }", "")).unwrap();
-    assert_eq!(marca_de(&cfg, 0).as_deref(), Some(r#"marca.texto("@iglesiaraah")"#));
+    assert_eq!(
+        marca_de(&cfg, 0).as_deref(),
+        Some(r#"marca.texto("@iglesiaraah")"#)
+    );
 }
 
 #[test]
 fn la_marca_de_imagen_distingue_svg_de_mapa_de_bits() {
     let svg = construir(&liso_con("[brand]\nlogo={ image='assets/Logo.svg' }", "")).unwrap();
-    assert_eq!(marca_de(&svg, 0).as_deref(), Some(r#"marca.svg(read("/assets/Logo.svg"))"#));
-    let png = construir(&liso_con("[brand]\nlogo={ image='assets/logo.png' }\nsize=0.05", "")).unwrap();
+    assert_eq!(
+        marca_de(&svg, 0).as_deref(),
+        Some(r#"marca.svg(read("/assets/Logo.svg"))"#)
+    );
+    let png = construir(&liso_con(
+        "[brand]\nlogo={ image='assets/logo.png' }\nsize=0.05",
+        "",
+    ))
+    .unwrap();
     assert_eq!(
         marca_de(&png, 0).as_deref(),
         Some(r#"marca.imagen(read("/assets/logo.png", encoding: none), proporcion: 0.05)"#)
@@ -213,13 +264,24 @@ fn la_marca_de_imagen_distingue_svg_de_mapa_de_bits() {
 
 #[test]
 fn la_marca_de_typst_importa_tu_funcion() {
-    let cfg = construir(&liso_con("[brand]\nlogo={ typst='logo.typ', fn='logo' }", "")).unwrap();
-    assert_eq!(marca_de(&cfg, 0).as_deref(), Some(r#"{ import "/logo.typ": logo; logo }"#));
+    let cfg = construir(&liso_con(
+        "[brand]\nlogo={ typst='logo.typ', fn='logo' }",
+        "",
+    ))
+    .unwrap();
+    assert_eq!(
+        marca_de(&cfg, 0).as_deref(),
+        Some(r#"{ import "/logo.typ": logo; logo }"#)
+    );
 }
 
 #[test]
 fn el_texto_de_la_marca_no_se_sale_del_string() {
-    let cfg = construir(&liso_con("[brand]\nlogo={ text='a\"); #read(\"x\"); (\"b' }", "")).unwrap();
+    let cfg = construir(&liso_con(
+        "[brand]\nlogo={ text='a\"); #read(\"x\"); (\"b' }",
+        "",
+    ))
+    .unwrap();
     let e = marca_de(&cfg, 0).unwrap();
     // las comillas del texto van escapadas: sigue siendo un solo literal
     assert!(e.starts_with(r#"marca.texto("a\")"#), "{e}");
@@ -242,12 +304,17 @@ fn una_firma_de_texto_en_la_pieza_manda_sobre_la_marca() {
     let doc = "[brand]\nlogo={ text='SERIE' }\n[[post]]\nname='a'\nstyle='liso'\ncontent='''\nCuerpo.\n#signature[\\@otro]\n'''\n";
     let cfg = construir(doc).unwrap();
     let marca = &cfg.posts[0].args["marca"];
-    assert!(marca.as_table().unwrap().contains_key("md"), "la firma de texto es contenido: {marca:?}");
+    assert!(
+        marca.as_table().unwrap().contains_key("md"),
+        "la firma de texto es contenido: {marca:?}"
+    );
 }
 
 #[test]
 fn un_estilo_que_no_acepta_funcion_lo_dice() {
-    let e = error_de("[brand]\nlogo={ text='X' }\n[[post]]\nname='a'\nstyle='epigrafe'\ncontent='Cita.'");
+    let e = error_de(
+        "[brand]\nlogo={ text='X' }\n[[post]]\nname='a'\nstyle='epigrafe'\ncontent='Cita.'",
+    );
     assert!(e.contains("aún no acepta una marca"), "{e}");
     // y se resuelve quitándola en esa pieza
     construir("[brand]\nlogo={ text='X' }\n[[post]]\nname='a'\nstyle='epigrafe'\nbrand=false\ncontent='Cita.'").unwrap();
@@ -258,7 +325,10 @@ fn la_marca_llega_al_typ_generado() {
     let cfg = construir(&liso_con("[brand]\nlogo={ image='assets/Logo.svg' }", "")).unwrap();
     let p = &cfg.resolve_all().unwrap()[0];
     let typ = render::render(p, &cfg).unwrap().typ;
-    assert!(typ.contains(r#"marca: (marca.svg(read("/assets/Logo.svg")))"#), "{typ}");
+    assert!(
+        typ.contains(r#"marca: (marca.svg(read("/assets/Logo.svg")))"#),
+        "{typ}"
+    );
 }
 
 /// Compilación real: la marca (SVG recoloreado o función propia) cambia la imagen.
@@ -270,7 +340,11 @@ fn la_marca_se_compila_de_verdad() {
     };
     let dir = tmp.join(format!("instatypst-marca-{}", std::process::id()));
     fs::create_dir_all(dir.join("assets")).unwrap();
-    fs::copy(fixture("build/marca/logo-demo.svg"), dir.join("assets/logo-demo.svg")).unwrap();
+    fs::copy(
+        fixture("build/marca/logo-demo.svg"),
+        dir.join("assets/logo-demo.svg"),
+    )
+    .unwrap();
     fs::copy(fixture("build/marca/logo.typ"), dir.join("logo.typ")).unwrap();
 
     let de = |brand: &str, nombre: &str| -> Vec<u8> {
@@ -290,7 +364,10 @@ fn la_marca_se_compila_de_verdad() {
     for (n, b) in [("svg", &svg), ("func", &func), ("texto", &texto)] {
         assert!(b != &sin, "la marca {n} no cambió la imagen");
     }
-    assert!(svg != func && svg != texto && func != texto, "las tres marcas deberían verse distintas");
+    assert!(
+        svg != func && svg != texto && func != texto,
+        "las tres marcas deberían verse distintas"
+    );
     let _ = fs::remove_dir_all(&dir);
 }
 
@@ -321,13 +398,24 @@ fn la_marca_de_la_campana_da_la_lamina_01_de_siempre() {
     };
     copiar(&campana.join("src"), &dir.join("src"));
     for f in ["_comun.typ", "logo.typ", "01-calvinismo-pureza.typ"] {
-        fs::copy(campana.join("trabajos/campana").join(f), dir.join("trabajos/campana").join(f)).unwrap();
+        fs::copy(
+            campana.join("trabajos/campana").join(f),
+            dir.join("trabajos/campana").join(f),
+        )
+        .unwrap();
     }
     fs::copy(campana.join("typst.toml"), dir.join("typst.toml")).unwrap();
 
     // a mano
     let original = dir.join("original.png");
-    process::compile_typst_with(&dir.join("trabajos/campana/01-calvinismo-pureza.typ"), &original, 72, &dir, &fuentes).unwrap();
+    process::compile_typst_with(
+        &dir.join("trabajos/campana/01-calvinismo-pureza.typ"),
+        &original,
+        72,
+        &dir,
+        &fuentes,
+    )
+    .unwrap();
 
     // como pieza, con la marca de la campaña
     let ruta = dir.join("pieza.toml");
@@ -335,7 +423,10 @@ fn la_marca_de_la_campana_da_la_lamina_01_de_siempre() {
         [[post]]\nname='01'\nstyle='suizo'\nformat='portrait'\ncontent='''\n#label[DEL ENSAYO]\n= El calvinismo es simplemente la religión en su\n== ¿Qué es el calvinismo?\n#conclusion[PUREZA.]\n#attribution(author: \"B. B. WARFIELD\", date: \"1851 – 1921\")\n'''\n").unwrap();
     let cfg = pieza::cargar(&ruta).unwrap();
     let nuevo = imagen(&cfg, "01", &dir, "pieza", &fuentes);
-    assert!(fs::read(&original).unwrap() == nuevo, "la lámina 01 como pieza no es idéntica a la hecha a mano");
+    assert!(
+        fs::read(&original).unwrap() == nuevo,
+        "la lámina 01 como pieza no es idéntica a la hecha a mano"
+    );
     let _ = fs::remove_dir_all(&dir);
 }
 
@@ -362,7 +453,9 @@ fn en_liso_el_epigrafe_va_aparte_del_cuerpo() {
     assert!(a.contains_key("epigrafe"), "{a:?}");
     assert!(a.contains_key("epigrafe-fuente"), "{a:?}");
     // el cuerpo es lo otro: no se mezcló con el epígrafe
-    let texto = cfg.posts[0].pos[0].as_table().unwrap()["md"].as_str().unwrap();
+    let texto = cfg.posts[0].pos[0].as_table().unwrap()["md"]
+        .as_str()
+        .unwrap();
     assert_eq!(texto, "Todo es gracia.");
 }
 
@@ -393,10 +486,19 @@ fn liso_con_epigrafe_se_compila_y_cambia_la_imagen() {
     let de = |contenido: &str, nombre: &str| -> Vec<u8> {
         let ruta = dir.join(format!("{nombre}.toml"));
         fs::write(&ruta, format!("schema='instatypst-piece/v1'\n[[post]]\nname='{nombre}'\nstyle='liso'\npalette={{ background='#14213d', text='#ffffff' }}\ncontent='''\n{contenido}\n'''\n")).unwrap();
-        imagen(&pieza::cargar(&ruta).unwrap(), nombre, &dir, nombre, &fuentes)
+        imagen(
+            &pieza::cargar(&ruta).unwrap(),
+            nombre,
+            &dir,
+            nombre,
+            &fuentes,
+        )
     };
     let sin = de("Todo es gracia.", "sin");
-    let con = de("#epigraph(source: \"Efesios 2:8\")[«Por gracia sois salvos.»]\nTodo es gracia.", "con");
+    let con = de(
+        "#epigraph(source: \"Efesios 2:8\")[«Por gracia sois salvos.»]\nTodo es gracia.",
+        "con",
+    );
     assert!(sin != con, "el epígrafe no cambió la imagen");
     let _ = fs::remove_dir_all(&dir);
 }
@@ -409,25 +511,43 @@ fn un_estilo_propio_recibe_la_pieza_resuelta() {
     let posts = cfg.resolve_all().unwrap();
     assert_eq!(posts.len(), 2);
     let e = posts[0].estilo_propio.as_ref().expect("estilo propio");
-    assert_eq!((e.archivo.as_str(), e.funcion.as_str()), ("layouts/mi-estilo.typ", "mi-estilo"));
+    assert_eq!(
+        (e.archivo.as_str(), e.funcion.as_str()),
+        ("layouts/mi-estilo.typ", "mi-estilo")
+    );
     // la posición en la serie la cuenta el documento
     assert_eq!(e.pieza["index"].as_integer(), Some(1));
     assert_eq!(e.pieza["total"].as_integer(), Some(2));
-    assert_eq!(posts[1].estilo_propio.as_ref().unwrap().pieza["index"].as_integer(), Some(2));
+    assert_eq!(
+        posts[1].estilo_propio.as_ref().unwrap().pieza["index"].as_integer(),
+        Some(2)
+    );
 
     let typ = render::render(&posts[0], &cfg).unwrap().typ;
-    assert!(typ.contains(r#"#import "/layouts/mi-estilo.typ": mi-estilo"#), "{typ}");
+    assert!(
+        typ.contains(r#"#import "/layouts/mi-estilo.typ": mi-estilo"#),
+        "{typ}"
+    );
     assert!(typ.contains("#mi-estilo("), "{typ}");
     assert!(typ.contains("format: (1080, 1350)"), "{typ}");
     assert!(typ.contains("background: rgb(\"#691322\")"), "{typ}");
-    assert!(typ.contains("tema: \"granates\""), "las opciones viajan tal cual: {typ}");
+    assert!(
+        typ.contains("tema: \"granates\""),
+        "las opciones viajan tal cual: {typ}"
+    );
 }
 
 #[test]
 fn un_estilo_propio_no_lee_un_tema_de_instatypst() {
-    let cfg = construir("[[post]]\nname='a'\nstyle={ file='x.typ', fn='f' }\npalette='suizo'\ncontent='x'").unwrap();
+    let cfg = construir(
+        "[[post]]\nname='a'\nstyle={ file='x.typ', fn='f' }\npalette='suizo'\ncontent='x'",
+    )
+    .unwrap();
     let p = &cfg.resolve_all().unwrap()[0];
-    let e = format!("{:#}", render::render(p, &cfg).err().expect("debería fallar"));
+    let e = format!(
+        "{:#}",
+        render::render(p, &cfg).err().expect("debería fallar")
+    );
     assert!(e.contains("tema de Instatypst"), "{e}");
 }
 
@@ -437,14 +557,22 @@ fn los_bloques_llegan_con_su_tipo_real() {
     let p = &cfg.resolve_all().unwrap()[0];
     let typ = render::render(p, &cfg).unwrap().typ;
     // sin parentesco: un verso sigue siendo verse, y un epígrafe, epigraph
-    assert!(typ.contains(r#"type: "verse""#) && typ.contains(r#"type: "epigraph""#), "{typ}");
-    assert!(typ.contains("value: 2") && typ.contains("total: 5"), "{typ}");
+    assert!(
+        typ.contains(r#"type: "verse""#) && typ.contains(r#"type: "epigraph""#),
+        "{typ}"
+    );
+    assert!(
+        typ.contains("value: 2") && typ.contains("total: 5"),
+        "{typ}"
+    );
 }
 
 #[test]
 fn la_marca_llega_al_estilo_propio_como_funcion() {
     let cfg = construir("[brand]\nlogo={ text='@x' }\n[[post]]\nname='a'\nstyle={ file='x.typ', fn='f' }\ncontent='x'").unwrap();
-    let typ = render::render(&cfg.resolve_all().unwrap()[0], &cfg).unwrap().typ;
+    let typ = render::render(&cfg.resolve_all().unwrap()[0], &cfg)
+        .unwrap()
+        .typ;
     assert!(typ.contains(r#"brand: (marca.texto("@x"))"#), "{typ}");
 }
 
@@ -457,20 +585,36 @@ fn el_estilo_propio_se_compila_de_verdad() {
     let dir = tmp.join(format!("instatypst-propio-{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(dir.join("layouts")).unwrap();
-    fs::copy(fixture("build/estilo/mi-estilo.typ"), dir.join("layouts/mi-estilo.typ")).unwrap();
+    fs::copy(
+        fixture("build/estilo/mi-estilo.typ"),
+        dir.join("layouts/mi-estilo.typ"),
+    )
+    .unwrap();
     fs::copy(fixture("valid/estilo-propio.toml"), dir.join("piezas.toml")).unwrap();
     let cfg = pieza::cargar(&dir.join("piezas.toml")).unwrap();
     let a = imagen(&cfg, "propio/1", &dir, "uno", &fuentes);
     let b = imagen(&cfg, "propio/2", &dir, "dos", &fuentes);
-    assert!(!a.is_empty() && a != b, "las dos piezas deberían verse distintas");
+    assert!(
+        !a.is_empty() && a != b,
+        "las dos piezas deberían verse distintas"
+    );
     let _ = fs::remove_dir_all(&dir);
 }
 
 #[test]
 fn las_claves_opcionales_de_la_pieza_siempre_existen() {
     let cfg = construir("[[post]]\nname='a'\nstyle={ file='x.typ', fn='f' }\ncontent='x'").unwrap();
-    let typ = render::render(&cfg.resolve_all().unwrap()[0], &cfg).unwrap().typ;
-    for clave in ["format: none", "palette: none", "brand: none", "variant: none", "background: none", "typography: none"] {
+    let typ = render::render(&cfg.resolve_all().unwrap()[0], &cfg)
+        .unwrap()
+        .typ;
+    for clave in [
+        "format: none",
+        "palette: none",
+        "brand: none",
+        "variant: none",
+        "background: none",
+        "typography: none",
+    ] {
         assert!(typ.contains(clave), "falta `{clave}`: {typ}");
     }
 }
@@ -493,20 +637,34 @@ fn la_disociacion_como_piezas_da_las_laminas_de_siempre() {
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(dir.join("layouts")).unwrap();
     let real = fixture("real/disociacion");
-    fs::copy(real.join("layouts/disociacion.typ"), dir.join("layouts/disociacion.typ")).unwrap();
+    fs::copy(
+        real.join("layouts/disociacion.typ"),
+        dir.join("layouts/disociacion.typ"),
+    )
+    .unwrap();
     fs::copy(real.join("disociacion.toml"), dir.join("disociacion.toml")).unwrap();
 
     // a mano: las 9 láminas del original
     let viejas = dir.join("viejo");
     fs::create_dir_all(&viejas).unwrap();
-    process::compile_typst_with(&original.join("disociacion.typ"), &viejas.join("{0p}.png"), 72, &original, &fuentes).unwrap();
+    process::compile_typst_with(
+        &original.join("disociacion.typ"),
+        &viejas.join("{0p}.png"),
+        72,
+        &original,
+        &fuentes,
+    )
+    .unwrap();
 
     // como piezas
     let cfg = pieza::cargar(&dir.join("disociacion.toml")).unwrap();
     for n in 1..=9 {
         let nuevo = imagen(&cfg, &format!("dis/0{n}"), &dir, &format!("n{n}"), &fuentes);
         let viejo = fs::read(viejas.join(format!("{n}.png"))).unwrap();
-        assert!(viejo == nuevo, "la lámina {n} no es idéntica a la hecha a mano");
+        assert!(
+            viejo == nuevo,
+            "la lámina {n} no es idéntica a la hecha a mano"
+        );
     }
     let _ = fs::remove_dir_all(&dir);
 }
@@ -517,7 +675,9 @@ fn la_disociacion_como_piezas_da_las_laminas_de_siempre() {
 fn el_rotulo_puede_repetirse_en_un_estilo_propio() {
     // marca quiebres dentro del flujo: varios rótulos en una misma pieza
     let cfg = construir("[[post]]\nname='a'\nstyle={ file='x.typ', fn='f' }\ncontent='''\n#label[Uno]\n= T\n#label[Dos]\nCuerpo.\n#label[Tres]\n'''").unwrap();
-    let typ = render::render(&cfg.resolve_all().unwrap()[0], &cfg).unwrap().typ;
+    let typ = render::render(&cfg.resolve_all().unwrap()[0], &cfg)
+        .unwrap()
+        .typ;
     assert_eq!(typ.matches(r#"type: "label""#).count(), 3, "{typ}");
 }
 
@@ -526,5 +686,8 @@ fn un_estilo_con_un_solo_lugar_para_el_rotulo_no_admite_dos() {
     let e = error_de("[[post]]\nname='a'\nstyle='suizo'\ncontent='''\n#label[Uno]\n#label[Dos]\n= T\n#conclusion[C]\n'''");
     assert!(e.contains("solo tiene un lugar para `label`"), "{e}");
     // y con uno solo, sin problema
-    construir("[[post]]\nname='a'\nstyle='suizo'\ncontent='''\n#label[Uno]\n= T\n#conclusion[C]\n'''").unwrap();
+    construir(
+        "[[post]]\nname='a'\nstyle='suizo'\ncontent='''\n#label[Uno]\n= T\n#conclusion[C]\n'''",
+    )
+    .unwrap();
 }

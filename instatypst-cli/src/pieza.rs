@@ -17,8 +17,8 @@ use std::path::Path;
 
 use crate::config::{Config, Defaults, FormatoSpec, RawPost};
 use crate::model::{
-    self, Background, Block, Brand, BrandSpec, Catalog, Content, Document, Font, Format, FormatName, Item, PaletteDef,
-    PaletteSpec, PieceSpec, Role, Side, StyleSig, Style, Syntax,
+    self, Background, Block, Brand, BrandSpec, Catalog, Content, Document, Font, Format,
+    FormatName, Item, PaletteDef, PaletteSpec, PieceSpec, Role, Side, Style, StyleSig, Syntax,
 };
 use crate::typst::{asset_path, str_lit};
 use crate::{colors, themes};
@@ -52,7 +52,11 @@ pub fn es_de_piezas(texto: &str, sintaxis: Syntax) -> bool {
 pub fn formatear(issues: &[model::Issue]) -> String {
     let mut s = String::new();
     for i in issues {
-        let ruta = if i.path.is_empty() { "(documento)" } else { &i.path };
+        let ruta = if i.path.is_empty() {
+            "(documento)"
+        } else {
+            &i.path
+        };
         s.push_str(&format!("  ✗ {ruta} [{}]: {}\n", i.code, i.message));
     }
     s
@@ -60,8 +64,8 @@ pub fn formatear(issues: &[model::Issue]) -> String {
 
 /// Carga un archivo de posts: de piezas (TOML, JSON o YAML) o el `posts.toml` de siempre.
 pub fn cargar(path: &Path) -> Result<Config> {
-    let texto = fs::read_to_string(path)
-        .with_context(|| format!("No se pudo leer {}", path.display()))?;
+    let texto =
+        fs::read_to_string(path).with_context(|| format!("No se pudo leer {}", path.display()))?;
     let sintaxis = path
         .to_str()
         .and_then(Syntax::from_extension)
@@ -115,7 +119,11 @@ pub fn a_config_omitiendo(
         let nombre = p.name.clone().unwrap_or_default();
         match a_post(&p, i, doc, cat, &mut paletas) {
             Ok(post) => posts.push(post),
-            Err(error) => fallos.push(Fallo { indice: i, nombre, error }),
+            Err(error) => fallos.push(Fallo {
+                indice: i,
+                nombre,
+                error,
+            }),
         }
     }
     (
@@ -211,7 +219,10 @@ fn a_post(
     // palabra clave usan las tablas de siempre: `{ kw = "center" }`, `{ len = "96pt" }`,
     // `{ color = "#691322" }`.
     for (k, v) in &p.options {
-        valores.insert(k.clone(), json_a_toml(v).with_context(|| format!("options.{k}"))?);
+        valores.insert(
+            k.clone(),
+            json_a_toml(v).with_context(|| format!("options.{k}"))?,
+        );
     }
 
     // Posicionales (en el orden del preset) y el resto con nombre
@@ -281,14 +292,22 @@ fn a_post_propio(
     pieza.insert("total".into(), Value::Integer(doc.posts.len() as i64));
     pieza.insert(
         "blocks".into(),
-        Value::Array(bloques.iter().map(|b| Value::Table(bloque_propio(b))).collect()),
+        Value::Array(
+            bloques
+                .iter()
+                .map(|b| Value::Table(bloque_propio(b)))
+                .collect(),
+        ),
     );
     if let Some(v) = &p.variant {
         pieza.insert("variant".into(), Value::String(v.clone()));
     }
     let mut opciones = toml::Table::new();
     for (k, v) in &p.options {
-        opciones.insert(k.clone(), json_a_toml(v).with_context(|| format!("options.{k}"))?);
+        opciones.insert(
+            k.clone(),
+            json_a_toml(v).with_context(|| format!("options.{k}"))?,
+        );
     }
     pieza.insert("options".into(), Value::Table(opciones));
 
@@ -400,13 +419,26 @@ fn bloque_propio(b: &Block) -> toml::Table {
             }
         }
         Block::Verse { lines, role } => {
-            t.insert("lines".into(), Value::Array(lines.iter().map(|l| md(l)).collect()));
+            t.insert(
+                "lines".into(),
+                Value::Array(lines.iter().map(|l| md(l)).collect()),
+            );
             if let Some(r) = role {
                 t.insert("role".into(), Value::String(r.clone()));
             }
         }
-        Block::Attribution { author, role, work, date } => {
-            for (k, v) in [("author", author), ("role", role), ("work", work), ("date", date)] {
+        Block::Attribution {
+            author,
+            role,
+            work,
+            date,
+        } => {
+            for (k, v) in [
+                ("author", author),
+                ("role", role),
+                ("work", work),
+                ("date", date),
+            ] {
                 if let Some(v) = v {
                     poner(&mut t, k, v);
                 }
@@ -429,7 +461,10 @@ fn bloque_propio(b: &Block) -> toml::Table {
                 model::ListOrder::Chronological => "chronological",
             };
             t.insert("order".into(), Value::String(o.into()));
-            t.insert("items".into(), Value::Array(items.iter().map(item_propio).collect()));
+            t.insert(
+                "items".into(),
+                Value::Array(items.iter().map(item_propio).collect()),
+            );
         }
         Block::Contrast { left, right } => {
             for (k, s) in [("left", left), ("right", right)] {
@@ -440,7 +475,10 @@ fn bloque_propio(b: &Block) -> toml::Table {
                 if let Some(x) = &s.title {
                     l.insert("title".into(), md(x));
                 }
-                l.insert("items".into(), Value::Array(s.items.iter().map(item_propio).collect()));
+                l.insert(
+                    "items".into(),
+                    Value::Array(s.items.iter().map(item_propio).collect()),
+                );
                 t.insert(k.into(), Value::Table(l));
             }
         }
@@ -640,7 +678,10 @@ fn lado(s: &Side, estilo: &str) -> Result<toml::Value> {
 /// preset llama con su propia tinta. Los textos y rutas pasan por `str_lit` y `asset_path`;
 /// el único código que se emite es el que escribe esta función.
 fn marca(b: &Brand) -> Result<toml::Value> {
-    let tam = b.size.map(|s| format!(", proporcion: {s}")).unwrap_or_default();
+    let tam = b
+        .size
+        .map(|s| format!(", proporcion: {s}"))
+        .unwrap_or_default();
     let l = &b.logo;
     let expr = if let Some(t) = &l.text {
         format!("marca.texto({}{tam})", str_lit(t))
@@ -734,9 +775,17 @@ fn paleta(
 }
 
 fn tiene_roles(d: &PaletteDef) -> bool {
-    [&d.background, &d.text, &d.muted, &d.accent, &d.line, &d.good, &d.bad]
-        .iter()
-        .any(|r| r.is_some())
+    [
+        &d.background,
+        &d.text,
+        &d.muted,
+        &d.accent,
+        &d.line,
+        &d.good,
+        &d.bad,
+    ]
+    .iter()
+    .any(|r| r.is_some())
 }
 
 /// Roles del contrato → las claves de siempre de la CLI. Los que faltan se derivan.

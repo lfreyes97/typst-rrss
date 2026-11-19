@@ -30,7 +30,10 @@ fn el_identificador_del_contrato_es_v1() {
 #[test]
 fn el_documento_que_lo_usa_todo_es_valido() {
     let issues = model::validate(&todo());
-    assert!(issues.is_empty(), "todo.toml dejó de ser válido: {issues:#?}");
+    assert!(
+        issues.is_empty(),
+        "todo.toml dejó de ser válido: {issues:#?}"
+    );
 }
 
 /// La serialización es la forma del contrato: nombres de campos, enums, anidación.
@@ -43,7 +46,8 @@ fn la_forma_serializada_no_cambia() {
         eprintln!("golden actualizado: {}", golden.display());
         return;
     }
-    let esperado = fs::read_to_string(&golden).expect("falta piece-v1.golden.json (UPDATE_GOLDEN=1)");
+    let esperado =
+        fs::read_to_string(&golden).expect("falta piece-v1.golden.json (UPDATE_GOLDEN=1)");
     assert!(
         json == esperado,
         "la forma del contrato v1 cambió. Si es a propósito, es otra versión: \
@@ -56,7 +60,11 @@ fn la_forma_serializada_no_cambia() {
 fn el_golden_se_sigue_leyendo_y_da_lo_mismo() {
     let golden = fs::read_to_string(dir().join("piece-v1.golden.json")).unwrap();
     let de_json = model::parse(&golden, Syntax::Json).expect("el golden de v1 ya no se lee");
-    assert_eq!(de_json, todo(), "leer el golden da otro documento que el TOML original");
+    assert_eq!(
+        de_json,
+        todo(),
+        "leer el golden da otro documento que el TOML original"
+    );
 }
 
 #[test]
@@ -78,8 +86,21 @@ fn los_bloques_y_su_parentesco_estan_congelados() {
     assert_eq!(
         bloques,
         [
-            "attribution", "body", "conclusion", "contrast", "date", "epigraph", "footer", "label",
-            "list", "number", "quote", "signature", "subtitle", "title", "verse"
+            "attribution",
+            "body",
+            "conclusion",
+            "contrast",
+            "date",
+            "epigraph",
+            "footer",
+            "label",
+            "list",
+            "number",
+            "quote",
+            "signature",
+            "subtitle",
+            "title",
+            "verse"
         ],
         "el catálogo de bloques de v1 cambió"
     );
@@ -119,8 +140,12 @@ fn los_codigos_de_error_del_documento_son_los_del_codigo() {
             }
         }
     }
-    let doc = fs::read_to_string(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../docs/contrato-v1.md")).unwrap();
-    let tabla = &doc[doc.find("**Códigos de error**").unwrap()..doc.find("## Estilo propio").unwrap()];
+    let doc = fs::read_to_string(
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../docs/contrato-v1.md"),
+    )
+    .unwrap();
+    let tabla =
+        &doc[doc.find("**Códigos de error**").unwrap()..doc.find("## Estilo propio").unwrap()];
     let del_doc: BTreeSet<String> = tabla
         .split('`')
         .skip(1)
@@ -131,7 +156,10 @@ fn los_codigos_de_error_del_documento_son_los_del_codigo() {
     assert_eq!(del_doc.len(), 40, "el documento declara 40 códigos");
     // todo código documentado existe en el código (lo contrario no se exige: el código tiene otras cadenas)
     let huerfanos: Vec<_> = del_doc.difference(&del_codigo).collect();
-    assert!(huerfanos.is_empty(), "documentados pero no emitidos: {huerfanos:?}");
+    assert!(
+        huerfanos.is_empty(),
+        "documentados pero no emitidos: {huerfanos:?}"
+    );
 }
 
 /// Y al revés, en lo que se puede comprobar: todo código que esperan los fixtures inválidos
@@ -141,12 +169,24 @@ fn los_codigos_que_esperan_los_fixtures_estan_documentados() {
     let base = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let doc = fs::read_to_string(base.join("../docs/contrato-v1.md")).unwrap();
     let mut sin_documentar = Vec::new();
-    for e in fs::read_dir(base.join("tests/fixtures/contrato/invalid")).unwrap().flatten() {
+    for e in fs::read_dir(base.join("tests/fixtures/contrato/invalid"))
+        .unwrap()
+        .flatten()
+    {
         let t = fs::read_to_string(e.path()).unwrap();
-        let codigo = t.lines().next().and_then(|l| l.strip_prefix("# expect: ")).unwrap().trim().to_string();
+        let codigo = t
+            .lines()
+            .next()
+            .and_then(|l| l.strip_prefix("# expect: "))
+            .unwrap()
+            .trim()
+            .to_string();
         if !doc.contains(&format!("`{codigo}`")) {
             sin_documentar.push((e.file_name(), codigo));
         }
     }
-    assert!(sin_documentar.is_empty(), "códigos esperados por fixtures y no documentados: {sin_documentar:?}");
+    assert!(
+        sin_documentar.is_empty(),
+        "códigos esperados por fixtures y no documentados: {sin_documentar:?}"
+    );
 }

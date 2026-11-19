@@ -110,7 +110,10 @@ fn el_catalogo_es_coherente() {
         }
         usados.extend(sig.bloques.opcionales.iter().map(String::as_str));
         for b in usados {
-            assert!(cat.blocks.iter().any(|c| c == b), "{nombre}: bloque fuera del catálogo: {b}");
+            assert!(
+                cat.blocks.iter().any(|c| c == b),
+                "{nombre}: bloque fuera del catálogo: {b}"
+            );
         }
         assert!(!sig.options.is_empty(), "{nombre}: sin options derivadas");
     }
@@ -121,8 +124,21 @@ fn el_catalogo_es_coherente() {
 fn los_bloques_del_modelo_son_los_del_catalogo() {
     let cat = Catalog::embedded();
     let del_modelo = [
-        "title", "subtitle", "label", "body", "quote", "epigraph", "verse", "conclusion",
-        "attribution", "list", "contrast", "signature", "footer", "number", "date",
+        "title",
+        "subtitle",
+        "label",
+        "body",
+        "quote",
+        "epigraph",
+        "verse",
+        "conclusion",
+        "attribution",
+        "list",
+        "contrast",
+        "signature",
+        "footer",
+        "number",
+        "date",
     ];
     let mut a: Vec<&str> = cat.blocks.iter().map(String::as_str).collect();
     let mut b = del_modelo.to_vec();
@@ -175,5 +191,9 @@ fn typst_y_bloques_son_equivalentes() {
 fn los_errores_de_typst_llevan_linea_y_columna() {
     let t = fs::read_to_string(dir("invalid").join("markup-read.toml")).unwrap();
     let issues = model::load_checked(&t, Syntax::Toml, &Catalog::embedded()).unwrap_err();
-    assert!(issues[0].path.starts_with("post[0].content@"), "{}", issues[0].path);
+    assert!(
+        issues[0].path.starts_with("post[0].content@"),
+        "{}",
+        issues[0].path
+    );
 }

@@ -94,11 +94,17 @@ impl Report {
     }
 
     pub fn errors(&self) -> usize {
-        self.findings.iter().filter(|f| f.severity == Severity::Error).count()
+        self.findings
+            .iter()
+            .filter(|f| f.severity == Severity::Error)
+            .count()
     }
 
     pub fn warnings(&self) -> usize {
-        self.findings.iter().filter(|f| f.severity == Severity::Warning).count()
+        self.findings
+            .iter()
+            .filter(|f| f.severity == Severity::Warning)
+            .count()
     }
 
     pub fn to_json(&self) -> String {
@@ -109,7 +115,11 @@ impl Report {
     pub fn to_text(&self) -> String {
         let mut s = String::new();
         for f in &self.findings {
-            let marca = if f.severity == Severity::Error { "✗" } else { "⚠" };
+            let marca = if f.severity == Severity::Error {
+                "✗"
+            } else {
+                "⚠"
+            };
             let donde = match (&f.piece, f.path.is_empty()) {
                 (Some(p), true) => format!("pieza {p:?}"),
                 (Some(p), false) => format!("{} · pieza {p:?}", f.path),
@@ -152,7 +162,12 @@ pub fn check_file(path: &Path) -> Report {
     let texto = match fs::read_to_string(path) {
         Ok(t) => t,
         Err(e) => {
-            r.error("read", "", None, format!("no se pudo leer {}: {e}", path.display()));
+            r.error(
+                "read",
+                "",
+                None,
+                format!("no se pudo leer {}: {e}", path.display()),
+            );
             return r.cerrar();
         }
     };

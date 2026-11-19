@@ -132,8 +132,11 @@ pub enum FormatName {
 
 // ── Paleta ──────────────────────────────────────────────────
 
+// `Def` pesa mucho más que `Name`; meterlo en un `Box` cambiaría un tipo público del contrato
+// congelado para ahorrar unos bytes por pieza, así que se deja como está.
 #[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(untagged)]
+#[allow(clippy::large_enum_variant)]
 pub enum PaletteSpec {
     Name(String),
     Def(PaletteDef),
@@ -276,11 +279,21 @@ pub enum Content {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "lowercase", deny_unknown_fields)]
 pub enum Block {
-    Title { text: String },
-    Subtitle { text: String },
-    Label { text: String },
-    Body { text: String },
-    Quote { text: String },
+    Title {
+        text: String,
+    },
+    Subtitle {
+        text: String,
+    },
+    Label {
+        text: String,
+    },
+    Body {
+        text: String,
+    },
+    Quote {
+        text: String,
+    },
     /// Una cita breve que abre la pieza; `source` es de quién es (no es la atribución
     /// de la pieza). En un estilo que no tiene dónde ponerla aparte, se dibuja como el cuerpo.
     Epigraph {
@@ -291,7 +304,9 @@ pub enum Block {
         lines: Vec<String>,
         role: Option<String>,
     },
-    Conclusion { text: String },
+    Conclusion {
+        text: String,
+    },
     Attribution {
         author: Option<String>,
         /// Cargo o descripción de quien habla.
@@ -305,10 +320,17 @@ pub enum Block {
         items: Vec<Item>,
     },
     /// Dos lados enfrentados (versus, ley/evangelio…).
-    Contrast { left: Side, right: Side },
-    Signature { text: String },
+    Contrast {
+        left: Side,
+        right: Side,
+    },
+    Signature {
+        text: String,
+    },
     /// Línea de cierre bajo el contenido (pie, coda, pista).
-    Footer { text: String },
+    Footer {
+        text: String,
+    },
     /// Numeral propio (p. ej. el número del capítulo).
     Number {
         value: u32,
@@ -316,7 +338,10 @@ pub enum Block {
         total: Option<u32>,
     },
     /// Una fecha de evento: día y mes (el mes, como se quiera mostrar).
-    Date { day: u8, month: String },
+    Date {
+        day: u8,
+        month: String,
+    },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
@@ -397,7 +422,6 @@ impl Block {
     }
 }
 
-
 // ── Lectura de "texto o tabla" con errores que nombran el campo ──
 //
 // `#[serde(untagged)]` solo sabe decir «no coincide con ninguna variante». Aquí
@@ -412,9 +436,13 @@ macro_rules! cadena_o_estructura {
                 use serde::de::Error;
                 let v = serde_json::Value::deserialize(d)?;
                 if v.is_string() {
-                    serde_json::from_value::<$sty>(v).map($t::$s).map_err(D::Error::custom)
+                    serde_json::from_value::<$sty>(v)
+                        .map($t::$s)
+                        .map_err(D::Error::custom)
                 } else {
-                    serde_json::from_value::<$oty>(v).map($t::$o).map_err(D::Error::custom)
+                    serde_json::from_value::<$oty>(v)
+                        .map($t::$o)
+                        .map_err(D::Error::custom)
                 }
             }
         }
@@ -534,7 +562,11 @@ pub fn validate(doc: &Document) -> Vec<Issue> {
     for (i, p) in doc.posts.iter().enumerate() {
         let base = format!("post[{i}]");
         match p.name.as_deref() {
-            None => v.push(issue(format!("{base}.name"), "name_missing", "falta `name`")),
+            None => v.push(issue(
+                format!("{base}.name"),
+                "name_missing",
+                "falta `name`",
+            )),
             Some(n) => {
                 if !nombre_valido(n) {
                     v.push(issue(
@@ -561,7 +593,11 @@ pub fn validate(doc: &Document) -> Vec<Issue> {
         // Obligatorios, contando lo que hereda de defaults.
         let hereda = |f: fn(&PieceSpec) -> bool| doc.defaults.as_ref().is_some_and(f);
         if p.style.is_none() && !hereda(|d| d.style.is_some()) {
-            v.push(issue(format!("{base}.style"), "style_missing", "falta `style`"));
+            v.push(issue(
+                format!("{base}.style"),
+                "style_missing",
+                "falta `style`",
+            ));
         }
         if p.content.is_none() && !hereda(|d| d.content.is_some()) {
             v.push(issue(
@@ -601,7 +637,11 @@ fn validar_marca(b: &Brand, base: &str, v: &mut Vec<Issue>) {
     }
     if let Some(t) = &l.text {
         if t.trim().is_empty() {
-            v.push(issue(format!("{base}.logo.text"), "brand_logo", "el texto de la marca está vacío"));
+            v.push(issue(
+                format!("{base}.logo.text"),
+                "brand_logo",
+                "el texto de la marca está vacío",
+            ));
         }
     }
     if let Some(f) = &l.function {
@@ -659,7 +699,11 @@ fn nombre_valido(n: &str) -> bool {
 fn validar_campos(p: &PieceSpec, base: &str, doc: &Document, v: &mut Vec<Issue>) {
     if let Some(Style::Catalog(s)) = &p.style {
         if s.trim().is_empty() {
-            v.push(issue(format!("{base}.style"), "style_empty", "`style` vacío"));
+            v.push(issue(
+                format!("{base}.style"),
+                "style_empty",
+                "`style` vacío",
+            ));
         }
     }
     if let Some(Style::Custom(c)) = &p.style {
@@ -667,7 +711,10 @@ fn validar_campos(p: &PieceSpec, base: &str, doc: &Document, v: &mut Vec<Issue>)
             v.push(issue(
                 format!("{base}.style.file"),
                 "style_file",
-                format!("{:?}: se espera un archivo .typ dentro del proyecto (sin `..`)", c.file),
+                format!(
+                    "{:?}: se espera un archivo .typ dentro del proyecto (sin `..`)",
+                    c.file
+                ),
             ));
         }
         if !crate::typst::is_ident(&c.function) {
@@ -693,9 +740,11 @@ fn validar_campos(p: &PieceSpec, base: &str, doc: &Document, v: &mut Vec<Issue>)
 
     match &p.palette {
         Some(PaletteSpec::Def(d)) => validar_paleta(d, &format!("{base}.palette"), v),
-        Some(PaletteSpec::Name(n)) if n.trim().is_empty() => {
-            v.push(issue(format!("{base}.palette"), "palette_empty", "paleta sin nombre"))
-        }
+        Some(PaletteSpec::Name(n)) if n.trim().is_empty() => v.push(issue(
+            format!("{base}.palette"),
+            "palette_empty",
+            "paleta sin nombre",
+        )),
         _ => {}
     }
     let _ = doc; // el nombre de paleta se resuelve contra el catálogo en la capa semántica
@@ -803,18 +852,32 @@ fn validar_bloques(bs: &[Block], base: &str, v: &mut Vec<Issue>) {
             }
             Block::Date { day, month } => {
                 if !(1..=31).contains(day) {
-                    v.push(issue(format!("{ruta}.day"), "date_invalid", format!("día {day} fuera de 1–31")));
+                    v.push(issue(
+                        format!("{ruta}.day"),
+                        "date_invalid",
+                        format!("día {day} fuera de 1–31"),
+                    ));
                 }
                 if month.trim().is_empty() {
-                    v.push(issue(format!("{ruta}.month"), "date_invalid", "`month` vacío"));
+                    v.push(issue(
+                        format!("{ruta}.month"),
+                        "date_invalid",
+                        "`month` vacío",
+                    ));
                 }
             }
             Block::Verse { lines, .. } => {
                 if lines.is_empty() {
-                    v.push(issue(format!("{ruta}.lines"), "verse_empty", "verso sin líneas"));
+                    v.push(issue(
+                        format!("{ruta}.lines"),
+                        "verse_empty",
+                        "verso sin líneas",
+                    ));
                 }
             }
-            Block::Attribution { author, work, date, .. } => {
+            Block::Attribution {
+                author, work, date, ..
+            } => {
                 if author.is_none() && work.is_none() && date.is_none() {
                     v.push(issue(
                         &ruta,
@@ -825,7 +888,11 @@ fn validar_bloques(bs: &[Block], base: &str, v: &mut Vec<Issue>) {
             }
             Block::List { items, .. } => {
                 if items.is_empty() {
-                    v.push(issue(format!("{ruta}.items"), "list_empty", "lista sin ítems"));
+                    v.push(issue(
+                        format!("{ruta}.items"),
+                        "list_empty",
+                        "lista sin ítems",
+                    ));
                 }
             }
             Block::Contrast { left, right } => {
@@ -916,7 +983,8 @@ pub struct StyleSig {
 
 /// Parámetros que el compilador fija a partir de los ejes de la pieza; no se
 /// pasan en `options` (se usaría `format` / `palette` / `variant`).
-const OPCIONES_RESERVADAS: &[(&str, &str)] = &[("formato", "format"), ("tema", "palette o variant")];
+const OPCIONES_RESERVADAS: &[(&str, &str)] =
+    &[("formato", "format"), ("tema", "palette o variant")];
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Slots {
@@ -978,7 +1046,10 @@ pub fn validate_semantic(doc: &Document, cat: &Catalog) -> Vec<Issue> {
             v.push(issue(
                 format!("{base}.style"),
                 "style_unknown",
-                format!("el estilo {nombre:?} no existe; los del catálogo: {}", validos.join(", ")),
+                format!(
+                    "el estilo {nombre:?} no existe; los del catálogo: {}",
+                    validos.join(", ")
+                ),
             ));
             continue;
         };
@@ -994,7 +1065,10 @@ pub fn validate_semantic(doc: &Document, cat: &Catalog) -> Vec<Issue> {
                 v.push(issue(
                     format!("{base}.options.{clave}"),
                     "option_unknown",
-                    format!("`{nombre}` no tiene la opción {clave:?}; acepta: {}", sig.options.join(", ")),
+                    format!(
+                        "`{nombre}` no tiene la opción {clave:?}; acepta: {}",
+                        sig.options.join(", ")
+                    ),
                 ));
             }
         }
@@ -1025,7 +1099,11 @@ pub fn validate_semantic(doc: &Document, cat: &Catalog) -> Vec<Issue> {
         // el `body` que ese mismo estilo exige.
         let resueltos: Vec<Option<&str>> = bs
             .iter()
-            .map(|b| cat.cadena(b.kind()).into_iter().find(|k| aceptados.contains(k)))
+            .map(|b| {
+                cat.cadena(b.kind())
+                    .into_iter()
+                    .find(|k| aceptados.contains(k))
+            })
             .collect();
 
         for req in &sig.bloques.requeridos {
