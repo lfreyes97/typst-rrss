@@ -4,8 +4,9 @@
 //! - **Sí**: extraer los colores de una imagen (`extract`), elegir con ellos los cinco roles
 //!   del contrato (`roles`), medir contraste (`contrast`) y un catálogo pequeño de esquemas
 //!   (`schemes`).
-//! - **No**: paletas decorativas ni tokens (eso es del scaffold, Instatypst); degradados
-//!   ni catálogos de esquemas de muestras (eso, si hace falta, es de la GUI).
+//! - Con la feature `gradient`: rampas de n pasos y duotonos (`gradient`), interpolados en Oklab.
+//! - **No**: paletas decorativas ni tokens (eso es del scaffold, Instatypst); ni catálogos de
+//!   esquemas de muestras (eso, si hace falta, es de la GUI).
 //!
 //! El crate no conoce el contrato: devuelve [`Roles`], y quien lo usa (el CLI, la GUI) hace
 //! el pegamento hacia su `palette`. Así `color` y `piece` no dependen entre sí.
@@ -13,6 +14,8 @@
 pub mod contrast;
 #[cfg(feature = "image")]
 pub mod extract;
+#[cfg(feature = "gradient")]
+pub mod gradient;
 pub mod hex;
 pub mod roles;
 pub mod schemes;

@@ -9,8 +9,11 @@ license = "MIT"
 default = ["image"]
 # Extraer colores de una imagen (k-means en Oklab).
 image = ["dep:image", "dep:quantette"]
+# Rampas de n pasos y duotonos.
+gradient = ["dep:colorgrad"]
 
 [dependencies]
+colorgrad = { version = "0.9", optional = true }
 palette = "0.7"
 image = { version = "0.25", optional = true }
 quantette = { version = "0.6", optional = true }
