@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["instatypst-cli", "instatypst-color", "instatypst-piece"]
+members = ["instatypst-cli", "instatypst-color", "instatypst-piece", "instatypst-engine"]
 
 # Los perfiles solo valen en la raíz del workspace.
 [profile.dev]
