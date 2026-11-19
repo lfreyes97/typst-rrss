@@ -8,7 +8,7 @@ name = "instatypst"
 path = "src/main.rs"
 
 [dependencies]
-instatypst-color = { path = "../instatypst-color" }
+instatypst-color = { path = "../instatypst-color", features = ["material"] }
 anyhow = "1.0.101"
 clap = { version = "4.5.58", features = ["derive"] }
 image = "0.25.9"
@@ -19,7 +19,6 @@ serde_yaml = "0.9"
 typst-syntax = "=0.15.1"
 toml = { version = "1.0.0", features = ["preserve_order"] }
 walkdir = "2.5.0"
-material-colors = { version = "0.4.2", features = ["image"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 

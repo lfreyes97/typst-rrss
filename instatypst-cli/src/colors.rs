@@ -83,39 +83,10 @@ pub fn suggest_accent(image_path: &str) -> Result<String> {
 }
 
 /// Paleta Material You (esquema oscuro) a partir de una imagen. Falla si no se puede leer.
-pub fn matugen_palette(path: &str) -> Result<std::collections::HashMap<String, String>> {
-    use anyhow::Context;
-    use material_colors::image::{FilterType, ImageReader};
-    use material_colors::theme::ThemeBuilder;
-
-    let bytes =
-        std::fs::read(path).with_context(|| format!("no se pudo leer la imagen {path:?}"))?;
-    let mut data = ImageReader::read(bytes)
-        .map_err(|e| anyhow::anyhow!("no se pudo decodificar {path:?}: {e}"))?;
-
-    // 128x128: rápido y estable para extraer color (recomendado por material-colors)
-    data.resize(128, 128, FilterType::Lanczos3);
-
-    let color = ImageReader::extract_color(&data);
-    let theme = ThemeBuilder::with_source(color).build();
-    let scheme = &theme.schemes.dark;
-
-    let mut m = std::collections::HashMap::new();
-    m.insert("bg".to_string(), scheme.background.to_hex_with_pound());
-    m.insert("surface".to_string(), scheme.surface.to_hex_with_pound());
-    m.insert("primary".to_string(), scheme.primary.to_hex_with_pound());
-    m.insert(
-        "secondary".to_string(),
-        scheme.secondary.to_hex_with_pound(),
-    );
-    m.insert("accent".to_string(), scheme.tertiary.to_hex_with_pound());
-    m.insert("text".to_string(), scheme.on_background.to_hex_with_pound());
-    m.insert("muted".to_string(), scheme.outline.to_hex_with_pound());
-    m.insert(
-        "highlight".to_string(),
-        scheme.primary_container.to_hex_with_pound(),
-    );
-    Ok(m)
+pub fn matugen_palette(path: &str) -> Result<HashMap<String, String>> {
+    let sel = instatypst_color::material::from_image(Path::new(path), true)
+        .map_err(|e| anyhow!("no se pudo leer {path:?}: {e}"))?;
+    Ok(paleta_de_roles(&sel.roles))
 }
 
 #[cfg(test)]

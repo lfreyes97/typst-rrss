@@ -20,7 +20,7 @@ Actualizado el 2026-11-18. La CLI pasó de generar layouts propios (`rrss-pkg`) 
 ## Pendiente
 
 **Funcionalidad**
-- **CLI migrado a `instatypst-color`** (hecho): ya no usa `color-thief`, `thaimeleon_lib` (AGPL) ni `libc`. `colors` y `tema = "auto"` salen de `from_base` y del selector de roles (los roles de la foto); `extract` muestra porcentajes. Pendiente: `material` en el crate (verificar la API de `material-colors` 0.5; hoy `auto-matugen` sigue en el CLI con 0.4) y borrar `themes.rs` cuando la GUI tenga sus presets.
+- **CLI migrado a `instatypst-color`** (hecho): ya no usa `color-thief`, `thaimeleon_lib` (AGPL) ni `libc`. `colors` y `tema = "auto"` salen de `from_base` y del selector de roles (los roles de la foto); `extract` muestra porcentajes. `auto-matugen` usa el módulo `material` del crate (`material-colors` 0.5, esquema oscuro o claro desde un color o una imagen). Pendiente: borrar `themes.rs` cuando la GUI tenga sus presets, y evaluar `lutgen` para `background.recolor` (v2).
 - Contraste contra la **foto** de fondo (hoy solo se compara con la paleta; `atardecer` salió casi ilegible sin aviso).
 - `build --solo-typ`: generar los `.typ` de un TOML sin compilar (`--dry-run` solo imprime).
 - `compile` no tiene `--font-path`.

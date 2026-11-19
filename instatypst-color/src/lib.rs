@@ -18,6 +18,8 @@ pub mod extract;
 #[cfg(feature = "gradient")]
 pub mod gradient;
 pub mod hex;
+#[cfg(feature = "material")]
+pub mod material;
 pub mod roles;
 pub mod schemes;
 

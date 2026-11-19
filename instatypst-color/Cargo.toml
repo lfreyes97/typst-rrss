@@ -11,9 +11,11 @@ default = ["image"]
 image = ["dep:image", "dep:quantette"]
 # Rampas de n pasos y duotonos.
 gradient = ["dep:colorgrad"]
+material = ["dep:material-colors", "image"]
 
 [dependencies]
 colorgrad = { version = "0.9", optional = true }
+material-colors = { version = "0.5", default-features = false, features = ["std", "quantize"], optional = true }
 palette = "0.7"
 image = { version = "0.25", optional = true }
 quantette = { version = "0.6", optional = true }
