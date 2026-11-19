@@ -123,7 +123,7 @@ fn los_codigos_de_error_del_documento_son_los_del_codigo() {
     use std::collections::BTreeSet;
     // un código es la cadena que sigue a la ruta en `issue(ruta, "código", …)` / `self.error(pos, "código", …)`
     let mut del_codigo: BTreeSet<String> = BTreeSet::new();
-    for f in ["src/model.rs", "src/markup.rs"] {
+    for f in ["../instatypst-piece/src/model.rs", "../instatypst-piece/src/markup.rs"] {
         let s = fs::read_to_string(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(f)).unwrap();
         let mut resto = s.as_str();
         while let Some(i) = resto.find("\"") {

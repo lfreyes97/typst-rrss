@@ -644,6 +644,7 @@ dependencies = [
  "clap",
  "image",
  "instatypst-color",
+ "instatypst-piece",
  "palette",
  "serde",
  "serde_json",
@@ -664,6 +665,18 @@ dependencies = [
  "material-colors",
  "palette",
  "quantette",
+]
+
+[[package]]
+name = "instatypst-piece"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "toml 1.0.0+spec-1.1.0",
+ "typst-syntax",
 ]
 
 [[package]]

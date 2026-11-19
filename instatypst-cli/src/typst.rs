@@ -78,12 +78,7 @@ pub fn txt_lit(s: &str) -> String {
     markup_lit(&escape_markup(s))
 }
 
-/// `true` si `k` sirve como identificador de Typst (nombre de argumento).
-pub fn is_ident(k: &str) -> bool {
-    let mut it = k.chars();
-    matches!(it.next(), Some(c) if c.is_alphabetic() || c == '_')
-        && it.all(|c| c.is_alphanumeric() || c == '_' || c == '-')
-}
+pub use instatypst_piece::util::is_ident;
 
 /// Valor TOML como literal de Typst. Los strings siempre salen como `str`.
 /// Las tablas pasan a diccionarios y los arrays a arrays; las claves deben ser

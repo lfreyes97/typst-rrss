@@ -19,7 +19,7 @@ use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-use crate::colors::hex_to_rgb_tuple;
+use crate::util::hex_to_rgb_tuple;
 
 pub const SCHEMA: &str = "instatypst-piece/v1";
 
@@ -645,7 +645,7 @@ fn validar_marca(b: &Brand, base: &str, v: &mut Vec<Issue>) {
         }
     }
     if let Some(f) = &l.function {
-        if !crate::typst::is_ident(f) {
+        if !crate::util::is_ident(f) {
             v.push(issue(
                 format!("{base}.logo.fn"),
                 "brand_logo",
@@ -717,7 +717,7 @@ fn validar_campos(p: &PieceSpec, base: &str, doc: &Document, v: &mut Vec<Issue>)
                 ),
             ));
         }
-        if !crate::typst::is_ident(&c.function) {
+        if !crate::util::is_ident(&c.function) {
             v.push(issue(
                 format!("{base}.style.fn"),
                 "style_fn",

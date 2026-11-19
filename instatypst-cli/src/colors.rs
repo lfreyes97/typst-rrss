@@ -3,16 +3,7 @@ use instatypst_color::{base, roles, Rgb, Roles};
 use std::collections::HashMap;
 use std::path::Path;
 
-pub fn hex_to_rgb_tuple(hex_color: &str) -> Result<(u8, u8, u8)> {
-    let hex = hex_color.trim_start_matches('#');
-    if hex.len() != 6 || !hex.bytes().all(|b| b.is_ascii_hexdigit()) {
-        return Err(anyhow!(
-            "color no válido: {hex_color:?} (se espera #RRGGBB)"
-        ));
-    }
-    let canal = |i: usize| u8::from_str_radix(&hex[i..i + 2], 16).unwrap_or(0);
-    Ok((canal(0), canal(2), canal(4)))
-}
+pub use instatypst_piece::util::hex_to_rgb_tuple;
 
 /// Luminancia relativa WCAG de un `#RRGGBB`.
 fn luminancia(hex: &str) -> Result<f64> {
