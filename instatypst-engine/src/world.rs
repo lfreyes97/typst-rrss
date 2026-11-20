@@ -28,6 +28,9 @@ pub struct EngineWorld {
     fonts: Arc<FontStore>,
     library: LazyHash<Library>,
     time: Time,
+    root: PathBuf,
+    /// Archivos del proyecto para completar rutas (solo el IDE los llena).
+    known_files: Vec<FileId>,
 }
 
 impl EngineWorld {
@@ -40,12 +43,14 @@ impl EngineWorld {
             main_id,
             main: Source::new(main_id, text),
             files: FileStore::new(SystemFiles::new(
-                FsRoot::new(root),
+                FsRoot::new(root.clone()),
                 SystemPackages::new(downloader),
             )),
             fonts: engine.fonts(),
             library: LazyHash::new(Library::default()),
             time: Time::system(),
+            root,
+            known_files: Vec::new(),
         }
     }
 
@@ -89,5 +94,53 @@ impl World for EngineWorld {
 
     fn today(&self, offset: Option<Duration>) -> Option<Datetime> {
         self.time.today(offset)
+    }
+}
+
+impl EngineWorld {
+    /// Recorre el proyecto (acotado) para completar rutas de archivo.
+    pub fn refresh_known_files(&mut self) {
+        const MAX: usize = 4000;
+        let mut out = Vec::new();
+        let mut stack = vec![(self.root.clone(), 0usize)];
+        while let Some((dir, depth)) = stack.pop() {
+            let Ok(rd) = std::fs::read_dir(&dir) else { continue };
+            for e in rd.flatten() {
+                if out.len() >= MAX {
+                    break;
+                }
+                let name = e.file_name().to_string_lossy().into_owned();
+                if name.starts_with('.') || name == "target" || name == "node_modules" {
+                    continue;
+                }
+                let path = e.path();
+                let Ok(ty) = e.file_type() else { continue };
+                if ty.is_dir() {
+                    if depth < 6 {
+                        stack.push((path, depth + 1));
+                    }
+                } else if let Ok(rel) = path.strip_prefix(&self.root) {
+                    let rel = rel.components().map(|c| c.as_os_str().to_string_lossy()).collect::<Vec<_>>().join("/");
+                    if let Ok(v) = VirtualPath::new(&rel) {
+                        out.push(RootedPath::new(typst::syntax::VirtualRoot::Project, v).intern());
+                    }
+                }
+            }
+        }
+        self.known_files = out;
+    }
+
+    pub fn main_source(&self) -> Source {
+        self.main.clone()
+    }
+}
+
+impl typst_ide::IdeWorld for EngineWorld {
+    fn upcast(&self) -> &dyn World {
+        self
+    }
+
+    fn files(&self) -> Vec<FileId> {
+        self.known_files.clone()
     }
 }
